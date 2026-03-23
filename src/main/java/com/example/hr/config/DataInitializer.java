@@ -85,6 +85,8 @@ public class DataInitializer {
 
       // Report permissions
       seedPermission(permissionRepository, "GET", "/api/reports", "ADMIN", "HR", "FINANCE", "MANAGER");
+      // Dashboard permissions
+      seedPermission(permissionRepository, "GET", "/api/dashboard", "ADMIN", "HR", "FINANCE", "MANAGER");
 
       // User management (admin only)
       seedPermission(permissionRepository, "GET", "/api/users", "ADMIN");

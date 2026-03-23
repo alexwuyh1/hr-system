@@ -2,6 +2,7 @@ const API_BASE = "/api";
 
 // Store auth token in memory for this demo.
 let authToken = null;
+let dashboardCharts = {};
 
 const $ = (id) => document.getElementById(id);
 
@@ -96,6 +97,24 @@ function renderTree(nodes) {
   return ul;
 }
 
+function ensureChart(id, config) {
+  const canvas = $(id);
+  if (!canvas || !window.Chart) {
+    return null;
+  }
+  if (!dashboardCharts[id]) {
+    dashboardCharts[id] = new Chart(canvas.getContext("2d"), config);
+  }
+  return dashboardCharts[id];
+}
+
+function updateChart(chart, labels, datasets) {
+  if (!chart) return;
+  chart.data.labels = labels;
+  chart.data.datasets = datasets;
+  chart.update();
+}
+
 async function loadReport() {
   const report = await apiRequest("/reports/summary");
   $("stat-total").textContent = report.totalEmployees;
@@ -104,6 +123,126 @@ async function loadReport() {
   $("report-total").textContent = report.totalEmployees;
   $("report-attendance").textContent = report.attendanceToday;
   $("report-payroll").textContent = report.totalPayroll.toFixed(2);
+}
+
+async function loadDashboard() {
+  const dashboard = await apiRequest("/dashboard/summary");
+  $("dash-total").textContent = dashboard.totalEmployees;
+  $("dash-active").textContent = dashboard.activeEmployees;
+  $("dash-attendance").textContent = dashboard.attendanceToday;
+  $("dash-payroll").textContent = dashboard.totalPayroll.toFixed(2);
+
+  const dashboardTab = $("tab-dashboard");
+  if (!dashboardTab || !dashboardTab.classList.contains("active")) {
+    return;
+  }
+
+  const headcountLabels = dashboard.headcountTrend.map((i) => i.month);
+  const headcountValues = dashboard.headcountTrend.map((i) => i.value);
+  const headcountChart = ensureChart("chart-headcount", {
+    type: "line",
+    data: {
+      labels: headcountLabels,
+      datasets: [
+        {
+          label: "员工规模",
+          data: headcountValues,
+          borderColor: "#f48c06",
+          backgroundColor: "rgba(244, 140, 6, 0.2)",
+          tension: 0.3,
+          fill: true,
+        },
+      ],
+    },
+    options: { responsive: true, maintainAspectRatio: false },
+  });
+  updateChart(headcountChart, headcountLabels, [
+    {
+      label: "员工规模",
+      data: headcountValues,
+      borderColor: "#f48c06",
+      backgroundColor: "rgba(244, 140, 6, 0.2)",
+      tension: 0.3,
+      fill: true,
+    },
+  ]);
+
+  const flowLabels = dashboard.flowTrend.map((i) => i.month);
+  const flowHired = dashboard.flowTrend.map((i) => i.hired);
+  const flowLeft = dashboard.flowTrend.map((i) => i.left);
+  const flowChart = ensureChart("chart-flow", {
+    type: "bar",
+    data: {
+      labels: flowLabels,
+      datasets: [
+        { label: "入职", data: flowHired, backgroundColor: "#f48c06" },
+        { label: "离职", data: flowLeft, backgroundColor: "#6d6255" },
+      ],
+    },
+    options: { responsive: true, maintainAspectRatio: false },
+  });
+  updateChart(flowChart, flowLabels, [
+    { label: "入职", data: flowHired, backgroundColor: "#f48c06" },
+    { label: "离职", data: flowLeft, backgroundColor: "#6d6255" },
+  ]);
+
+  const deptLabels = dashboard.departmentDistribution.map((i) => i.name);
+  const deptValues = dashboard.departmentDistribution.map((i) => i.value);
+  const deptChart = ensureChart("chart-dept", {
+    type: "doughnut",
+    data: {
+      labels: deptLabels,
+      datasets: [
+        {
+          data: deptValues,
+          backgroundColor: ["#f48c06", "#ffb703", "#8ecae6", "#219ebc", "#023047", "#b5838d"],
+        },
+      ],
+    },
+    options: { responsive: true, maintainAspectRatio: false },
+  });
+  updateChart(deptChart, deptLabels, [
+    {
+      data: deptValues,
+      backgroundColor: ["#f48c06", "#ffb703", "#8ecae6", "#219ebc", "#023047", "#b5838d"],
+    },
+  ]);
+
+  const attendanceLabels = dashboard.attendanceIssues.map((i) => i.name);
+  const attendanceValues = dashboard.attendanceIssues.map((i) => i.value);
+  const attendanceChart = ensureChart("chart-attendance", {
+    type: "bar",
+    data: {
+      labels: attendanceLabels,
+      datasets: [
+        { label: "异常次数", data: attendanceValues, backgroundColor: "#c76b00" },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: "y",
+    },
+  });
+  updateChart(attendanceChart, attendanceLabels, [
+    { label: "异常次数", data: attendanceValues, backgroundColor: "#c76b00" },
+  ]);
+
+  const payrollLabels = dashboard.payrollByDepartment.map((i) => i.name);
+  const payrollValues = dashboard.payrollByDepartment.map((i) => i.value);
+  const payrollChart = ensureChart("chart-payroll", {
+    type: "bar",
+    data: {
+      labels: payrollLabels,
+      datasets: [
+        { label: "薪资成本", data: payrollValues, backgroundColor: "#8ecae6" },
+      ],
+    },
+    options: { responsive: true, maintainAspectRatio: false },
+  });
+  updateChart(payrollChart, payrollLabels, [
+    { label: "薪资成本", data: payrollValues, backgroundColor: "#8ecae6" },
+  ]);
 }
 
 async function loadRoles() {
@@ -340,6 +479,7 @@ $("login-form").addEventListener("submit", async (e) => {
     $("auth-panel").classList.add("hidden");
     $("workspace").classList.remove("hidden");
     await Promise.all([
+      loadDashboard().catch(() => {}),
       loadEmployees(),
       loadAttendance(),
       loadSalary(),
@@ -537,7 +677,12 @@ $("salary-form").addEventListener("submit", async (e) => {
 
 // Tabs
 document.querySelectorAll(".tabs button[data-tab]").forEach((btn) => {
-  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+  btn.addEventListener("click", async () => {
+    switchTab(btn.dataset.tab);
+    if (btn.dataset.tab === "dashboard") {
+      await loadDashboard();
+    }
+  });
 });
 
 // Report refresh

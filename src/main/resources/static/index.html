@@ -51,6 +51,7 @@
 
       <section class="workspace hidden" id="workspace">
         <nav class="tabs">
+          <button data-tab="dashboard">管理仪表盘</button>
           <button data-tab="employees" class="active">员工管理</button>
           <button data-tab="profile">员工资料看板</button>
           <button data-tab="attendance">考勤管理</button>
@@ -62,6 +63,55 @@
           <button data-tab="permissions">权限管理</button>
           <button id="logout" class="ghost">退出</button>
         </nav>
+
+        <div class="tab-content" id="tab-dashboard">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>管理层仪表盘</h2>
+              <p>从人力、考勤与薪酬角度快速洞察组织状态</p>
+            </div>
+            <div class="dashboard-cards">
+              <div class="stat">
+                <span class="label">在岗员工</span>
+                <span class="value" id="dash-active">-</span>
+              </div>
+              <div class="stat">
+                <span class="label">员工总数</span>
+                <span class="value" id="dash-total">-</span>
+              </div>
+              <div class="stat">
+                <span class="label">今日考勤</span>
+                <span class="value" id="dash-attendance">-</span>
+              </div>
+              <div class="stat">
+                <span class="label">薪资成本</span>
+                <span class="value" id="dash-payroll">-</span>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-grid">
+            <div class="panel chart-panel">
+              <h3>员工规模趋势</h3>
+              <canvas id="chart-headcount"></canvas>
+            </div>
+            <div class="panel chart-panel">
+              <h3>入职/离职趋势</h3>
+              <canvas id="chart-flow"></canvas>
+            </div>
+            <div class="panel chart-panel">
+              <h3>部门人数分布</h3>
+              <canvas id="chart-dept"></canvas>
+            </div>
+            <div class="panel chart-panel">
+              <h3>考勤异常排行</h3>
+              <canvas id="chart-attendance"></canvas>
+            </div>
+            <div class="panel chart-panel">
+              <h3>部门人力成本</h3>
+              <canvas id="chart-payroll"></canvas>
+            </div>
+          </div>
+        </div>
 
         <div class="tab-content active" id="tab-employees">
           <div class="panel">
@@ -432,6 +482,7 @@
       </section>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
