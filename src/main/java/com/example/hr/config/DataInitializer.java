@@ -124,6 +124,11 @@ public class DataInitializer {
       seedPermission(permissionRepository, "POST", "/api/attendance-rules", "ADMIN", "HR");
       seedPermission(permissionRepository, "GET", "/api/data", "ADMIN", "HR", "MANAGER");
       seedPermission(permissionRepository, "POST", "/api/data", "ADMIN", "HR");
+      seedPermission(permissionRepository, "GET", "/api/employees", "ADMIN", "HR", "MANAGER");
+      seedPermission(permissionRepository, "POST", "/api/employees", "ADMIN", "HR");
+      seedPermission(permissionRepository, "PUT", "/api/employees", "ADMIN", "HR");
+      seedPermission(permissionRepository, "DELETE", "/api/employees", "ADMIN", "HR");
+      seedPermission(permissionRepository, "POST", "/api/face", "ADMIN", "HR", "MANAGER");
 
       if (departmentRepository.count() == 0) {
         Department hq = new Department();
@@ -243,12 +248,16 @@ public class DataInitializer {
       boolean hasPositionId = false;
       boolean hasGradeId = false;
       boolean hasManagerId = false;
+      boolean hasAvatar = false;
+      boolean hasFaceHash = false;
       while (rs.next()) {
         String name = rs.getString("name");
         if ("department_id".equals(name)) hasDeptId = true;
         if ("position_id".equals(name)) hasPositionId = true;
         if ("grade_id".equals(name)) hasGradeId = true;
         if ("manager_id".equals(name)) hasManagerId = true;
+        if ("avatar_path".equals(name)) hasAvatar = true;
+        if ("face_hash".equals(name)) hasFaceHash = true;
       }
       if (!hasDeptId) {
         stmt.execute("ALTER TABLE employees ADD COLUMN department_id INTEGER");
@@ -261,6 +270,12 @@ public class DataInitializer {
       }
       if (!hasManagerId) {
         stmt.execute("ALTER TABLE employees ADD COLUMN manager_id INTEGER");
+      }
+      if (!hasAvatar) {
+        stmt.execute("ALTER TABLE employees ADD COLUMN avatar_path TEXT");
+      }
+      if (!hasFaceHash) {
+        stmt.execute("ALTER TABLE employees ADD COLUMN face_hash TEXT");
       }
     } catch (Exception ex) {
       // best-effort migration for demo; log and continue

@@ -34,6 +34,10 @@ public class AuthInterceptor implements HandlerInterceptor {
     if (path.startsWith("/api/auth")) {
       return true;
     }
+    // Allow avatar image fetch without auth for rendering in <img>.
+    if (path.startsWith("/api/employees/") && path.endsWith("/avatar")) {
+      return true;
+    }
 
     String header = request.getHeader("Authorization");
     String token = null;

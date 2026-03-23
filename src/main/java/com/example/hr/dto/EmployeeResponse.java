@@ -23,6 +23,7 @@ public class EmployeeResponse {
   public String gradeName;
   public Long managerId;
   public String managerName;
+  public String avatarUrl;
 
   public static EmployeeResponse from(Employee employee) {
     EmployeeResponse r = new EmployeeResponse();
@@ -50,6 +51,9 @@ public class EmployeeResponse {
     if (employee.getManagerRef() != null) {
       r.managerId = employee.getManagerRef().getId();
       r.managerName = employee.getManagerRef().getName();
+    }
+    if (employee.getAvatarPath() != null) {
+      r.avatarUrl = "/api/employees/" + employee.getId() + "/avatar";
     }
     return r;
   }

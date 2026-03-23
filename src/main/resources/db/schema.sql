@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS employees (
   position_id INTEGER,
   grade_id INTEGER,
   manager_id INTEGER,
+  avatar_path TEXT,
+  face_hash TEXT,
   FOREIGN KEY (department_id) REFERENCES departments(id),
   FOREIGN KEY (position_id) REFERENCES positions(id),
   FOREIGN KEY (grade_id) REFERENCES grades(id),

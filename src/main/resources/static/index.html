@@ -52,6 +52,7 @@
       <section class="workspace hidden" id="workspace">
         <nav class="tabs">
           <button data-tab="employees" class="active">员工管理</button>
+          <button data-tab="profile">员工资料看板</button>
           <button data-tab="attendance">考勤管理</button>
           <button data-tab="salary">薪资管理</button>
           <button data-tab="report">报表</button>
@@ -140,6 +141,41 @@
               </thead>
               <tbody></tbody>
             </table>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-profile">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>员工资料看板</h2>
+              <p>头像上传与 1:1 人脸考勤</p>
+            </div>
+            <div class="grid-3">
+              <label>
+                选择员工
+                <select id="profile-employee"></select>
+              </label>
+              <label>
+                头像文件
+                <input id="profile-avatar" type="file" />
+              </label>
+              <button id="profile-upload">上传头像</button>
+            </div>
+            <div class="grid-3">
+              <label>
+                识别文件
+                <input id="profile-verify" type="file" />
+              </label>
+              <button id="profile-verify-btn">验证人脸</button>
+              <button id="profile-checkin" class="ghost">人脸考勤</button>
+            </div>
+            <p id="profile-result" class="subtitle"></p>
+          </div>
+          <div class="panel profile-card">
+            <div class="profile-avatar">
+              <img id="profile-avatar-img" alt="avatar" />
+            </div>
+            <div class="profile-info" id="profile-info"></div>
           </div>
         </div>
 

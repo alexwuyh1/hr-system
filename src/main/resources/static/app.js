@@ -146,6 +146,23 @@ async function loadEmployees() {
     );
     body.appendChild(row);
   });
+
+  // Populate profile selector
+  const profileSelect = $("profile-employee");
+  if (profileSelect) {
+    profileSelect.innerHTML = "";
+    list.forEach((e) => {
+      const option = document.createElement("option");
+      option.value = e.id;
+      option.textContent = `${e.employeeNo} - ${e.name}`;
+      option.dataset.avatar = e.avatarUrl || "";
+      option.dataset.info = JSON.stringify(e);
+      profileSelect.appendChild(option);
+    });
+    if (list.length > 0) {
+      renderProfile(list[0]);
+    }
+  }
 }
 
 async function loadAttendance() {
@@ -293,6 +310,23 @@ async function loadAttendanceRule() {
   if (overtimeInput) overtimeInput.value = rule.overtimeThresholdMinutes;
 }
 
+function renderProfile(employee) {
+  const info = $("profile-info");
+  if (!info) return;
+  const avatar = $("profile-avatar-img");
+  avatar.src = employee.avatarUrl || "";
+  avatar.alt = employee.name || "avatar";
+  info.innerHTML = `
+    <div><strong>${employee.name}</strong> <span>(${employee.employeeNo})</span></div>
+    <div>部门：${employee.departmentName || employee.department || "-"}</div>
+    <div>岗位：${employee.positionName || employee.title || "-"}</div>
+    <div>职级：${employee.gradeName || "-"}</div>
+    <div>直属上级：${employee.managerName || "-"}</div>
+    <div>邮箱：${employee.email || "-"}</div>
+    <div>电话：${employee.phone || "-"}</div>
+  `;
+}
+
 // Login flow
 $("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -370,6 +404,99 @@ $("employee-form").addEventListener("submit", async (e) => {
     alert(`保存失败: ${err.message}`);
   }
 });
+
+// Profile interactions
+const profileSelect = $("profile-employee");
+if (profileSelect) {
+  profileSelect.addEventListener("change", () => {
+    const option = profileSelect.options[profileSelect.selectedIndex];
+    const employee = JSON.parse(option.dataset.info);
+    renderProfile(employee);
+  });
+}
+
+const profileUploadBtn = $("profile-upload");
+if (profileUploadBtn) {
+  profileUploadBtn.addEventListener("click", async () => {
+    const employeeId = $("profile-employee").value;
+    const file = $("profile-avatar").files[0];
+    if (!file) {
+      alert("请选择头像文件");
+      return;
+    }
+    const form = new FormData();
+    form.append("file", file);
+    const response = await fetch(`/api/employees/${employeeId}/avatar`, {
+      method: "POST",
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      body: form,
+    });
+    if (!response.ok) {
+      const err = await response.text();
+      $("profile-result").textContent = `上传失败：${err}`;
+      return;
+    }
+    $("profile-result").textContent = "头像上传成功";
+    await loadEmployees();
+    const selected = $("profile-employee").value;
+    const option = Array.from($("profile-employee").options).find((o) => o.value === selected);
+    if (option) {
+      renderProfile(JSON.parse(option.dataset.info));
+    }
+  });
+}
+
+const profileVerifyBtn = $("profile-verify-btn");
+if (profileVerifyBtn) {
+  profileVerifyBtn.addEventListener("click", async () => {
+    const employeeId = $("profile-employee").value;
+    const file = $("profile-verify").files[0];
+    if (!file) {
+      alert("请选择识别文件");
+      return;
+    }
+    const form = new FormData();
+    form.append("employeeId", employeeId);
+    form.append("file", file);
+    const response = await fetch("/api/face/verify", {
+      method: "POST",
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      body: form,
+    });
+    const data = await response.json();
+    $("profile-result").textContent = data.matched
+      ? `验证通过，距离 ${data.distance}`
+      : `验证失败，距离 ${data.distance}`;
+  });
+}
+
+const profileCheckinBtn = $("profile-checkin");
+if (profileCheckinBtn) {
+  profileCheckinBtn.addEventListener("click", async () => {
+    const employeeId = $("profile-employee").value;
+    const file = $("profile-verify").files[0];
+    if (!file) {
+      alert("请先选择识别文件");
+      return;
+    }
+    const form = new FormData();
+    form.append("employeeId", employeeId);
+    form.append("file", file);
+    const response = await fetch("/api/face/checkin", {
+      method: "POST",
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      body: form,
+    });
+    if (!response.ok) {
+      const err = await response.text();
+      $("profile-result").textContent = `考勤失败：${err}`;
+      return;
+    }
+    const data = await response.json();
+    $("profile-result").textContent = `考勤成功：${data.workDate} ${data.checkIn || ""} ${data.checkOut || ""}`;
+    await loadAttendance();
+  });
+}
 
 // Attendance form
 $("attendance-form").addEventListener("submit", async (e) => {

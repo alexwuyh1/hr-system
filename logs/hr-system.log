@@ -8,32 +8,32 @@
 
  :: Spring Boot ::                (v3.3.2)
 
-2026-03-23T13:50:12.244+08:00  INFO 26970 --- [           main] com.example.hr.HrSystemApplication       : Starting HrSystemApplication using Java 21.0.10 with PID 26970 (/home/alex/hr-system/target/classes started by alex in /home/alex/hr-system)
-2026-03-23T13:50:12.247+08:00  INFO 26970 --- [           main] com.example.hr.HrSystemApplication       : No active profile set, falling back to 1 default profile: "default"
-2026-03-23T13:50:12.887+08:00  INFO 26970 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-03-23T13:50:12.961+08:00  INFO 26970 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 68 ms. Found 13 JPA repository interfaces.
-2026-03-23T13:50:13.433+08:00  INFO 26970 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 18080 (http)
-2026-03-23T13:50:13.443+08:00  INFO 26970 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-03-23T13:50:13.443+08:00  INFO 26970 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.26]
-2026-03-23T13:50:13.482+08:00  INFO 26970 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-03-23T13:50:13.483+08:00  INFO 26970 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1193 ms
-2026-03-23T13:50:13.567+08:00  INFO 26970 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-03-23T13:50:13.690+08:00  INFO 26970 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.sqlite.jdbc4.JDBC4Connection@220c9a63
-2026-03-23T13:50:13.692+08:00  INFO 26970 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-03-23T13:50:13.763+08:00  INFO 26970 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-03-23T13:50:13.800+08:00  INFO 26970 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.2.Final
-2026-03-23T13:50:13.821+08:00  INFO 26970 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-03-23T13:50:14.039+08:00  INFO 26970 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-03-23T13:50:14.871+08:00  INFO 26970 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-03-23T13:50:14.873+08:00  INFO 26970 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-03-23T13:50:15.167+08:00  INFO 26970 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-03-23T13:50:15.657+08:00  INFO 26970 --- [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
-2026-03-23T13:50:15.941+08:00  INFO 26970 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 18080 (http) with context path '/'
-2026-03-23T13:50:15.946+08:00  INFO 26970 --- [           main] com.example.hr.HrSystemApplication       : Started HrSystemApplication in 4.051 seconds (process running for 4.308)
-2026-03-23T13:50:16.921+08:00  INFO 26970 --- [io-18080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-03-23T13:50:16.921+08:00  INFO 26970 --- [io-18080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-03-23T13:50:16.922+08:00  INFO 26970 --- [io-18080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
-2026-03-23T13:50:17.141+08:00 ERROR 26970 --- [io-18080-exec-4] c.e.h.controller.GlobalExceptionHandler  : Unhandled error
+2026-03-23T14:25:40.216+08:00  INFO 36174 --- [           main] com.example.hr.HrSystemApplication       : Starting HrSystemApplication using Java 21.0.10 with PID 36174 (/home/alex/hr-system/target/classes started by alex in /home/alex/hr-system)
+2026-03-23T14:25:40.217+08:00  INFO 36174 --- [           main] com.example.hr.HrSystemApplication       : No active profile set, falling back to 1 default profile: "default"
+2026-03-23T14:25:40.804+08:00  INFO 36174 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-23T14:25:40.871+08:00  INFO 36174 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 61 ms. Found 13 JPA repository interfaces.
+2026-03-23T14:25:41.301+08:00  INFO 36174 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 18080 (http)
+2026-03-23T14:25:41.329+08:00  INFO 36174 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-23T14:25:41.329+08:00  INFO 36174 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.26]
+2026-03-23T14:25:41.371+08:00  INFO 36174 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-03-23T14:25:41.372+08:00  INFO 36174 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1116 ms
+2026-03-23T14:25:41.441+08:00  INFO 36174 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-23T14:25:41.555+08:00  INFO 36174 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.sqlite.jdbc4.JDBC4Connection@e09f1b6
+2026-03-23T14:25:41.556+08:00  INFO 36174 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-23T14:25:41.628+08:00  INFO 36174 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-03-23T14:25:41.672+08:00  INFO 36174 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.2.Final
+2026-03-23T14:25:41.695+08:00  INFO 36174 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-03-23T14:25:41.907+08:00  INFO 36174 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-23T14:25:42.724+08:00  INFO 36174 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-23T14:25:42.726+08:00  INFO 36174 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-23T14:25:43.020+08:00  INFO 36174 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-23T14:25:43.506+08:00  INFO 36174 --- [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-03-23T14:25:43.771+08:00  INFO 36174 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 18080 (http) with context path '/'
+2026-03-23T14:25:43.777+08:00  INFO 36174 --- [           main] com.example.hr.HrSystemApplication       : Started HrSystemApplication in 3.912 seconds (process running for 4.215)
+2026-03-23T14:25:48.477+08:00  INFO 36174 --- [io-18080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-23T14:25:48.478+08:00  INFO 36174 --- [io-18080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-03-23T14:25:48.479+08:00  INFO 36174 --- [io-18080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-03-23T14:25:48.695+08:00 ERROR 36174 --- [io-18080-exec-4] c.e.h.controller.GlobalExceptionHandler  : Unhandled error
 
 org.springframework.web.servlet.resource.NoResourceFoundException: No static resource favicon.ico.
 	at org.springframework.web.servlet.resource.ResourceHttpRequestHandler.handleRequest(ResourceHttpRequestHandler.java:585) ~[spring-webmvc-6.1.11.jar:6.1.11]
@@ -79,6 +79,3 @@ org.springframework.web.servlet.resource.NoResourceFoundException: No static res
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.26.jar:10.1.26]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
 
-2026-03-23T13:55:00.487+08:00  INFO 26970 --- [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-03-23T13:55:00.489+08:00  INFO 26970 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2026-03-23T13:55:00.491+08:00  INFO 26970 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

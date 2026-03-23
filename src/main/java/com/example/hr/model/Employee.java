@@ -60,6 +60,14 @@ public class Employee {
   @JsonIgnoreProperties({"managerRef", "departmentRef", "positionRef", "gradeRef"})
   private Employee managerRef;
 
+  // Avatar file path on server
+  @Column(name = "avatar_path")
+  private String avatarPath;
+
+  // Face hash (simple aHash for MVP)
+  @Column(name = "face_hash")
+  private String faceHash;
+
   public Long getId() {
     return id;
   }
@@ -158,5 +166,21 @@ public class Employee {
 
   public void setManagerRef(Employee managerRef) {
     this.managerRef = managerRef;
+  }
+
+  public String getAvatarPath() {
+    return avatarPath;
+  }
+
+  public void setAvatarPath(String avatarPath) {
+    this.avatarPath = avatarPath;
+  }
+
+  public String getFaceHash() {
+    return faceHash;
+  }
+
+  public void setFaceHash(String faceHash) {
+    this.faceHash = faceHash;
   }
 }
