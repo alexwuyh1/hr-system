@@ -45,3 +45,18 @@ CREATE TABLE IF NOT EXISTS salaries (
   UNIQUE(employee_id, salary_month),
   FOREIGN KEY (employee_id) REFERENCES employees(id)
 );
+
+-- Role catalog
+CREATE TABLE IF NOT EXISTS roles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE
+);
+
+-- Permission rules: which role can access which endpoint.
+CREATE TABLE IF NOT EXISTS permissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  role TEXT NOT NULL,
+  method TEXT NOT NULL,
+  path_prefix TEXT NOT NULL,
+  UNIQUE(role, method, path_prefix)
+);

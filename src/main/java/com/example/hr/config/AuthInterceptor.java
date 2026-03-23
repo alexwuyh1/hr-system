@@ -1,5 +1,8 @@
 package com.example.hr.config;
 
+import com.example.hr.model.User;
+import com.example.hr.repository.UserRepository;
+import com.example.hr.service.PermissionService;
 import com.example.hr.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,9 +16,14 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
   private final TokenService tokenService;
+  private final UserRepository userRepository;
+  private final PermissionService permissionService;
 
-  public AuthInterceptor(TokenService tokenService) {
+  public AuthInterceptor(
+      TokenService tokenService, UserRepository userRepository, PermissionService permissionService) {
     this.tokenService = tokenService;
+    this.userRepository = userRepository;
+    this.permissionService = permissionService;
   }
 
   @Override
@@ -37,6 +45,22 @@ public class AuthInterceptor implements HandlerInterceptor {
     if (userId == null) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       response.getWriter().write("Unauthorized");
+      return false;
+    }
+    User user =
+        userRepository
+            .findById(userId)
+            .orElse(null);
+    if (user == null) {
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      response.getWriter().write("Unauthorized");
+      return false;
+    }
+
+    // Authorization check based on DB-configured permissions.
+    if (!permissionService.isAllowed(user.getRole(), request.getMethod(), path)) {
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+      response.getWriter().write("Forbidden");
       return false;
     }
     return true;

@@ -1,8 +1,12 @@
 package com.example.hr.config;
 
 import com.example.hr.model.Employee;
+import com.example.hr.model.Permission;
+import com.example.hr.model.Role;
 import com.example.hr.model.User;
 import com.example.hr.repository.EmployeeRepository;
+import com.example.hr.repository.PermissionRepository;
+import com.example.hr.repository.RoleRepository;
 import com.example.hr.repository.UserRepository;
 import java.time.LocalDate;
 import org.springframework.boot.CommandLineRunner;
@@ -20,6 +24,8 @@ public class DataInitializer {
   CommandLineRunner initData(
       UserRepository userRepository,
       EmployeeRepository employeeRepository,
+      RoleRepository roleRepository,
+      PermissionRepository permissionRepository,
       PasswordEncoder passwordEncoder) {
     return args -> {
       if (userRepository.count() == 0) {
@@ -29,6 +35,46 @@ public class DataInitializer {
         admin.setRole("ADMIN");
         admin.setCreatedAt(System.currentTimeMillis());
         userRepository.save(admin);
+      }
+
+      if (roleRepository.count() == 0) {
+        for (String roleName : new String[] {"ADMIN", "HR", "FINANCE", "MANAGER", "USER"}) {
+          Role role = new Role();
+          role.setName(roleName);
+          roleRepository.save(role);
+        }
+      }
+
+      if (permissionRepository.count() == 0) {
+        // Employee permissions
+        seedPermission(permissionRepository, "GET", "/api/employees", "ADMIN", "HR", "MANAGER");
+        seedPermission(permissionRepository, "POST", "/api/employees", "ADMIN", "HR");
+        seedPermission(permissionRepository, "PUT", "/api/employees", "ADMIN", "HR");
+        seedPermission(permissionRepository, "DELETE", "/api/employees", "ADMIN", "HR");
+
+        // Attendance permissions
+        seedPermission(permissionRepository, "GET", "/api/attendance", "ADMIN", "HR", "MANAGER");
+        seedPermission(permissionRepository, "POST", "/api/attendance", "ADMIN", "HR");
+        seedPermission(permissionRepository, "PUT", "/api/attendance", "ADMIN", "HR");
+        seedPermission(permissionRepository, "DELETE", "/api/attendance", "ADMIN", "HR");
+
+        // Salary permissions
+        seedPermission(permissionRepository, "GET", "/api/salaries", "ADMIN", "FINANCE");
+        seedPermission(permissionRepository, "POST", "/api/salaries", "ADMIN", "FINANCE");
+        seedPermission(permissionRepository, "PUT", "/api/salaries", "ADMIN", "FINANCE");
+        seedPermission(permissionRepository, "DELETE", "/api/salaries", "ADMIN", "FINANCE");
+
+        // Report permissions
+        seedPermission(permissionRepository, "GET", "/api/reports", "ADMIN", "HR", "FINANCE", "MANAGER");
+
+        // User management (admin only)
+        seedPermission(permissionRepository, "GET", "/api/users", "ADMIN");
+        seedPermission(permissionRepository, "PUT", "/api/users", "ADMIN");
+        seedPermission(permissionRepository, "POST", "/api/permissions", "ADMIN");
+        seedPermission(permissionRepository, "PUT", "/api/permissions", "ADMIN");
+        seedPermission(permissionRepository, "DELETE", "/api/permissions", "ADMIN");
+        seedPermission(permissionRepository, "GET", "/api/permissions", "ADMIN");
+        seedPermission(permissionRepository, "GET", "/api/roles", "ADMIN");
       }
 
       if (employeeRepository.count() == 0) {
@@ -55,5 +101,19 @@ public class DataInitializer {
         employeeRepository.save(e2);
       }
     };
+  }
+
+  private void seedPermission(
+      PermissionRepository permissionRepository,
+      String method,
+      String pathPrefix,
+      String... roles) {
+    for (String role : roles) {
+      Permission permission = new Permission();
+      permission.setRole(role);
+      permission.setMethod(method);
+      permission.setPathPrefix(pathPrefix);
+      permissionRepository.save(permission);
+    }
   }
 }

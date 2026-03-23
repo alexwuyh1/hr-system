@@ -118,6 +118,7 @@ form {
 }
 
 input,
+select,
 button {
   font-family: inherit;
   padding: 10px 12px;

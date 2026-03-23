@@ -12,6 +12,16 @@
 - Username: `admin`
 - Password: `admin123`
 
+## Roles and Permissions (Simple)
+- ADMIN: full access, including user role management
+- HR: employee + attendance + reports
+- FINANCE: salary + reports
+- MANAGER: view employees + attendance + reports
+- USER: minimal access (login only by default)
+
+Permissions are now stored in the database and can be managed from the UI
+under the "权限管理" tab (admin only).
+
 ## Project Structure
 - `src/main/java/com/example/hr`: backend code (controllers, services, repositories, models)
 - `src/main/resources/static`: frontend (HTML/CSS/JS)

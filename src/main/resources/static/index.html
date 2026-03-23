@@ -55,6 +55,7 @@
           <button data-tab="attendance">考勤管理</button>
           <button data-tab="salary">薪资管理</button>
           <button data-tab="report">报表</button>
+          <button data-tab="permissions">权限管理</button>
           <button id="logout" class="ghost">退出</button>
         </nav>
 
@@ -180,6 +181,48 @@
                 <span class="value" id="report-payroll">-</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-permissions">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>权限管理</h2>
+              <p>仅管理员可见，配置角色访问规则</p>
+            </div>
+            <div class="grid-3">
+              <label>
+                角色
+                <select id="perm-role"></select>
+              </label>
+              <label>
+                方法
+                <select id="perm-method">
+                  <option>GET</option>
+                  <option>POST</option>
+                  <option>PUT</option>
+                  <option>DELETE</option>
+                </select>
+              </label>
+              <label>
+                路径前缀
+                <input id="perm-path" placeholder="/api/employees" />
+              </label>
+            </div>
+            <button id="perm-add">新增权限</button>
+          </div>
+          <div class="table-panel">
+            <table id="perm-table">
+              <thead>
+                <tr>
+                  <th>角色</th>
+                  <th>方法</th>
+                  <th>路径</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
       </section>

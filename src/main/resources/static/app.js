@@ -63,6 +63,32 @@ async function loadReport() {
   $("report-payroll").textContent = report.totalPayroll.toFixed(2);
 }
 
+async function loadRoles() {
+  const roles = await apiRequest("/roles");
+  const select = $("perm-role");
+  if (!select) return;
+  select.innerHTML = "";
+  roles.forEach((r) => {
+    const option = document.createElement("option");
+    option.value = r.name;
+    option.textContent = r.name;
+    select.appendChild(option);
+  });
+}
+
+async function loadPermissions() {
+  const list = await apiRequest("/permissions");
+  const body = $("perm-table").querySelector("tbody");
+  body.innerHTML = "";
+  list.forEach((p) => {
+    const row = buildRow([p.role, p.method, p.pathPrefix], async () => {
+      await apiRequest(`/permissions/${p.id}`, { method: "DELETE" });
+      await loadPermissions();
+    });
+    body.appendChild(row);
+  });
+}
+
 async function loadEmployees() {
   const list = await apiRequest("/employees");
   const body = $("employee-table").querySelector("tbody");
@@ -135,7 +161,14 @@ $("login-form").addEventListener("submit", async (e) => {
     authToken = result.token;
     $("auth-panel").classList.add("hidden");
     $("workspace").classList.remove("hidden");
-    await Promise.all([loadEmployees(), loadAttendance(), loadSalary(), loadReport()]);
+    await Promise.all([
+      loadEmployees(),
+      loadAttendance(),
+      loadSalary(),
+      loadReport(),
+      loadRoles().catch(() => {}),
+      loadPermissions().catch(() => {}),
+    ]);
   } catch (err) {
     alert(`登录失败: ${err.message}`);
   }
@@ -226,3 +259,27 @@ document.querySelectorAll(".tabs button[data-tab]").forEach((btn) => {
 $("refresh-report").addEventListener("click", async () => {
   await loadReport();
 });
+
+// Permissions form
+const permAddBtn = $("perm-add");
+if (permAddBtn) {
+  permAddBtn.addEventListener("click", async () => {
+    try {
+      const role = $("perm-role").value;
+      const method = $("perm-method").value;
+      const pathPrefix = $("perm-path").value.trim();
+      if (!pathPrefix) {
+        alert("请输入路径前缀");
+        return;
+      }
+      await apiRequest("/permissions", {
+        method: "POST",
+        body: JSON.stringify({ role, method, pathPrefix }),
+      });
+      $("perm-path").value = "";
+      await loadPermissions();
+    } catch (err) {
+      alert(`新增失败: ${err.message}`);
+    }
+  });
+}
