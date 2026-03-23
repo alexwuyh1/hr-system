@@ -28,6 +28,18 @@ under the "权限管理" tab (admin only).
 - Grades: level catalog
 - Direct manager: employee self-reference
 
+## OpenCV (System Install)
+For production or stable OpenCV usage, install system OpenCV and configure JVM binding:
+```
+./scripts/install-opencv.sh
+```
+This sets `JAVA_TOOL_OPTIONS=-Djava.library.path=/usr/lib/x86_64-linux-gnu`.
+
+## Docker (OpenCV Included)
+```
+docker compose up --build
+```
+
 ## Project Structure
 - `src/main/java/com/example/hr`: backend code (controllers, services, repositories, models)
 - `src/main/resources/static`: frontend (HTML/CSS/JS)

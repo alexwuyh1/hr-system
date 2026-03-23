@@ -19,14 +19,17 @@ public class FaceAttendanceService {
   private final EmployeeRepository employeeRepository;
   private final AttendanceRepository attendanceRepository;
   private final FaceService faceService;
+  private final OpenCvFaceService openCvFaceService;
 
   public FaceAttendanceService(
       EmployeeRepository employeeRepository,
       AttendanceRepository attendanceRepository,
-      FaceService faceService) {
+      FaceService faceService,
+      OpenCvFaceService openCvFaceService) {
     this.employeeRepository = employeeRepository;
     this.attendanceRepository = attendanceRepository;
     this.faceService = faceService;
+    this.openCvFaceService = openCvFaceService;
   }
 
   public VerificationResult verify(Long employeeId, InputStream image) throws Exception {
@@ -34,13 +37,26 @@ public class FaceAttendanceService {
         employeeRepository
             .findById(employeeId)
             .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-    if (employee.getFaceHash() == null) {
+    if (employee.getAvatarPath() == null) {
       throw new IllegalArgumentException("Employee has no avatar/face data");
     }
-    String hash = faceService.computeHash(image);
-    int distance = faceService.hammingDistance(employee.getFaceHash(), hash);
-    boolean matched = distance <= DEFAULT_THRESHOLD;
-    return new VerificationResult(matched, distance, DEFAULT_THRESHOLD);
+    byte[] bytes = image.readAllBytes();
+    // Prefer OpenCV verification; fallback to hash if needed.
+    try {
+      var result =
+          openCvFaceService.verify(new java.io.ByteArrayInputStream(bytes),
+              java.nio.file.Path.of(employee.getAvatarPath()));
+      return new VerificationResult(
+          result.matched(), (int) Math.round(result.confidence()), (int) result.threshold());
+    } catch (IllegalStateException | UnsatisfiedLinkError ex) {
+      if (employee.getFaceHash() == null) {
+        throw ex;
+      }
+      String hash = faceService.computeHash(new java.io.ByteArrayInputStream(bytes));
+      int distance = faceService.hammingDistance(employee.getFaceHash(), hash);
+      boolean matched = distance <= DEFAULT_THRESHOLD;
+      return new VerificationResult(matched, distance, DEFAULT_THRESHOLD);
+    }
   }
 
   public Attendance checkIn(Long employeeId, InputStream image) throws Exception {
