@@ -29,27 +29,33 @@ body {
 }
 
 .hero {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
   align-items: center;
-  padding: 12px 24px;
+  padding: 8px 24px;
   background: linear-gradient(130deg, #fff 0%, #ffe7cc 100%);
   border-radius: 16px;
   box-shadow: var(--shadow);
   min-height: auto;
 }
 
+.hero > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .kicker {
   letter-spacing: 0.2em;
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
   color: var(--accent-dark);
   margin: 0;
 }
 
 .hero h1 {
-  font-size: clamp(20px, 2.5vw, 28px);
+  font-size: clamp(18px, 2vw, 24px);
   margin: 0;
   line-height: 1.2;
 }
@@ -57,13 +63,14 @@ body {
 .subtitle {
   color: var(--muted);
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .stats,
 .report-grid {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: nowrap;
 }
 
 .dashboard-cards {
@@ -109,18 +116,18 @@ body {
 .stat {
   background: var(--panel);
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 8px 14px;
   border: 1px solid var(--line);
 }
 
 .stat .label {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--muted);
 }
 
 .stat .value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
 }
 
