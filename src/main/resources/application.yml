@@ -20,5 +20,6 @@ spring:
 
 app:
   auth:
-    # Simple in-memory token expiration (minutes)
-    token-expire-minutes: 120
+    # JWT secret should be long and random in production
+    jwt-secret: "change-this-secret-to-a-long-random-string"
+    jwt-expire-minutes: 120

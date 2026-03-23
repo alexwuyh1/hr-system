@@ -55,6 +55,7 @@
           <button data-tab="attendance">考勤管理</button>
           <button data-tab="salary">薪资管理</button>
           <button data-tab="report">报表</button>
+          <button data-tab="org">组织结构</button>
           <button data-tab="permissions">权限管理</button>
           <button id="logout" class="ghost">退出</button>
         </nav>
@@ -68,12 +69,25 @@
             <form id="employee-form" class="grid-3">
               <input name="employeeNo" placeholder="工号" required />
               <input name="name" placeholder="姓名" required />
-              <input name="department" placeholder="部门" required />
-              <input name="title" placeholder="职位" required />
+              <label>
+                部门
+                <select id="employee-department" required></select>
+              </label>
+              <label>
+                岗位
+                <select id="employee-position" required></select>
+              </label>
+              <label>
+                职级
+                <select id="employee-grade" required></select>
+              </label>
               <input name="phone" placeholder="电话" />
               <input name="email" placeholder="邮箱" />
               <input name="hireDate" type="date" required />
               <input name="status" placeholder="状态" value="Active" required />
+              <input name="managerId" placeholder="直属上级ID（可选）" />
+              <input type="hidden" name="department" />
+              <input type="hidden" name="title" />
               <button type="submit">保存</button>
             </form>
           </div>
@@ -181,6 +195,86 @@
                 <span class="value" id="report-payroll">-</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-org">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>组织结构</h2>
+              <p>维护部门树、岗位与职级</p>
+            </div>
+            <div class="grid-3">
+              <label>
+                新部门名称
+                <input id="dept-name" placeholder="部门名称" />
+              </label>
+              <label>
+                上级部门
+                <select id="dept-parent"></select>
+              </label>
+              <button id="dept-add">新增部门</button>
+            </div>
+            <div class="grid-3">
+              <label>
+                新岗位名称
+                <input id="pos-name" placeholder="岗位名称" />
+              </label>
+              <button id="pos-add">新增岗位</button>
+            </div>
+            <div class="grid-3">
+              <label>
+                新职级名称
+                <input id="grade-name" placeholder="职级名称" />
+              </label>
+              <label>
+                等级
+                <input id="grade-level" type="number" placeholder="等级" />
+              </label>
+              <button id="grade-add">新增职级</button>
+            </div>
+          </div>
+          <div class="table-panel">
+            <table id="dept-table">
+              <thead>
+                <tr>
+                  <th>部门</th>
+                  <th>上级部门</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3>组织结构树</h3>
+              <p>支持折叠/展开</p>
+            </div>
+            <div id="dept-tree"></div>
+          </div>
+          <div class="table-panel">
+            <table id="pos-table">
+              <thead>
+                <tr>
+                  <th>岗位</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="table-panel">
+            <table id="grade-table">
+              <thead>
+                <tr>
+                  <th>职级</th>
+                  <th>等级</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
 

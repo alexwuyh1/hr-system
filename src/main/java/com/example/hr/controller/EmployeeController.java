@@ -1,6 +1,7 @@
 package com.example.hr.controller;
 
 import com.example.hr.dto.EmployeeRequest;
+import com.example.hr.dto.EmployeeResponse;
 import com.example.hr.model.Employee;
 import com.example.hr.service.EmployeeService;
 import jakarta.validation.Valid;
@@ -20,18 +21,18 @@ public class EmployeeController {
   }
 
   @GetMapping
-  public List<Employee> list() {
-    return employeeService.list();
+  public List<EmployeeResponse> list() {
+    return employeeService.list().stream().map(EmployeeResponse::from).toList();
   }
 
   @PostMapping
-  public Employee create(@Valid @RequestBody EmployeeRequest request) {
-    return employeeService.create(request);
+  public EmployeeResponse create(@Valid @RequestBody EmployeeRequest request) {
+    return EmployeeResponse.from(employeeService.create(request));
   }
 
   @PutMapping("/{id}")
-  public Employee update(@PathVariable Long id, @Valid @RequestBody EmployeeRequest request) {
-    return employeeService.update(id, request);
+  public EmployeeResponse update(@PathVariable Long id, @Valid @RequestBody EmployeeRequest request) {
+    return EmployeeResponse.from(employeeService.update(id, request));
   }
 
   @DeleteMapping("/{id}")

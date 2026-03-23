@@ -9,4 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface PermissionRepository extends JpaRepository<Permission, Long> {
   List<Permission> findByRoleAndMethod(String role, String method);
+  boolean existsByRoleAndMethodAndPathPrefix(String role, String method, String pathPrefix);
 }

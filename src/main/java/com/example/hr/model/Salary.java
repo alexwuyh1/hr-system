@@ -17,7 +17,14 @@ public class Salary {
   // EAGER fetch to avoid lazy proxy serialization errors in simple demo.
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "employee_id", nullable = false)
-  @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+  @JsonIgnoreProperties({
+    "hibernateLazyInitializer",
+    "handler",
+    "departmentRef",
+    "positionRef",
+    "gradeRef",
+    "managerRef"
+  })
   private Employee employee;
 
   @Column(name = "salary_month", nullable = false)

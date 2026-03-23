@@ -22,4 +22,8 @@ public class EmployeeRequest {
   public LocalDate hireDate;
   @NotBlank
   public String status;
+  public Long departmentId;
+  public Long positionId;
+  public Long gradeId;
+  public Long managerId;
 }

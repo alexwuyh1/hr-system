@@ -1,5 +1,6 @@
 package com.example.hr.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
@@ -36,6 +37,28 @@ public class Employee {
   // Active, OnLeave, Resigned, etc.
   @Column(nullable = false)
   private String status;
+
+  // Department tree reference (optional for legacy data)
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "department_id")
+  @JsonIgnoreProperties({"parent"})
+  private Department departmentRef;
+
+  // Position catalog reference
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "position_id")
+  private Position positionRef;
+
+  // Grade/level reference
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "grade_id")
+  private Grade gradeRef;
+
+  // Direct manager (self-reference)
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "manager_id")
+  @JsonIgnoreProperties({"managerRef", "departmentRef", "positionRef", "gradeRef"})
+  private Employee managerRef;
 
   public Long getId() {
     return id;
@@ -103,5 +126,37 @@ public class Employee {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public Department getDepartmentRef() {
+    return departmentRef;
+  }
+
+  public void setDepartmentRef(Department departmentRef) {
+    this.departmentRef = departmentRef;
+  }
+
+  public Position getPositionRef() {
+    return positionRef;
+  }
+
+  public void setPositionRef(Position positionRef) {
+    this.positionRef = positionRef;
+  }
+
+  public Grade getGradeRef() {
+    return gradeRef;
+  }
+
+  public void setGradeRef(Grade gradeRef) {
+    this.gradeRef = gradeRef;
+  }
+
+  public Employee getManagerRef() {
+    return managerRef;
+  }
+
+  public void setManagerRef(Employee managerRef) {
+    this.managerRef = managerRef;
   }
 }

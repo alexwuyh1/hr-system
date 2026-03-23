@@ -22,6 +22,12 @@
 Permissions are now stored in the database and can be managed from the UI
 under the "权限管理" tab (admin only).
 
+## Organization Structure
+- Departments: tree structure with parent department
+- Positions: job titles catalog
+- Grades: level catalog
+- Direct manager: employee self-reference
+
 ## Project Structure
 - `src/main/java/com/example/hr`: backend code (controllers, services, repositories, models)
 - `src/main/resources/static`: frontend (HTML/CSS/JS)

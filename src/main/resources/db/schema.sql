@@ -17,7 +17,15 @@ CREATE TABLE IF NOT EXISTS employees (
   phone TEXT,
   email TEXT,
   hire_date TEXT NOT NULL,
-  status TEXT NOT NULL
+  status TEXT NOT NULL,
+  department_id INTEGER,
+  position_id INTEGER,
+  grade_id INTEGER,
+  manager_id INTEGER,
+  FOREIGN KEY (department_id) REFERENCES departments(id),
+  FOREIGN KEY (position_id) REFERENCES positions(id),
+  FOREIGN KEY (grade_id) REFERENCES grades(id),
+  FOREIGN KEY (manager_id) REFERENCES employees(id)
 );
 
 -- Attendance records per employee and date.
@@ -44,6 +52,28 @@ CREATE TABLE IF NOT EXISTS salaries (
   note TEXT,
   UNIQUE(employee_id, salary_month),
   FOREIGN KEY (employee_id) REFERENCES employees(id)
+);
+
+-- Department hierarchy (tree)
+CREATE TABLE IF NOT EXISTS departments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  parent_id INTEGER,
+  UNIQUE(name, parent_id),
+  FOREIGN KEY (parent_id) REFERENCES departments(id)
+);
+
+-- Position catalog
+CREATE TABLE IF NOT EXISTS positions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE
+);
+
+-- Grade / level catalog
+CREATE TABLE IF NOT EXISTS grades (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  level INTEGER NOT NULL
 );
 
 -- Role catalog
