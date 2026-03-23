@@ -57,6 +57,7 @@
           <button data-tab="report">报表</button>
           <button data-tab="org">组织结构</button>
           <button data-tab="rules">考勤规则</button>
+          <button data-tab="import">数据导入导出</button>
           <button data-tab="permissions">权限管理</button>
           <button id="logout" class="ghost">退出</button>
         </nav>
@@ -357,6 +358,39 @@
               <button id="rule-calc-range">计算区间</button>
             </div>
             <p id="rule-result" class="subtitle"></p>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-import">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>数据导入导出</h2>
+              <p>支持 CSV / Excel 批量导入导出</p>
+            </div>
+            <div class="grid-3">
+              <label>
+                类型
+                <select id="data-type">
+                  <option value="employees">员工</option>
+                  <option value="attendance">考勤</option>
+                  <option value="salaries">薪资</option>
+                </select>
+              </label>
+              <label>
+                格式
+                <select id="data-format">
+                  <option value="csv">CSV</option>
+                  <option value="xlsx">Excel</option>
+                </select>
+              </label>
+              <label>
+                文件
+                <input id="data-file" type="file" />
+              </label>
+              <button id="data-import">导入</button>
+              <button id="data-export" class="ghost">导出</button>
+            </div>
+            <p id="data-result" class="subtitle"></p>
           </div>
         </div>
       </section>

@@ -122,6 +122,8 @@ public class DataInitializer {
       seedPermission(permissionRepository, "GET", "/api/attendance-rules", "ADMIN", "HR");
       seedPermission(permissionRepository, "PUT", "/api/attendance-rules", "ADMIN", "HR");
       seedPermission(permissionRepository, "POST", "/api/attendance-rules", "ADMIN", "HR");
+      seedPermission(permissionRepository, "GET", "/api/data", "ADMIN", "HR", "MANAGER");
+      seedPermission(permissionRepository, "POST", "/api/data", "ADMIN", "HR");
 
       if (departmentRepository.count() == 0) {
         Department hq = new Department();

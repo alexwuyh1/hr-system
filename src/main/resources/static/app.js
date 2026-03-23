@@ -468,6 +468,52 @@ if (ruleCalcRangeBtn) {
   });
 }
 
+// Import/Export
+const dataImportBtn = $("data-import");
+if (dataImportBtn) {
+  dataImportBtn.addEventListener("click", async () => {
+    const type = $("data-type").value;
+    const format = $("data-format").value;
+    const fileInput = $("data-file");
+    const file = fileInput.files[0];
+    if (!file) {
+      alert("请选择文件");
+      return;
+    }
+    const form = new FormData();
+    form.append("file", file);
+    try {
+      const response = await fetch(`/api/data/import/${type}?format=${format}`, {
+        method: "POST",
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        body: form,
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || "导入失败");
+      }
+      const result = await response.json();
+      $("data-result").textContent = `导入成功：${result.imported} 条`;
+    } catch (err) {
+      $("data-result").textContent = `导入失败：${err.message}`;
+    }
+  });
+}
+
+const dataExportBtn = $("data-export");
+if (dataExportBtn) {
+  dataExportBtn.addEventListener("click", async () => {
+    const type = $("data-type").value;
+    const format = $("data-format").value;
+    const url = `/api/data/export/${type}?format=${format}`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.click();
+  });
+}
+
 // Org management
 const deptAddBtn = $("dept-add");
 if (deptAddBtn) {
