@@ -285,6 +285,14 @@ async function loadGrades() {
   });
 }
 
+async function loadAttendanceRule() {
+  const rule = await apiRequest("/attendance-rules");
+  const lateInput = $("rule-late");
+  const overtimeInput = $("rule-overtime");
+  if (lateInput) lateInput.value = rule.lateGraceMinutes;
+  if (overtimeInput) overtimeInput.value = rule.overtimeThresholdMinutes;
+}
+
 // Login flow
 $("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -305,6 +313,7 @@ $("login-form").addEventListener("submit", async (e) => {
       loadDepartments().catch(() => {}),
       loadPositions().catch(() => {}),
       loadGrades().catch(() => {}),
+      loadAttendanceRule().catch(() => {}),
       loadRoles().catch(() => {}),
       loadPermissions().catch(() => {}),
     ]);
@@ -408,6 +417,56 @@ document.querySelectorAll(".tabs button[data-tab]").forEach((btn) => {
 $("refresh-report").addEventListener("click", async () => {
   await loadReport();
 });
+
+// Attendance rule management
+const ruleSaveBtn = $("rule-save");
+if (ruleSaveBtn) {
+  ruleSaveBtn.addEventListener("click", async () => {
+    const late = Number($("rule-late").value);
+    const overtime = Number($("rule-overtime").value);
+    if (Number.isNaN(late) || Number.isNaN(overtime)) {
+      alert("请输入有效数字");
+      return;
+    }
+    const result = await apiRequest("/attendance-rules", {
+      method: "PUT",
+      body: JSON.stringify({ lateGraceMinutes: late, overtimeThresholdMinutes: overtime }),
+    });
+    $("rule-result").textContent = `规则已保存：迟到宽限 ${result.lateGraceMinutes} 分钟，加班阈值 ${result.overtimeThresholdMinutes} 分钟`;
+  });
+}
+
+const ruleCalcBtn = $("rule-calc");
+if (ruleCalcBtn) {
+  ruleCalcBtn.addEventListener("click", async () => {
+    const date = $("rule-date").value;
+    if (!date) {
+      alert("请选择日期");
+      return;
+    }
+    const result = await apiRequest(`/attendance-rules/calculate?date=${date}`, { method: "POST" });
+    $("rule-result").textContent = `已计算 ${date}，更新 ${result.updated} 条记录`;
+    await loadAttendance();
+  });
+}
+
+const ruleCalcRangeBtn = $("rule-calc-range");
+if (ruleCalcRangeBtn) {
+  ruleCalcRangeBtn.addEventListener("click", async () => {
+    const start = $("rule-start").value;
+    const end = $("rule-end").value;
+    if (!start || !end) {
+      alert("请选择起止日期");
+      return;
+    }
+    const result = await apiRequest(
+      `/attendance-rules/calculate-range?start=${start}&end=${end}`,
+      { method: "POST" }
+    );
+    $("rule-result").textContent = `已计算 ${start} 到 ${end}，更新 ${result.updated} 条记录`;
+    await loadAttendance();
+  });
+}
 
 // Org management
 const deptAddBtn = $("dept-add");

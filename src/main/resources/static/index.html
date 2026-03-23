@@ -56,6 +56,7 @@
           <button data-tab="salary">薪资管理</button>
           <button data-tab="report">报表</button>
           <button data-tab="org">组织结构</button>
+          <button data-tab="rules">考勤规则</button>
           <button data-tab="permissions">权限管理</button>
           <button id="logout" class="ghost">退出</button>
         </nav>
@@ -317,6 +318,45 @@
               </thead>
               <tbody></tbody>
             </table>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-rules">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>考勤规则引擎</h2>
+              <p>配置迟到宽限与加班阈值，并触发自动计算</p>
+            </div>
+            <div class="grid-3">
+              <label>
+                迟到宽限（分钟）
+                <input id="rule-late" type="number" />
+              </label>
+              <label>
+                加班阈值（分钟）
+                <input id="rule-overtime" type="number" />
+              </label>
+              <button id="rule-save">保存规则</button>
+            </div>
+            <div class="grid-3">
+              <label>
+                计算日期
+                <input id="rule-date" type="date" />
+              </label>
+              <button id="rule-calc">执行计算</button>
+            </div>
+            <div class="grid-3">
+              <label>
+                起始日期
+                <input id="rule-start" type="date" />
+              </label>
+              <label>
+                结束日期
+                <input id="rule-end" type="date" />
+              </label>
+              <button id="rule-calc-range">计算区间</button>
+            </div>
+            <p id="rule-result" class="subtitle"></p>
           </div>
         </div>
       </section>

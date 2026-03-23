@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS attendance (
   check_out TEXT,
   status TEXT NOT NULL,
   note TEXT,
+  late_minutes INTEGER,
+  overtime_minutes INTEGER,
   UNIQUE(employee_id, work_date),
   FOREIGN KEY (employee_id) REFERENCES employees(id)
 );
@@ -52,6 +54,48 @@ CREATE TABLE IF NOT EXISTS salaries (
   note TEXT,
   UNIQUE(employee_id, salary_month),
   FOREIGN KEY (employee_id) REFERENCES employees(id)
+);
+
+-- Shift schedule per employee/day
+CREATE TABLE IF NOT EXISTS shifts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL,
+  work_date TEXT NOT NULL,
+  start_time TEXT NOT NULL,
+  end_time TEXT NOT NULL,
+  note TEXT,
+  UNIQUE(employee_id, work_date),
+  FOREIGN KEY (employee_id) REFERENCES employees(id)
+);
+
+-- Leave requests (approval workflow)
+CREATE TABLE IF NOT EXISTS leave_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT NOT NULL,
+  type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  note TEXT,
+  FOREIGN KEY (employee_id) REFERENCES employees(id)
+);
+
+-- Overtime requests (approval workflow)
+CREATE TABLE IF NOT EXISTS overtime_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL,
+  work_date TEXT NOT NULL,
+  minutes INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  note TEXT,
+  FOREIGN KEY (employee_id) REFERENCES employees(id)
+);
+
+-- Attendance rule config (single row)
+CREATE TABLE IF NOT EXISTS attendance_rules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  late_grace_minutes INTEGER NOT NULL,
+  overtime_threshold_minutes INTEGER NOT NULL
 );
 
 -- Department hierarchy (tree)

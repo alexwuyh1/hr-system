@@ -1,5 +1,6 @@
 package com.example.hr.config;
 
+import com.example.hr.model.AttendanceRule;
 import com.example.hr.model.Department;
 import com.example.hr.model.Employee;
 import com.example.hr.model.Grade;
@@ -7,6 +8,7 @@ import com.example.hr.model.Permission;
 import com.example.hr.model.Position;
 import com.example.hr.model.Role;
 import com.example.hr.model.User;
+import com.example.hr.repository.AttendanceRuleRepository;
 import com.example.hr.repository.DepartmentRepository;
 import com.example.hr.repository.EmployeeRepository;
 import com.example.hr.repository.GradeRepository;
@@ -39,10 +41,12 @@ public class DataInitializer {
       DepartmentRepository departmentRepository,
       PositionRepository positionRepository,
       GradeRepository gradeRepository,
+      AttendanceRuleRepository attendanceRuleRepository,
       DataSource dataSource,
       PasswordEncoder passwordEncoder) {
     return args -> {
       ensureEmployeeColumns(dataSource);
+      ensureAttendanceColumns(dataSource);
 
       if (userRepository.count() == 0) {
         User admin = new User();
@@ -103,6 +107,21 @@ public class DataInitializer {
       seedPermission(permissionRepository, "PUT", "/api/grades", "ADMIN", "HR");
       seedPermission(permissionRepository, "DELETE", "/api/grades", "ADMIN", "HR");
       seedPermission(permissionRepository, "GET", "/api/departments/tree", "ADMIN", "HR", "MANAGER");
+      seedPermission(permissionRepository, "GET", "/api/shifts", "ADMIN", "HR", "MANAGER");
+      seedPermission(permissionRepository, "POST", "/api/shifts", "ADMIN", "HR");
+      seedPermission(permissionRepository, "PUT", "/api/shifts", "ADMIN", "HR");
+      seedPermission(permissionRepository, "DELETE", "/api/shifts", "ADMIN", "HR");
+      seedPermission(permissionRepository, "GET", "/api/leaves", "ADMIN", "HR");
+      seedPermission(permissionRepository, "POST", "/api/leaves", "ADMIN", "HR");
+      seedPermission(permissionRepository, "PUT", "/api/leaves", "ADMIN", "HR");
+      seedPermission(permissionRepository, "DELETE", "/api/leaves", "ADMIN", "HR");
+      seedPermission(permissionRepository, "GET", "/api/overtime", "ADMIN", "HR", "MANAGER");
+      seedPermission(permissionRepository, "POST", "/api/overtime", "ADMIN", "HR");
+      seedPermission(permissionRepository, "PUT", "/api/overtime", "ADMIN", "HR");
+      seedPermission(permissionRepository, "DELETE", "/api/overtime", "ADMIN", "HR");
+      seedPermission(permissionRepository, "GET", "/api/attendance-rules", "ADMIN", "HR");
+      seedPermission(permissionRepository, "PUT", "/api/attendance-rules", "ADMIN", "HR");
+      seedPermission(permissionRepository, "POST", "/api/attendance-rules", "ADMIN", "HR");
 
       if (departmentRepository.count() == 0) {
         Department hq = new Department();
@@ -188,6 +207,13 @@ public class DataInitializer {
         e2.setManagerRef(e1);
         employeeRepository.save(e2);
       }
+
+      if (attendanceRuleRepository.count() == 0) {
+        AttendanceRule rule = new AttendanceRule();
+        rule.setLateGraceMinutes(10);
+        rule.setOvertimeThresholdMinutes(30);
+        attendanceRuleRepository.save(rule);
+      }
     };
   }
 
@@ -236,6 +262,28 @@ public class DataInitializer {
       }
     } catch (Exception ex) {
       // best-effort migration for demo; log and continue
+      ex.printStackTrace();
+    }
+  }
+
+  private void ensureAttendanceColumns(DataSource dataSource) {
+    try (Connection conn = dataSource.getConnection();
+        Statement stmt = conn.createStatement()) {
+      ResultSet rs = stmt.executeQuery("PRAGMA table_info(attendance)");
+      boolean hasLate = false;
+      boolean hasOvertime = false;
+      while (rs.next()) {
+        String name = rs.getString("name");
+        if ("late_minutes".equals(name)) hasLate = true;
+        if ("overtime_minutes".equals(name)) hasOvertime = true;
+      }
+      if (!hasLate) {
+        stmt.execute("ALTER TABLE attendance ADD COLUMN late_minutes INTEGER");
+      }
+      if (!hasOvertime) {
+        stmt.execute("ALTER TABLE attendance ADD COLUMN overtime_minutes INTEGER");
+      }
+    } catch (Exception ex) {
       ex.printStackTrace();
     }
   }
