@@ -95,14 +95,6 @@ body {
 }
 
 /* ==================== 仪表盘卡片网格 ==================== */
-.dashboard-stats {
-  display: grid;                                      /* 使用 CSS Grid 布局 */
-  gap: var(--space-4);                                /* 16px 间距 */
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));  /* 自动响应式列数 */
-  margin-top: var(--space-4);                         /* 上边距 16px */
-  align-items: stretch;                               /* 子元素垂直拉伸对齐 */
-  grid-auto-rows: 1fr;                                /* 自动行高平分 */
-}
 
 .dashboard-grid {
   display: grid;                                      /* 使用 CSS Grid 布局 */
@@ -113,29 +105,38 @@ body {
   grid-auto-rows: 1fr;                                /* 自动行高平分 */
 }
 
-/* ==================== 统计卡片 ==================== */
-.stat {
-  background: var(--panel);           /* 白色背景 */
-  border-radius: var(--radius-1);     /* 10px 圆角 */
-  padding: var(--space-2) var(--space-4);  /* 上下 8px, 左右 16px 内边距 */
-  border: 1px solid var(--line);      /* 1px 浅色边框 */
-  display: flex;                      /* 使用 Flexbox 布局 */
-  flex-direction: column;             /* 垂直排列子元素 */
-  justify-content: center;            /* 垂直居中内容 */
-  max-width: 350px;                   /* 最大宽度 350px */
-}
-/* 卡片内部标签 */
-.stat .label {
-  display: block;
-  font-size: 30px;
-  color: var(--muted);              /* 灰色小字 */
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(170px, 190px));
+  gap: var(--space-3);
+  align-items: stretch;
+  justify-content: start;
 }
 
-/* 卡片内部数值 */
-.stat .value {
-  font-size: 30px;
-  font-weight: 700;                 /* 粗体 */
+
+/* ==================== 统计/表单容器 ==================== */
+.stat {
+  background: var(--panel);
+  border-radius: var(--radius-1);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: flex-start;
+  min-width: 0;
 }
+
+.stat label {
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.dashboard-stats .stat {
+  align-items: center;
+  text-align: center;
+}
+
 /* ==================== 图表面板 ==================== */
 .chart-panel h3 {
   margin: 0 0 12px;
@@ -194,15 +195,33 @@ form {
   gap: var(--space-3);
 }
 
+.form-fields {
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+
+.form-actions button {
+  min-width: 120px;
+}
+
 .grid-2 {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));  /* 2列,每列最小0,最大占满可用空间 */
   align-items: end;                                   /* 子元素底部对齐 */
   justify-items: start;                               /* 子元素水平起点对齐 */
 }
 
-.grid-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));  /* 3列,每列最小0,最大占满可用空间 */
-  align-items: center;                                /* 子元素垂直居中对齐 */
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));  /* 4列,每列最小0,最大占满可用空间 */
+  align-items: end;                                    /* 子元素底部对齐 */
   justify-items: start;                               /* 子元素水平起点对齐 */
 }
 
@@ -235,8 +254,8 @@ input[type="file"] {
 /* 表单内控件 */
 form .grid-2 input,
 form .grid-2 select,
-form .grid-3 input,
-form .grid-3 select {
+form .grid-4 input,
+form .grid-4 select {
   width: 100%;
   max-width: 320px;
 }
@@ -261,7 +280,7 @@ button {
   align-self: start;
 }
 
-#login-form button,
+#login-actions button,
 #auth-panel button {
   max-width: 160px;
   min-width: 120px;
@@ -269,10 +288,9 @@ button {
   justify-self: start;
 }
 
-#login-form {
-  column-gap: var(--space-2);
-  row-gap: var(--space-2);
-  justify-items: start;
+#login-actions {
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 #login-form input {
@@ -282,7 +300,7 @@ button {
 /* ==================== 仪表盘摘要区域 ==================== */
 
 .grid-2 > button,
-.grid-3 > button {
+.grid-4 > button {
   justify-self: start;
 }
 
@@ -465,7 +483,7 @@ td {
   .hero {
     grid-template-columns: 1fr;     /* 单列布局 */
   }
-  .grid-3 {
+  .grid-4 {
     grid-template-columns: 1fr;     /* 单列 */
   }
   .grid-2 {

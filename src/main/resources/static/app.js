@@ -6,6 +6,13 @@ let dashboardCharts = {};
 
 const $ = (id) => document.getElementById(id);
 
+function setText(id, value) {
+  const el = $(id);
+  if (el) {
+    el.textContent = value;
+  }
+}
+
 async function apiRequest(path, options = {}) {
   const headers = options.headers || {};
   if (authToken) {
@@ -115,22 +122,12 @@ function updateChart(chart, labels, datasets) {
   chart.update();
 }
 
-async function loadReport() {
-  const report = await apiRequest("/reports/summary");
-  $("stat-total").textContent = report.totalEmployees;
-  $("stat-attendance").textContent = report.attendanceToday;
-  $("stat-payroll").textContent = report.totalPayroll.toFixed(2);
-  $("report-total").textContent = report.totalEmployees;
-  $("report-attendance").textContent = report.attendanceToday;
-  $("report-payroll").textContent = report.totalPayroll.toFixed(2);
-}
-
 async function loadDashboard() {
   const dashboard = await apiRequest("/dashboard/summary");
-  $("dash-total").textContent = dashboard.totalEmployees;
-  $("dash-active").textContent = dashboard.activeEmployees;
-  $("dash-attendance").textContent = dashboard.attendanceToday;
-  $("dash-payroll").textContent = dashboard.totalPayroll.toFixed(2);
+  setText("dash-total", dashboard.totalEmployees);
+  setText("dash-active", dashboard.activeEmployees);
+  setText("dash-attendance", dashboard.attendanceToday);
+  setText("dash-payroll", dashboard.totalPayroll.toFixed(2));
 
   const dashboardTab = $("tab-dashboard");
   if (!dashboardTab || !dashboardTab.classList.contains("active")) {
@@ -247,7 +244,7 @@ async function loadDashboard() {
 
 async function loadRoles() {
   const roles = await apiRequest("/roles");
-  const select = $("perm-role");
+  const select = $("perm-role-select");
   if (!select) return;
   select.innerHTML = "";
   roles.forEach((r) => {
@@ -315,6 +312,28 @@ async function loadEmployees() {
       renderProfile(list[0]);
     }
   }
+
+  const attendanceSelect = $("attendance-employee");
+  if (attendanceSelect) {
+    attendanceSelect.innerHTML = "";
+    list.forEach((e) => {
+      const option = document.createElement("option");
+      option.value = e.id;
+      option.textContent = `${e.employeeNo} - ${e.name}`;
+      attendanceSelect.appendChild(option);
+    });
+  }
+
+  const salarySelect = $("salary-employee");
+  if (salarySelect) {
+    salarySelect.innerHTML = "";
+    list.forEach((e) => {
+      const option = document.createElement("option");
+      option.value = e.id;
+      option.textContent = `${e.employeeNo} - ${e.name}`;
+      salarySelect.appendChild(option);
+    });
+  }
 }
 
 async function loadAttendance() {
@@ -363,7 +382,7 @@ async function loadSalary() {
 
 async function loadDepartments() {
   const list = await apiRequest("/departments");
-  const select = $("employee-department");
+  const select = $("employee-dept");
   if (select) {
     select.innerHTML = "";
     list.forEach((d) => {
@@ -374,7 +393,7 @@ async function loadDepartments() {
     });
   }
 
-  const parentSelect = $("dept-parent");
+  const parentSelect = $("dept-parent-select");
   if (parentSelect) {
     parentSelect.innerHTML = "<option value=\"\">无</option>";
     list.forEach((d) => {
@@ -408,7 +427,7 @@ async function loadDepartments() {
 
 async function loadPositions() {
   const list = await apiRequest("/positions");
-  const select = $("employee-position");
+  const select = $("employee-pos");
   if (select) {
     select.innerHTML = "";
     list.forEach((p) => {
@@ -496,7 +515,6 @@ $("login-form").addEventListener("submit", async (e) => {
       loadEmployees(),
       loadAttendance(),
       loadSalary(),
-      loadReport(),
       loadDepartments().catch(() => {}),
       loadPositions().catch(() => {}),
       loadGrades().catch(() => {}),
@@ -536,8 +554,8 @@ $("logout").addEventListener("click", () => {
 $("employee-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target));
-  const deptSelect = $("employee-department");
-  const posSelect = $("employee-position");
+  const deptSelect = $("employee-dept");
+  const posSelect = $("employee-pos");
   const gradeSelect = $("employee-grade");
   data.departmentId = deptSelect ? Number(deptSelect.value) : null;
   data.positionId = posSelect ? Number(posSelect.value) : null;
@@ -699,9 +717,6 @@ document.querySelectorAll(".tabs button[data-tab]").forEach((btn) => {
 });
 
 // Report refresh
-$("refresh-report").addEventListener("click", async () => {
-  await loadReport();
-});
 
 // Attendance rule management
 const ruleSaveBtn = $("rule-save");
@@ -757,9 +772,9 @@ if (ruleCalcRangeBtn) {
 const dataImportBtn = $("data-import");
 if (dataImportBtn) {
   dataImportBtn.addEventListener("click", async () => {
-    const type = $("data-type").value;
-    const format = $("data-format").value;
-    const fileInput = $("data-file");
+    const type = $("data-type-select").value;
+    const format = $("data-format-select").value;
+    const fileInput = $("data-file-input");
     const file = fileInput.files[0];
     if (!file) {
       alert("请选择文件");
@@ -788,8 +803,8 @@ if (dataImportBtn) {
 const dataExportBtn = $("data-export");
 if (dataExportBtn) {
   dataExportBtn.addEventListener("click", async () => {
-    const type = $("data-type").value;
-    const format = $("data-format").value;
+    const type = $("data-type-select").value;
+    const format = $("data-format-select").value;
     const url = `/api/data/export/${type}?format=${format}`;
     const a = document.createElement("a");
     a.href = url;
@@ -803,8 +818,8 @@ if (dataExportBtn) {
 const deptAddBtn = $("dept-add");
 if (deptAddBtn) {
   deptAddBtn.addEventListener("click", async () => {
-    const name = $("dept-name").value.trim();
-    const parentId = $("dept-parent").value;
+    const name = $("dept-name-input").value.trim();
+    const parentId = $("dept-parent-select").value;
     if (!name) {
       alert("请输入部门名称");
       return;
@@ -813,7 +828,7 @@ if (deptAddBtn) {
       method: "POST",
       body: JSON.stringify({ name, parentId: parentId ? Number(parentId) : null }),
     });
-    $("dept-name").value = "";
+    $("dept-name-input").value = "";
     await loadDepartments();
   });
 }
@@ -821,7 +836,7 @@ if (deptAddBtn) {
 const posAddBtn = $("pos-add");
 if (posAddBtn) {
   posAddBtn.addEventListener("click", async () => {
-    const name = $("pos-name").value.trim();
+    const name = $("pos-name-input").value.trim();
     if (!name) {
       alert("请输入岗位名称");
       return;
@@ -830,7 +845,7 @@ if (posAddBtn) {
       method: "POST",
       body: JSON.stringify({ name }),
     });
-    $("pos-name").value = "";
+    $("pos-name-input").value = "";
     await loadPositions();
   });
 }
@@ -838,8 +853,8 @@ if (posAddBtn) {
 const gradeAddBtn = $("grade-add");
 if (gradeAddBtn) {
   gradeAddBtn.addEventListener("click", async () => {
-    const name = $("grade-name").value.trim();
-    const level = Number($("grade-level").value);
+    const name = $("grade-name-input").value.trim();
+    const level = Number($("grade-level-input").value);
     if (!name || Number.isNaN(level)) {
       alert("请输入职级名称和等级");
       return;
@@ -848,8 +863,8 @@ if (gradeAddBtn) {
       method: "POST",
       body: JSON.stringify({ name, level }),
     });
-    $("grade-name").value = "";
-    $("grade-level").value = "";
+    $("grade-name-input").value = "";
+    $("grade-level-input").value = "";
     await loadGrades();
   });
 }
@@ -859,9 +874,9 @@ const permAddBtn = $("perm-add");
 if (permAddBtn) {
   permAddBtn.addEventListener("click", async () => {
     try {
-      const role = $("perm-role").value;
-      const method = $("perm-method").value;
-      const pathPrefix = $("perm-path").value.trim();
+      const role = $("perm-role-select").value;
+      const method = $("perm-method-select").value;
+      const pathPrefix = $("perm-path-input").value.trim();
       if (!pathPrefix) {
         alert("请输入路径前缀");
         return;
@@ -870,7 +885,7 @@ if (permAddBtn) {
         method: "POST",
         body: JSON.stringify({ role, method, pathPrefix }),
       });
-      $("perm-path").value = "";
+      $("perm-path-input").value = "";
       await loadPermissions();
     } catch (err) {
       alert(`新增失败: ${err.message}`);
