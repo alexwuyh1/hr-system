@@ -1,488 +1,406 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>HR 管理系统</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <div class="app">
-      <header class="hero">
-        <div>
-          <p class="kicker">HR SUITE</p>
-          <h1>人事管理系统</h1>
-          <p class="subtitle">员工、考勤、薪资与报表在一个清爽的工作台完成。</p>
-        </div>
-        <div class="stats" id="report-cards">
-          <div class="stat">
-            <span class="label">员工总数</span>
-            <span class="value" id="stat-total">-</span>
-          </div>
-          <div class="stat">
-            <span class="label">今日考勤</span>
-            <span class="value" id="stat-attendance">-</span>
-          </div>
-          <div class="stat">
-            <span class="label">薪资合计</span>
-            <span class="value" id="stat-payroll">-</span>
-          </div>
-        </div>
-      </header>
 
-      <section class="panel" id="auth-panel">
-        <div class="panel-header">
-          <h2>登录</h2>
-          <p>默认管理员：admin / admin123</p>
-        </div>
-        <form id="login-form" class="grid-2">
-          <label>
-            用户名
-            <input name="username" placeholder="输入用户名" required />
-          </label>
-          <label>
-            密码
-            <input name="password" type="password" placeholder="输入密码" required />
-          </label>
-          <button type="submit">登录</button>
-          <button type="button" id="register-btn" class="ghost">注册新用户</button>
-        </form>
-      </section>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HR 管理系统</title>
+  <link rel="stylesheet" href="styles.css?v=20260324" />
+</head>
 
-      <section class="workspace hidden" id="workspace">
-        <nav class="tabs">
-          <button data-tab="dashboard">管理仪表盘</button>
-          <button data-tab="employees" class="active">员工管理</button>
-          <button data-tab="profile">员工资料看板</button>
-          <button data-tab="attendance">考勤管理</button>
-          <button data-tab="salary">薪资管理</button>
-          <button data-tab="report">报表</button>
-          <button data-tab="org">组织结构</button>
-          <button data-tab="rules">考勤规则</button>
-          <button data-tab="import">数据导入导出</button>
-          <button data-tab="permissions">权限管理</button>
-          <button id="logout" class="ghost">退出</button>
-        </nav>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div>
+        <p class="kicker">HR SUITE</p>
+        <h1>人事管理系统</h1>
+        <p class="subtitle">员工、考勤、薪资与报表在一个清爽的工作台完成。</p>
+      </div>
+    </header>
 
-        <div class="tab-content" id="tab-dashboard">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>管理层仪表盘</h2>
-              <p>从人力、考勤与薪酬角度快速洞察组织状态</p>
-            </div>
-            <div class="dashboard-cards">
-              <div class="stat">
-                <span class="label">在岗员工</span>
-                <span class="value" id="dash-active">-</span>
-              </div>
-              <div class="stat">
-                <span class="label">员工总数</span>
-                <span class="value" id="dash-total">-</span>
-              </div>
-              <div class="stat">
-                <span class="label">今日考勤</span>
-                <span class="value" id="dash-attendance">-</span>
-              </div>
-              <div class="stat">
-                <span class="label">薪资成本</span>
-                <span class="value" id="dash-payroll">-</span>
-              </div>
-            </div>
+    <section class="panel" id="auth-panel">
+      <div class="panel-header">
+        <h2>登录</h2>
+        <p>默认管理员：admin / admin123</p>
+      </div>
+      <form id="login-form" class="grid-2">
+        <label>
+          用户名
+          <input name="username" placeholder="输入用户名" required />
+        </label>
+        <label>
+          密码
+          <input name="password" type="password" placeholder="输入密码" required />
+        </label>
+        <button type="submit">登录</button>
+        <button type="button" id="register-btn" class="ghost">
+          注册新用户
+        </button>
+      </form>
+    </section>
+
+    <section class="workspace hidden" id="workspace">
+      <nav class="tabs">
+        <button data-tab="dashboard">管理仪表盘</button>
+        <button data-tab="employees" class="active">员工中心</button>
+        <button data-tab="employees-attendance" class="active">员工考勤</button>
+        <button data-tab="attendance">考勤中心</button>
+        <button data-tab="attendance-settings">考勤设置</button>
+        <button data-tab="salary">薪资记录</button>
+        <button data-tab="org">组织配置</button>
+        <button data-tab="import">数据导入导出</button>
+        <button data-tab="permissions">权限中心</button>
+        <button id="logout" class="ghost">退出</button>
+      </nav>
+
+      <div class="tab-content active" id="tab-dashboard">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>管理层仪表盘</h2>
+            <p>从人力、考勤与薪酬角度快速洞察组织状态</p>
           </div>
-          <div class="dashboard-grid">
-            <div class="panel chart-panel">
-              <h3>员工规模趋势</h3>
-              <canvas id="chart-headcount"></canvas>
+          <div class="dashboard-stats">
+            <div class="stat">
+              <span class="label">在岗员工</span>
+              <span class="value" id="dash-active">-</span>
             </div>
-            <div class="panel chart-panel">
-              <h3>入职/离职趋势</h3>
-              <canvas id="chart-flow"></canvas>
+            <div class="stat">
+              <span class="label">员工总数</span>
+              <span class="value" id="dash-total">-</span>
             </div>
-            <div class="panel chart-panel">
-              <h3>部门人数分布</h3>
-              <canvas id="chart-dept"></canvas>
+            <div class="stat">
+              <span class="label">今日考勤</span>
+              <span class="value" id="dash-attendance">-</span>
             </div>
-            <div class="panel chart-panel">
-              <h3>考勤异常排行</h3>
-              <canvas id="chart-attendance"></canvas>
-            </div>
-            <div class="panel chart-panel">
-              <h3>部门人力成本</h3>
-              <canvas id="chart-payroll"></canvas>
+            <div class="stat">
+              <span class="label">薪资成本</span>
+              <span class="value" id="dash-payroll">-</span>
             </div>
           </div>
         </div>
-
-        <div class="tab-content active" id="tab-employees">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>员工信息</h2>
-              <p>支持新增、修改、删除</p>
-            </div>
-            <form id="employee-form" class="grid-3">
-              <input name="employeeNo" placeholder="工号" required />
-              <input name="name" placeholder="姓名" required />
-              <label>
-                部门
-                <select id="employee-department" required></select>
-              </label>
-              <label>
-                岗位
-                <select id="employee-position" required></select>
-              </label>
-              <label>
-                职级
-                <select id="employee-grade" required></select>
-              </label>
-              <input name="phone" placeholder="电话" />
-              <input name="email" placeholder="邮箱" />
-              <input name="hireDate" type="date" required />
-              <input name="status" placeholder="状态" value="Active" required />
-              <input name="managerId" placeholder="直属上级ID（可选）" />
-              <input type="hidden" name="department" />
-              <input type="hidden" name="title" />
-              <button type="submit">保存</button>
-            </form>
+        <div class="dashboard-grid">
+          <div class="panel chart-panel">
+            <h3>员工规模趋势</h3>
+            <canvas id="chart-headcount"></canvas>
           </div>
-          <div class="table-panel">
-            <table id="employee-table">
-              <thead>
-                <tr>
-                  <th>工号</th>
-                  <th>姓名</th>
-                  <th>部门</th>
-                  <th>职位</th>
-                  <th>状态</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+          <div class="panel chart-panel">
+            <h3>入职/离职趋势</h3>
+            <canvas id="chart-flow"></canvas>
+          </div>
+          <div class="panel chart-panel">
+            <h3>部门人数分布</h3>
+            <canvas id="chart-dept"></canvas>
+          </div>
+          <div class="panel chart-panel">
+            <h3>考勤异常排行</h3>
+            <canvas id="chart-attendance"></canvas>
+          </div>
+          <div class="panel chart-panel">
+            <h3>部门人力成本</h3>
+            <canvas id="chart-payroll"></canvas>
           </div>
         </div>
+      </div>
 
-        <div class="tab-content" id="tab-attendance">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>考勤记录</h2>
-              <p>记录每日出勤情况</p>
-            </div>
-            <form id="attendance-form" class="grid-3">
-              <input name="employeeId" placeholder="员工ID" required />
-              <input name="workDate" type="date" required />
-              <input name="checkIn" type="time" />
-              <input name="checkOut" type="time" />
-              <input name="status" placeholder="状态" value="Normal" required />
-              <input name="note" placeholder="备注" />
-              <button type="submit">保存</button>
-            </form>
+      <div class="tab-content" id="tab-employees">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>员工管理</h2>
+            <p>支持新增、修改、删除</p>
           </div>
-          <div class="table-panel">
-            <table id="attendance-table">
-              <thead>
-                <tr>
-                  <th>员工</th>
-                  <th>日期</th>
-                  <th>签到</th>
-                  <th>签退</th>
-                  <th>状态</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <form id="employee-form" class="grid-3">
+            <input name="employeeNo" placeholder="工号" required />
+            <input name="name" placeholder="姓名" required />
+            <select id="employee-department" required></select>
+            <select id="employee-position" required></select>
+            <select id="employee-grade" required></select>
+            <input name="hireDate" type="date" required />
+            <select name="status" placeholder="状态" value="Active" required />
+            <input name="managerId" placeholder="直属上级ID（可选）" />
+            <input type="hidden" name="department" />
+            <input type="hidden" name="title" />
+            <button type="submit">保存</button>
+          </form>
+        </div>
+        <div class="table-panel">
+          <table id="employee-table">
+            <thead>
+              <tr>
+                <th>工号</th>
+                <th>姓名</th>
+                <th>部门</th>
+                <th>职位</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
 
-        <div class="tab-content" id="tab-profile">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>员工资料看板</h2>
-              <p>头像上传与 1:1 人脸考勤</p>
-            </div>
-            <div class="grid-3">
-              <label>
-                选择员工
-                <select id="profile-employee"></select>
-              </label>
-              <label>
-                头像文件
-                <input id="profile-avatar" type="file" />
-              </label>
-              <button id="profile-upload">上传头像</button>
-            </div>
-            <div class="grid-3">
-              <label>
-                识别文件
-                <input id="profile-verify" type="file" />
-              </label>
-              <button id="profile-verify-btn">验证人脸</button>
-              <button id="profile-checkin" class="ghost">人脸考勤</button>
-            </div>
-            <p id="profile-result" class="subtitle"></p>
+      </div>
+      <div class="tab-content" id="tab-employees-attendance">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>员工信息与考勤</h2>
+            <p>头像上传与 1:1 人脸考勤</p>
           </div>
-          <div class="panel profile-card">
-            <div class="profile-avatar">
-              <img id="profile-avatar-img" alt="avatar" />
-            </div>
-            <div class="profile-info" id="profile-info"></div>
+          <div class="grid-3">
+            <label>
+              选择员工
+              <select id="profile-employee"></select>
+            </label>
+            <label>
+              头像文件
+              <input id="profile-avatar" type="file" />
+            </label>
+            <button id="profile-upload">上传头像</button>
           </div>
+          <div class="grid-3">
+            <label>
+              识别文件
+              <input id="profile-verify" type="file" />
+            </label>
+            <button id="profile-verify-btn">验证人脸</button>
+            <button id="profile-checkin" class="ghost">人脸考勤</button>
+          </div>
+          <p id="profile-result" class="subtitle"></p>
+        </div>
+        <div class="panel profile-card">
+          <div class="profile-avatar">
+            <img id="profile-avatar-img" alt="avatar" />
+          </div>
+          <div class="profile-info" id="profile-info"></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-attendance">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>考勤记录</h2>
+            <p>记录每日出勤情况</p>
+          </div>
+          <form id="attendance-form" class="grid-3">
+            <input name="employeeId" placeholder="员工ID" required />
+            <input name="workDate" type="date" required />
+            <input name="checkIn" type="time" />
+            <input name="checkOut" type="time" />
+            <input name="note" placeholder="备注" />
+            <button type="submit">保存</button>
+          </form>
+        </div>
+        <div class="table-panel">
+          <table id="attendance-table">
+            <thead>
+              <tr>
+                <th>员工</th>
+                <th>日期</th>
+                <th>签到</th>
+                <th>签退</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-content" id="tab-attendance-settings">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>考勤设置</h2>
+            <p>配置迟到宽限与加班阈值，并触发自动计算</p>
+          </div>
+          <div class="grid-3">
+            <label>
+              迟到宽限（分钟）
+              <input id="rule-late" type="number" />
+            </label>
+            <label>
+              加班阈值（分钟）
+              <input id="rule-overtime" type="number" />
+            </label>
+            <button id="rule-save">保存规则</button>
+          </div>
+          <div class="grid-3">
+            <label>
+              计算日期
+              <input id="rule-date" type="date" />
+            </label>
+            <button id="rule-calc">执行计算</button>
+          </div>
+          <div class="grid-3">
+            <label>
+              起始日期
+              <input id="rule-start" type="date" />
+            </label>
+            <label>
+              结束日期
+              <input id="rule-end" type="date" />
+            </label>
+            <button id="rule-calc-range">计算区间</button>
+          </div>
+          <p id="rule-result" class="subtitle"></p>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-salary">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>薪资记录</h2>
+            <p>按月管理员工薪资</p>
+          </div>
+          <form id="salary-form" class="grid-3">
+            <input name="employeeId" placeholder="员工ID" required />
+            <input name="salaryMonth" placeholder="薪资日期" type="date" required />
+            <input name="baseSalary" type="number" step="0.01" placeholder="基本薪资" required />
+            <input name="bonus" type="number" step="0.01" placeholder="奖金" required />
+            <input name="deduction" type="number" step="0.01" placeholder="扣款" required />
+            <button type="submit">保存</button>
+          </form>
+        </div>
+        <div class="table-panel">
+          <table id="salary-table">
+            <thead>
+              <tr>
+                <th>员工</th>
+                <th>月份</th>
+                <th>基本</th>
+                <th>奖金</th>
+                <th>扣款</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-org">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>组织配置</h2>
+            <p>维护部门树、岗位与职级</p>
+          </div>
+
+          <form id="dept-form" class="grid-3">
+            <input id="dept-name" name="deptName" placeholder="部门名称" />
+            <select id="dept-parent" name="parentId"></select>
+            <button id="dept-add" type="button">新增部门</button>
+            <input id="grade-name" name="gradeName" placeholder="职级名称" />
+            <input id="grade-level" name="gradeLevel" type="number" placeholder="等级" />
+            <button id="grade-add" type="button">新增职级</button>
+            <input id="pos-name" name="posName" placeholder="岗位名称" />
+            <button id="pos-add" type="button">新增岗位</button>
+          </form>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>组织结构树</h3>
+            <p>支持折叠/展开</p>
+          </div>
+          <div id="dept-tree"></div>
+        </div>
+        <div class="table-panel">
+          <table id="dept-table">
+            <thead>
+              <tr>
+                <th>部门</th>
+                <th>上级部门</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
 
-        <div class="tab-content" id="tab-salary">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>薪资记录</h2>
-              <p>按月管理员工薪资</p>
-            </div>
-            <form id="salary-form" class="grid-3">
-              <input name="employeeId" placeholder="员工ID" required />
-              <input name="salaryMonth" placeholder="YYYY-MM" required />
-              <input name="baseSalary" type="number" step="0.01" placeholder="基本薪资" required />
-              <input name="bonus" type="number" step="0.01" placeholder="奖金" required />
-              <input name="deduction" type="number" step="0.01" placeholder="扣款" required />
-              <input name="note" placeholder="备注" />
-              <button type="submit">保存</button>
-            </form>
-          </div>
-          <div class="table-panel">
-            <table id="salary-table">
-              <thead>
-                <tr>
-                  <th>员工</th>
-                  <th>月份</th>
-                  <th>基本</th>
-                  <th>奖金</th>
-                  <th>扣款</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+        <div class="table-panel">
+          <table id="pos-table">
+            <thead>
+              <tr>
+                <th>岗位</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
-
-        <div class="tab-content" id="tab-report">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>报表生成</h2>
-              <p>一键刷新统计数据</p>
-            </div>
-            <button id="refresh-report">刷新报表</button>
-            <div class="report-grid">
-              <div class="stat">
-                <span class="label">员工总数</span>
-                <span class="value" id="report-total">-</span>
-              </div>
-              <div class="stat">
-                <span class="label">今日考勤</span>
-                <span class="value" id="report-attendance">-</span>
-              </div>
-              <div class="stat">
-                <span class="label">薪资合计</span>
-                <span class="value" id="report-payroll">-</span>
-              </div>
-            </div>
-          </div>
+        <div class="table-panel">
+          <table id="grade-table">
+            <thead>
+              <tr>
+                <th>职级</th>
+                <th>等级</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
+      </div>
 
-        <div class="tab-content" id="tab-org">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>组织结构</h2>
-              <p>维护部门树、岗位与职级</p>
-            </div>
-            <div class="grid-3">
-              <label>
-                新部门名称
-                <input id="dept-name" placeholder="部门名称" />
-              </label>
-              <label>
-                上级部门
-                <select id="dept-parent"></select>
-              </label>
-              <button id="dept-add">新增部门</button>
-            </div>
-            <div class="grid-3">
-              <label>
-                新岗位名称
-                <input id="pos-name" placeholder="岗位名称" />
-              </label>
-              <button id="pos-add">新增岗位</button>
-            </div>
-            <div class="grid-3">
-              <label>
-                新职级名称
-                <input id="grade-name" placeholder="职级名称" />
-              </label>
-              <label>
-                等级
-                <input id="grade-level" type="number" placeholder="等级" />
-              </label>
-              <button id="grade-add">新增职级</button>
-            </div>
+      <div class="tab-content" id="tab-permissions">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>权限中心</h2>
+            <p>仅管理员可见，查看角色与配置访问规则</p>
           </div>
-          <div class="table-panel">
-            <table id="dept-table">
-              <thead>
-                <tr>
-                  <th>部门</th>
-                  <th>上级部门</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <div class="panel">
-            <div class="panel-header">
-              <h3>组织结构树</h3>
-              <p>支持折叠/展开</p>
-            </div>
-            <div id="dept-tree"></div>
-          </div>
-          <div class="table-panel">
-            <table id="pos-table">
-              <thead>
-                <tr>
-                  <th>岗位</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <div class="table-panel">
-            <table id="grade-table">
-              <thead>
-                <tr>
-                  <th>职级</th>
-                  <th>等级</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="tab-content" id="tab-permissions">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>权限管理</h2>
-              <p>仅管理员可见，配置角色访问规则</p>
-            </div>
-            <div class="grid-3">
-              <label>
-                角色
-                <select id="perm-role"></select>
-              </label>
-              <label>
-                方法
-                <select id="perm-method">
-                  <option>GET</option>
-                  <option>POST</option>
-                  <option>PUT</option>
-                  <option>DELETE</option>
-                </select>
-              </label>
-              <label>
-                路径前缀
-                <input id="perm-path" placeholder="/api/employees" />
-              </label>
-            </div>
+          <div class="grid-3">
+            <select id="perm-role"></select>
+            <select id="perm-method">
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>DELETE</option>
+            </select>
+            <input id="perm-path" placeholder="/api/employees" />
             <button id="perm-add">新增权限</button>
           </div>
-          <div class="table-panel">
-            <table id="perm-table">
-              <thead>
-                <tr>
-                  <th>角色</th>
-                  <th>方法</th>
-                  <th>路径</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
 
-        <div class="tab-content" id="tab-rules">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>考勤规则引擎</h2>
-              <p>配置迟到宽限与加班阈值，并触发自动计算</p>
-            </div>
-            <div class="grid-3">
-              <label>
-                迟到宽限（分钟）
-                <input id="rule-late" type="number" />
-              </label>
-              <label>
-                加班阈值（分钟）
-                <input id="rule-overtime" type="number" />
-              </label>
-              <button id="rule-save">保存规则</button>
-            </div>
-            <div class="grid-3">
-              <label>
-                计算日期
-                <input id="rule-date" type="date" />
-              </label>
-              <button id="rule-calc">执行计算</button>
-            </div>
-            <div class="grid-3">
-              <label>
-                起始日期
-                <input id="rule-start" type="date" />
-              </label>
-              <label>
-                结束日期
-                <input id="rule-end" type="date" />
-              </label>
-              <button id="rule-calc-range">计算区间</button>
-            </div>
-            <p id="rule-result" class="subtitle"></p>
-          </div>
         </div>
-
-        <div class="tab-content" id="tab-import">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>数据导入导出</h2>
-              <p>支持 CSV / Excel 批量导入导出</p>
-            </div>
-            <div class="grid-3">
-              <label>
-                类型
-                <select id="data-type">
-                  <option value="employees">员工</option>
-                  <option value="attendance">考勤</option>
-                  <option value="salaries">薪资</option>
-                </select>
-              </label>
-              <label>
-                格式
-                <select id="data-format">
-                  <option value="csv">CSV</option>
-                  <option value="xlsx">Excel</option>
-                </select>
-              </label>
-              <label>
-                文件
-                <input id="data-file" type="file" />
-              </label>
-              <button id="data-import">导入</button>
-              <button id="data-export" class="ghost">导出</button>
-            </div>
-            <p id="data-result" class="subtitle"></p>
-          </div>
+        <div class="table-panel">
+          <table id="perm-table">
+            <thead>
+              <tr>
+                <th>角色</th>
+                <th>方法</th>
+                <th>路径</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
-      </section>
-    </div>
+      </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js"></script>
-  </body>
+      <div class="tab-content" id="tab-import">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>数据导入导出</h2>
+            <p>支持 CSV / Excel 批量导入导出</p>
+          </div>
+          <div class="grid-3">
+            <select id="data-type">
+              <option value="employees">员工</option>
+              <option value="attendance">考勤</option>
+              <option value="salaries">薪资</option>
+            </select>
+            <select id="data-format">
+              <option value="csv">CSV</option>
+              <option value="xlsx">Excel</option>
+            </select>
+            <input id="data-file" type="file" />
+            <button id="data-import">导入</button>
+            <button id="data-export" class="ghost">导出</button>
+          </div>
+          <p id="data-result" class="subtitle"></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js?v=20260324"></script>
+</body>
+
 </html>

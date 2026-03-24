@@ -256,6 +256,19 @@ async function loadRoles() {
     option.textContent = r.name;
     select.appendChild(option);
   });
+
+  const roleTable = $("role-table");
+  if (roleTable) {
+    const body = roleTable.querySelector("tbody");
+    body.innerHTML = "";
+    roles.forEach((r) => {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.textContent = r.name;
+      tr.appendChild(td);
+      body.appendChild(tr);
+    });
+  }
 }
 
 async function loadPermissions() {
