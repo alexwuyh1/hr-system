@@ -10,17 +10,16 @@ import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.Size;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.MatVector;
-import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
 import org.springframework.stereotype.Service;
 
 /**
  * OpenCV-based face verification (MVP).
- * Uses LBPH model trained from the stored avatar and compares probe image.
+ * Uses cosine similarity on normalized pixel vectors for MVP verification.
  */
 @Service
 public class OpenCvFaceService {
   private static final int IMAGE_SIZE = 200;
-  private static final double CONFIDENCE_THRESHOLD = 60.0;
+  private static final double COSINE_THRESHOLD = 0.75;
 
   public OpenCvFaceService() {
     // Ensure native OpenCV libs are loaded.
@@ -40,18 +39,12 @@ public class OpenCvFaceService {
       Mat avatarPrep = preprocess(avatar);
       Mat probePrep = preprocess(probe);
 
-      LBPHFaceRecognizer recognizer = LBPHFaceRecognizer.create();
-      MatVector images = new MatVector(1);
-      images.put(0, avatarPrep);
-      Mat labels = new Mat(1, 1, opencv_core.CV_32SC1);
-      labels.ptr(0).putInt(1);
-      recognizer.train(images, labels);
-
-      int[] label = new int[1];
-      double[] confidence = new double[1];
-      recognizer.predict(probePrep, label, confidence);
-      boolean matched = label[0] == 1 && confidence[0] <= CONFIDENCE_THRESHOLD;
-      return new VerificationResult(matched, confidence[0], CONFIDENCE_THRESHOLD);
+      double similarity = cosineSimilarity(avatarPrep, probePrep);
+      boolean matched = similarity >= COSINE_THRESHOLD;
+      double similarityPercent = similarity * 100.0;
+      double thresholdPercent = COSINE_THRESHOLD * 100.0;
+      double distancePercent = 100.0 - similarityPercent;
+      return new VerificationResult(matched, similarityPercent, thresholdPercent, distancePercent);
     } catch (UnsatisfiedLinkError err) {
       throw new IllegalStateException("OpenCV native libraries not available", err);
     }
@@ -71,5 +64,33 @@ public class OpenCvFaceService {
     return resized;
   }
 
-  public record VerificationResult(boolean matched, double confidence, double threshold) {}
+  private double cosineSimilarity(Mat a, Mat b) {
+    if (a.rows() != b.rows() || a.cols() != b.cols()) {
+      throw new IllegalArgumentException("Face images must be the same size");
+    }
+    int total = a.rows() * a.cols();
+    byte[] dataA = new byte[total];
+    byte[] dataB = new byte[total];
+    a.data().get(dataA);
+    b.data().get(dataB);
+    double dot = 0.0;
+    double normA = 0.0;
+    double normB = 0.0;
+    for (int i = 0; i < total; i++) {
+      int va = dataA[i] & 0xFF;
+      int vb = dataB[i] & 0xFF;
+      dot += (double) va * vb;
+      normA += (double) va * va;
+      normB += (double) vb * vb;
+    }
+    double denom = Math.sqrt(normA) * Math.sqrt(normB);
+    if (denom == 0.0) {
+      return 0.0;
+    }
+    double sim = dot / denom;
+    return Math.max(0.0, Math.min(1.0, sim));
+  }
+
+  public record VerificationResult(
+      boolean matched, double similarity, double threshold, double distance) {}
 }

@@ -56,7 +56,6 @@ public class AttendanceService {
         employeeRepository
             .findById(request.employeeId)
             .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-    ensureUnique(attendance, request.employeeId, request.workDate);
     validateStatus(request.status);
     validateTimes(request.checkIn, request.checkOut);
     attendance.setEmployee(employee);
@@ -65,17 +64,6 @@ public class AttendanceService {
     attendance.setCheckOut(request.checkOut);
     attendance.setStatus(request.status);
     attendance.setNote(request.note);
-  }
-
-  private void ensureUnique(Attendance attendance, Long employeeId, java.time.LocalDate workDate) {
-    attendanceRepository
-        .findByEmployeeIdAndWorkDate(employeeId, workDate)
-        .ifPresent(
-            existing -> {
-              if (attendance.getId() == null || !existing.getId().equals(attendance.getId())) {
-                throw new IllegalArgumentException("Attendance already exists for this employee/date");
-              }
-            });
   }
 
   private void validateStatus(String status) {

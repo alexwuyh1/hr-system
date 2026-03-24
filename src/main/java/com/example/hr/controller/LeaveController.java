@@ -30,12 +30,12 @@ public class LeaveController {
   }
 
   @PutMapping("/{id}")
-  public LeaveRequest update(@PathVariable Long id, @Valid @RequestBody LeaveRequestDto request) {
+  public LeaveRequest update(@PathVariable("id") Long id, @Valid @RequestBody LeaveRequestDto request) {
     return leaveRequestService.update(id, request);
   }
 
   @DeleteMapping("/{id}")
-  public void delete(@PathVariable Long id) {
+  public void delete(@PathVariable("id") Long id) {
     leaveRequestService.delete(id);
   }
 }

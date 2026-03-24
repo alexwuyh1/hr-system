@@ -30,12 +30,12 @@ public class SalaryController {
   }
 
   @PutMapping("/{id}")
-  public Salary update(@PathVariable Long id, @Valid @RequestBody SalaryRequest request) {
+  public Salary update(@PathVariable("id") Long id, @Valid @RequestBody SalaryRequest request) {
     return salaryService.update(id, request);
   }
 
   @DeleteMapping("/{id}")
-  public void delete(@PathVariable Long id) {
+  public void delete(@PathVariable("id") Long id) {
     salaryService.delete(id);
   }
 }

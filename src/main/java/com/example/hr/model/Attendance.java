@@ -1,13 +1,14 @@
 package com.example.hr.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**
  * Daily attendance record.
- * A unique record per employee per work date.
+ * Multiple records per employee per work date are allowed for multi-check-in/out.
  */
 @Entity
 @Table(name = "attendance")
@@ -34,9 +35,11 @@ public class Attendance {
   private LocalDate workDate;
 
   @Column(name = "check_in")
+  @JsonFormat(pattern = "HH:mm:ss")
   private LocalTime checkIn;
 
   @Column(name = "check_out")
+  @JsonFormat(pattern = "HH:mm:ss")
   private LocalTime checkOut;
 
   // Normal, Late, Absent, Leave, etc.

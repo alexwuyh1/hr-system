@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,36 +48,49 @@ public class AttendanceRuleEngineService {
     int updated = 0;
 
     for (Shift shift : shifts) {
-      Attendance attendance =
-          attendanceRepository
-              .findByEmployeeIdAndWorkDate(shift.getEmployee().getId(), date)
-              .orElseGet(() -> {
-                Attendance a = new Attendance();
-                a.setEmployee(shift.getEmployee());
-                a.setWorkDate(date);
-                a.setStatus("Absent");
-                return a;
-              });
+      List<Attendance> records =
+          attendanceRepository.findByEmployeeIdAndWorkDate(shift.getEmployee().getId(), date);
+      if (records.isEmpty()) {
+        Attendance a = new Attendance();
+        a.setEmployee(shift.getEmployee());
+        a.setWorkDate(date);
+        a.setStatus("Absent");
+        records = List.of(a);
+      }
 
       boolean onLeave =
           !leaveRequestRepository.findApprovedForDate(shift.getEmployee().getId(), date).isEmpty();
       if (onLeave) {
-        attendance.setStatus("Leave");
-        attendance.setLateMinutes(0);
-        attendance.setOvertimeMinutes(0);
-        attendanceRepository.save(attendance);
+        for (Attendance entry : records) {
+          entry.setStatus("Leave");
+          entry.setLateMinutes(0);
+          entry.setOvertimeMinutes(0);
+          attendanceRepository.save(entry);
+        }
         updated++;
         continue;
       }
 
-      LocalTime checkIn = attendance.getCheckIn();
-      LocalTime checkOut = attendance.getCheckOut();
+      LocalTime checkIn =
+          records.stream()
+              .map(Attendance::getCheckIn)
+              .filter(Objects::nonNull)
+              .min(LocalTime::compareTo)
+              .orElse(null);
+      LocalTime checkOut =
+          records.stream()
+              .map(Attendance::getCheckOut)
+              .filter(Objects::nonNull)
+              .max(LocalTime::compareTo)
+              .orElse(null);
 
       if (checkIn == null) {
-        attendance.setStatus("Absent");
-        attendance.setLateMinutes(0);
-        attendance.setOvertimeMinutes(0);
-        attendanceRepository.save(attendance);
+        for (Attendance entry : records) {
+          entry.setStatus("Absent");
+          entry.setLateMinutes(0);
+          entry.setOvertimeMinutes(0);
+          attendanceRepository.save(entry);
+        }
         updated++;
         continue;
       }
@@ -87,11 +101,15 @@ public class AttendanceRuleEngineService {
       long lateMinutes =
           Duration.between(shiftStart, checkIn).toMinutes() - rule.getLateGraceMinutes();
       if (lateMinutes > 0) {
-        attendance.setStatus("Late");
-        attendance.setLateMinutes((int) lateMinutes);
+        for (Attendance entry : records) {
+          entry.setStatus("Late");
+          entry.setLateMinutes((int) lateMinutes);
+        }
       } else {
-        attendance.setStatus("Normal");
-        attendance.setLateMinutes(0);
+        for (Attendance entry : records) {
+          entry.setStatus("Normal");
+          entry.setLateMinutes(0);
+        }
       }
 
       int overtimeMinutes = 0;
@@ -114,8 +132,10 @@ public class AttendanceRuleEngineService {
         }
       }
 
-      attendance.setOvertimeMinutes(overtimeMinutes);
-      attendanceRepository.save(attendance);
+      for (Attendance entry : records) {
+        entry.setOvertimeMinutes(overtimeMinutes);
+        attendanceRepository.save(entry);
+      }
       updated++;
     }
 

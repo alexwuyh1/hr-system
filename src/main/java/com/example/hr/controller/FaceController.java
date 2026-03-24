@@ -25,6 +25,8 @@ public class FaceController {
     var result = faceAttendanceService.verify(employeeId, file.getInputStream());
     return Map.of(
         "matched", result.matched(),
+        "similarity", result.similarity(),
+        "algorithm", result.algorithm(),
         "distance", result.distance(),
         "threshold", result.threshold());
   }
@@ -34,5 +36,12 @@ public class FaceController {
       @RequestParam("employeeId") Long employeeId, @RequestParam("file") MultipartFile file)
       throws Exception {
     return faceAttendanceService.checkIn(employeeId, file.getInputStream());
+  }
+
+  @PostMapping("/checkout")
+  public Attendance checkOut(
+      @RequestParam("employeeId") Long employeeId, @RequestParam("file") MultipartFile file)
+      throws Exception {
+    return faceAttendanceService.checkOut(employeeId, file.getInputStream());
   }
 }

@@ -31,12 +31,12 @@ public class EmployeeController {
   }
 
   @PutMapping("/{id}")
-  public EmployeeResponse update(@PathVariable Long id, @Valid @RequestBody EmployeeRequest request) {
+  public EmployeeResponse update(@PathVariable("id") Long id, @Valid @RequestBody EmployeeRequest request) {
     return EmployeeResponse.from(employeeService.update(id, request));
   }
 
   @DeleteMapping("/{id}")
-  public void delete(@PathVariable Long id) {
+  public void delete(@PathVariable("id") Long id) {
     employeeService.delete(id);
   }
 }

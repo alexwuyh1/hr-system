@@ -40,7 +40,7 @@ public class PermissionController {
   }
 
   @PutMapping("/{id}")
-  public Permission update(@PathVariable Long id, @Valid @RequestBody PermissionRequest request) {
+  public Permission update(@PathVariable("id") Long id, @Valid @RequestBody PermissionRequest request) {
     validateRole(request.role);
     Permission permission = new Permission();
     permission.setRole(request.role);
@@ -50,7 +50,7 @@ public class PermissionController {
   }
 
   @DeleteMapping("/{id}")
-  public Map<String, String> delete(@PathVariable Long id) {
+  public Map<String, String> delete(@PathVariable("id") Long id) {
     permissionService.delete(id);
     return Map.of("message", "Permission deleted");
   }

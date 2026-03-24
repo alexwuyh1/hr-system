@@ -34,12 +34,12 @@ public class ShiftController {
   }
 
   @PutMapping("/{id}")
-  public Shift update(@PathVariable Long id, @Valid @RequestBody ShiftRequest request) {
+  public Shift update(@PathVariable("id") Long id, @Valid @RequestBody ShiftRequest request) {
     return shiftService.update(id, request);
   }
 
   @DeleteMapping("/{id}")
-  public void delete(@PathVariable Long id) {
+  public void delete(@PathVariable("id") Long id) {
     shiftService.delete(id);
   }
 }

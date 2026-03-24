@@ -35,7 +35,7 @@ public class GradeController {
   }
 
   @PutMapping("/{id}")
-  public Grade update(@PathVariable Long id, @Valid @RequestBody GradeRequest request) {
+  public Grade update(@PathVariable("id") Long id, @Valid @RequestBody GradeRequest request) {
     Grade grade = new Grade();
     grade.setName(request.name);
     grade.setLevel(request.level);
@@ -43,7 +43,7 @@ public class GradeController {
   }
 
   @DeleteMapping("/{id}")
-  public Map<String, String> delete(@PathVariable Long id) {
+  public Map<String, String> delete(@PathVariable("id") Long id) {
     gradeService.delete(id);
     return Map.of("message", "Grade deleted");
   }

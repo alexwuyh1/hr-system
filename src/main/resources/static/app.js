@@ -107,6 +107,7 @@ async function apiRequest(path, options = {}) {
       ...headers,
     },
   });
+  const contentType = response.headers.get("content-type") || "";
   if (!response.ok) {
     const error = await response.text();
     throw new Error(error || "Request failed");
@@ -114,7 +115,14 @@ async function apiRequest(path, options = {}) {
   if (response.status === 204) {
     return null;
   }
-  return response.json();
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+  if (contentType.includes("application/json")) {
+    return JSON.parse(text);
+  }
+  return text;
 }
 
 function persistToken(token) {
@@ -857,9 +865,12 @@ if (profileVerifyBtn) {
       body: form,
     });
     const data = await response.json();
+    const similarity =
+      typeof data.similarity === "number" ? `${data.similarity.toFixed(1)}%` : "未知";
+    const algo = data.algorithm || "unknown";
     $("profile-result").textContent = data.matched
-      ? `验证通过，距离 ${data.distance}`
-      : `验证失败，距离 ${data.distance}`;
+      ? `验证通过，相似度 ${similarity}（${algo}）`
+      : `验证失败，相似度 ${similarity}（${algo}）`;
   });
 }
 
@@ -886,11 +897,43 @@ if (profileCheckinBtn) {
     });
     if (!response.ok) {
       const err = await response.text();
-      $("profile-result").textContent = `考勤失败：${err}`;
+      $("profile-result").textContent = `签到失败：${err}`;
       return;
     }
     const data = await response.json();
-    $("profile-result").textContent = `考勤成功：${data.workDate} ${data.checkIn || ""} ${data.checkOut || ""}`;
+    $("profile-result").textContent = `签到成功：${data.workDate} ${data.checkIn || ""}`;
+    await loadAttendance();
+  });
+}
+
+const profileCheckoutBtn = $("profile-checkout");
+if (profileCheckoutBtn) {
+  profileCheckoutBtn.addEventListener("click", async () => {
+    const employeeId = $("profile-employee").value;
+    if (!employeeId) {
+      alert("请选择员工");
+      return;
+    }
+    const file = $("profile-verify").files[0];
+    if (!file) {
+      alert("请先选择识别文件");
+      return;
+    }
+    const form = new FormData();
+    form.append("employeeId", employeeId);
+    form.append("file", file);
+    const response = await fetch("/api/face/checkout", {
+      method: "POST",
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      body: form,
+    });
+    if (!response.ok) {
+      const err = await response.text();
+      $("profile-result").textContent = `签退失败：${err}`;
+      return;
+    }
+    const data = await response.json();
+    $("profile-result").textContent = `签退成功：${data.workDate} ${data.checkOut || ""}`;
     await loadAttendance();
   });
 }

@@ -43,7 +43,7 @@ public class DepartmentController {
   }
 
   @PutMapping("/{id}")
-  public Department update(@PathVariable Long id, @Valid @RequestBody DepartmentRequest request) {
+  public Department update(@PathVariable("id") Long id, @Valid @RequestBody DepartmentRequest request) {
     Department department = new Department();
     department.setName(request.name);
     department.setParent(request.parentId == null ? null : loadParent(request.parentId));
@@ -51,7 +51,7 @@ public class DepartmentController {
   }
 
   @DeleteMapping("/{id}")
-  public Map<String, String> delete(@PathVariable Long id) {
+  public Map<String, String> delete(@PathVariable("id") Long id) {
     departmentService.delete(id);
     return Map.of("message", "Department deleted");
   }

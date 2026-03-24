@@ -41,7 +41,6 @@ CREATE TABLE IF NOT EXISTS attendance (
   note TEXT,
   late_minutes INTEGER,
   overtime_minutes INTEGER,
-  UNIQUE(employee_id, work_date),
   FOREIGN KEY (employee_id) REFERENCES employees(id)
 );
 

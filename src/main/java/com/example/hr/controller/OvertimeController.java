@@ -30,12 +30,12 @@ public class OvertimeController {
   }
 
   @PutMapping("/{id}")
-  public OvertimeRequest update(@PathVariable Long id, @Valid @RequestBody OvertimeRequestDto request) {
+  public OvertimeRequest update(@PathVariable("id") Long id, @Valid @RequestBody OvertimeRequestDto request) {
     return overtimeRequestService.update(id, request);
   }
 
   @DeleteMapping("/{id}")
-  public void delete(@PathVariable Long id) {
+  public void delete(@PathVariable("id") Long id) {
     overtimeRequestService.delete(id);
   }
 }

@@ -30,12 +30,12 @@ public class AttendanceController {
   }
 
   @PutMapping("/{id}")
-  public Attendance update(@PathVariable Long id, @Valid @RequestBody AttendanceRequest request) {
+  public Attendance update(@PathVariable("id") Long id, @Valid @RequestBody AttendanceRequest request) {
     return attendanceService.update(id, request);
   }
 
   @DeleteMapping("/{id}")
-  public void delete(@PathVariable Long id) {
+  public void delete(@PathVariable("id") Long id) {
     attendanceService.delete(id);
   }
 }

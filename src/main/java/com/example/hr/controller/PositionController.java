@@ -33,14 +33,14 @@ public class PositionController {
   }
 
   @PutMapping("/{id}")
-  public Position update(@PathVariable Long id, @Valid @RequestBody PositionRequest request) {
+  public Position update(@PathVariable("id") Long id, @Valid @RequestBody PositionRequest request) {
     Position position = new Position();
     position.setName(request.name);
     return positionService.update(id, position);
   }
 
   @DeleteMapping("/{id}")
-  public Map<String, String> delete(@PathVariable Long id) {
+  public Map<String, String> delete(@PathVariable("id") Long id) {
     positionService.delete(id);
     return Map.of("message", "Position deleted");
   }
