@@ -1,8 +1,19 @@
 const API_BASE = "/api";
 
-// Store auth token in memory for this demo.
-let authToken = null;
+// Store auth token in memory and localStorage for persistence.
+let authToken = localStorage.getItem("hr_token");
 let dashboardCharts = {};
+let initCache = {
+  dashboard: null,
+  attendanceRule: null,
+  departments: null,
+  departmentTree: null,
+  positions: null,
+  grades: null,
+  roles: null,
+  permissions: null,
+};
+const loadedTabs = new Set();
 
 const $ = (id) => document.getElementById(id);
 
@@ -10,6 +21,15 @@ function setText(id, value) {
   const el = $(id);
   if (el) {
     el.textContent = value;
+  }
+}
+
+async function safeLoad(label, fn) {
+  try {
+    return await fn();
+  } catch (err) {
+    console.warn(`[load:${label}]`, err);
+    return null;
   }
 }
 
@@ -33,6 +53,15 @@ async function apiRequest(path, options = {}) {
     return null;
   }
   return response.json();
+}
+
+function persistToken(token) {
+  authToken = token;
+  if (token) {
+    localStorage.setItem("hr_token", token);
+  } else {
+    localStorage.removeItem("hr_token");
+  }
 }
 
 function switchTab(name) {
@@ -124,6 +153,12 @@ function updateChart(chart, labels, datasets) {
 
 async function loadDashboard() {
   const dashboard = await apiRequest("/dashboard/summary");
+  initCache.dashboard = dashboard;
+  applyDashboard(dashboard);
+}
+
+function applyDashboard(dashboard) {
+  if (!dashboard) return;
   setText("dash-total", dashboard.totalEmployees);
   setText("dash-active", dashboard.activeEmployees);
   setText("dash-attendance", dashboard.attendanceToday);
@@ -242,8 +277,8 @@ async function loadDashboard() {
   ]);
 }
 
-async function loadRoles() {
-  const roles = await apiRequest("/roles");
+function applyRoles(roles) {
+  if (!roles) return;
   const select = $("perm-role-select");
   if (!select) return;
   select.innerHTML = "";
@@ -268,33 +303,35 @@ async function loadRoles() {
   }
 }
 
-async function loadPermissions() {
-  const list = await apiRequest("/permissions");
+async function loadRoles() {
+  const roles = await apiRequest("/roles");
+  initCache.roles = roles;
+  applyRoles(roles);
+}
+
+function applyPermissions(list) {
+  if (!list) return;
   const body = $("perm-table").querySelector("tbody");
   body.innerHTML = "";
   list.forEach((p) => {
     const row = buildRow([p.role, p.method, p.pathPrefix], async () => {
       await apiRequest(`/permissions/${p.id}`, { method: "DELETE" });
-      await loadPermissions();
+      await safeLoad("permissions", loadPermissions);
     });
     body.appendChild(row);
   });
 }
 
+async function loadPermissions() {
+  const list = await apiRequest("/permissions");
+  initCache.permissions = list;
+  applyPermissions(list);
+}
+
 async function loadEmployees() {
   const list = await apiRequest("/employees");
-  const body = $("employee-table").querySelector("tbody");
-  body.innerHTML = "";
-  list.forEach((e) => {
-    const row = buildRow(
-      [e.employeeNo, e.name, e.departmentName || e.department, e.positionName || e.title, e.status],
-      async () => {
-        await apiRequest(`/employees/${e.id}`, { method: "DELETE" });
-        await loadEmployees();
-      }
-    );
-    body.appendChild(row);
-  });
+  initCache.employees = list;
+  applyEmployees(list);
 
   // Populate profile selector
   const profileSelect = $("profile-employee");
@@ -336,6 +373,22 @@ async function loadEmployees() {
   }
 }
 
+function applyEmployees(list) {
+  if (!list) return;
+  const body = $("employee-table").querySelector("tbody");
+  body.innerHTML = "";
+  list.forEach((e) => {
+    const row = buildRow(
+      [e.employeeNo, e.name, e.departmentName || e.department, e.positionName || e.title, e.status],
+      async () => {
+        await apiRequest(`/employees/${e.id}`, { method: "DELETE" });
+        await safeLoad("employees", loadEmployees);
+      }
+    );
+    body.appendChild(row);
+  });
+}
+
 async function loadAttendance() {
   const list = await apiRequest("/attendance");
   const body = $("attendance-table").querySelector("tbody");
@@ -351,7 +404,7 @@ async function loadAttendance() {
       ],
       async () => {
         await apiRequest(`/attendance/${a.id}`, { method: "DELETE" });
-        await loadAttendance();
+        await safeLoad("attendance", loadAttendance);
       }
     );
     body.appendChild(row);
@@ -373,7 +426,7 @@ async function loadSalary() {
       ],
       async () => {
         await apiRequest(`/salaries/${s.id}`, { method: "DELETE" });
-        await loadSalary();
+        await safeLoad("salary", loadSalary);
       }
     );
     body.appendChild(row);
@@ -382,6 +435,17 @@ async function loadSalary() {
 
 async function loadDepartments() {
   const list = await apiRequest("/departments");
+  initCache.departments = list;
+  let treeData = initCache.departmentTree;
+  if (!treeData) {
+    treeData = await apiRequest("/departments/tree");
+    initCache.departmentTree = treeData;
+  }
+  applyDepartments(list, treeData);
+}
+
+function applyDepartments(list, treeData) {
+  if (!list) return;
   const select = $("employee-dept");
   if (select) {
     select.innerHTML = "";
@@ -418,8 +482,7 @@ async function loadDepartments() {
   });
 
   const treeContainer = $("dept-tree");
-  if (treeContainer) {
-    const treeData = await apiRequest("/departments/tree");
+  if (treeContainer && treeData) {
     treeContainer.innerHTML = "";
     treeContainer.appendChild(renderTree(treeData));
   }
@@ -427,6 +490,12 @@ async function loadDepartments() {
 
 async function loadPositions() {
   const list = await apiRequest("/positions");
+  initCache.positions = list;
+  applyPositions(list);
+}
+
+function applyPositions(list) {
+  if (!list) return;
   const select = $("employee-pos");
   if (select) {
     select.innerHTML = "";
@@ -451,6 +520,12 @@ async function loadPositions() {
 
 async function loadGrades() {
   const list = await apiRequest("/grades");
+  initCache.grades = list;
+  applyGrades(list);
+}
+
+function applyGrades(list) {
+  if (!list) return;
   const select = $("employee-grade");
   if (select) {
     select.innerHTML = "";
@@ -475,10 +550,89 @@ async function loadGrades() {
 
 async function loadAttendanceRule() {
   const rule = await apiRequest("/attendance-rules");
+  initCache.attendanceRule = rule;
+  applyAttendanceRule(rule);
+}
+
+function applyAttendanceRule(rule) {
+  if (!rule) return;
   const lateInput = $("rule-late");
   const overtimeInput = $("rule-overtime");
   if (lateInput) lateInput.value = rule.lateGraceMinutes;
   if (overtimeInput) overtimeInput.value = rule.overtimeThresholdMinutes;
+}
+
+async function loadInit() {
+  const init = await apiRequest("/init");
+  initCache = {
+    ...initCache,
+    ...init,
+  };
+  applyDashboard(init.dashboard);
+  applyAttendanceRule(init.attendanceRule);
+  applyDepartments(init.departments, init.departmentTree);
+  applyPositions(init.positions);
+  applyGrades(init.grades);
+  applyRoles(init.roles);
+  applyPermissions(init.permissions);
+}
+
+async function ensureTabData(tabName) {
+  if (loadedTabs.has(tabName)) {
+    return;
+  }
+  loadedTabs.add(tabName);
+  if (tabName === "dashboard") {
+    if (initCache.dashboard) {
+      applyDashboard(initCache.dashboard);
+    } else {
+      await safeLoad("dashboard", loadDashboard);
+    }
+  }
+  if (tabName === "employees") {
+    await safeLoad("employees", loadEmployees);
+  }
+  if (tabName === "employees-attendance") {
+    await safeLoad("employees", loadEmployees);
+  }
+  if (tabName === "attendance") {
+    await safeLoad("employees", loadEmployees);
+    await safeLoad("attendance", loadAttendance);
+  }
+  if (tabName === "attendance-settings") {
+    if (initCache.attendanceRule) {
+      applyAttendanceRule(initCache.attendanceRule);
+    } else {
+      await safeLoad("attendance-rules", loadAttendanceRule);
+    }
+  }
+  if (tabName === "salary") {
+    await safeLoad("employees", loadEmployees);
+    await safeLoad("salary", loadSalary);
+  }
+  if (tabName === "org") {
+    if (initCache.departments && initCache.positions && initCache.grades) {
+      applyDepartments(initCache.departments, initCache.departmentTree || []);
+      applyPositions(initCache.positions);
+      applyGrades(initCache.grades);
+    } else {
+      await safeLoad("departments", loadDepartments);
+      await safeLoad("positions", loadPositions);
+      await safeLoad("grades", loadGrades);
+    }
+  }
+  if (tabName === "permissions") {
+    if (initCache.roles) {
+      applyRoles(initCache.roles);
+    } else {
+      await safeLoad("roles", loadRoles);
+    }
+    if (initCache.permissions) {
+      applyPermissions(initCache.permissions);
+    } else {
+      await safeLoad("permissions", loadPermissions);
+    }
+  }
 }
 
 function renderProfile(employee) {
@@ -507,21 +661,12 @@ $("login-form").addEventListener("submit", async (e) => {
       method: "POST",
       body: JSON.stringify(data),
     });
-    authToken = result.token;
+    persistToken(result.token);
     $("auth-panel").classList.add("hidden");
     $("workspace").classList.remove("hidden");
-    await Promise.all([
-      loadDashboard().catch(() => {}),
-      loadEmployees(),
-      loadAttendance(),
-      loadSalary(),
-      loadDepartments().catch(() => {}),
-      loadPositions().catch(() => {}),
-      loadGrades().catch(() => {}),
-      loadAttendanceRule().catch(() => {}),
-      loadRoles().catch(() => {}),
-      loadPermissions().catch(() => {}),
-    ]);
+    switchTab("dashboard");
+    await safeLoad("init", loadInit);
+    await ensureTabData("dashboard");
   } catch (err) {
     alert(`登录失败: ${err.message}`);
   }
@@ -545,9 +690,20 @@ $("register-btn").addEventListener("click", async () => {
 });
 
 $("logout").addEventListener("click", () => {
-  authToken = null;
+  persistToken(null);
   $("workspace").classList.add("hidden");
   $("auth-panel").classList.remove("hidden");
+});
+
+// Auto-login if token exists
+window.addEventListener("DOMContentLoaded", async () => {
+  if (authToken) {
+    $("auth-panel").classList.add("hidden");
+    $("workspace").classList.remove("hidden");
+    switchTab("dashboard");
+    await safeLoad("init", loadInit);
+    await ensureTabData("dashboard");
+  }
 });
 
 // Employee form
@@ -710,9 +866,7 @@ $("salary-form").addEventListener("submit", async (e) => {
 document.querySelectorAll(".tabs button[data-tab]").forEach((btn) => {
   btn.addEventListener("click", async () => {
     switchTab(btn.dataset.tab);
-    if (btn.dataset.tab === "dashboard") {
-      await loadDashboard();
-    }
+    await ensureTabData(btn.dataset.tab);
   });
 });
 
