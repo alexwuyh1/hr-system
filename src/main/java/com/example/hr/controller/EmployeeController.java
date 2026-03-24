@@ -2,6 +2,8 @@ package com.example.hr.controller;
 
 import com.example.hr.dto.EmployeeRequest;
 import com.example.hr.dto.EmployeeResponse;
+import com.example.hr.dto.ResignRequest;
+import com.example.hr.dto.RehireRequest;
 import com.example.hr.model.Employee;
 import com.example.hr.service.EmployeeService;
 import jakarta.validation.Valid;
@@ -38,5 +40,15 @@ public class EmployeeController {
   @DeleteMapping("/{id}")
   public void delete(@PathVariable("id") Long id) {
     employeeService.delete(id);
+  }
+
+  @PostMapping("/resign")
+  public EmployeeResponse resign(@Valid @RequestBody ResignRequest request) {
+    return EmployeeResponse.from(employeeService.resign(request.employeeNo));
+  }
+
+  @PostMapping("/rehire")
+  public EmployeeResponse rehire(@Valid @RequestBody RehireRequest request) {
+    return EmployeeResponse.from(employeeService.rehire(request.employeeNo));
   }
 }

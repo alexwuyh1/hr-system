@@ -24,6 +24,7 @@ import javax.sql.DataSource;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -33,6 +34,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class DataInitializer {
   @Bean
+  @Order(1)
   CommandLineRunner initData(
       UserRepository userRepository,
       EmployeeRepository employeeRepository,
@@ -52,13 +54,13 @@ public class DataInitializer {
         User admin = new User();
         admin.setUsername("admin");
         admin.setPasswordHash(passwordEncoder.encode("admin123"));
-        admin.setRole("ADMIN");
+        admin.setRole("管理员");
         admin.setCreatedAt(System.currentTimeMillis());
         userRepository.save(admin);
       }
 
       if (roleRepository.count() == 0) {
-        for (String roleName : new String[] {"ADMIN", "HR", "FINANCE", "MANAGER", "USER"}) {
+        for (String roleName : new String[] {"管理员", "人事", "财务", "经理", "员工"}) {
           Role role = new Role();
           role.setName(roleName);
           roleRepository.save(role);
@@ -66,106 +68,106 @@ public class DataInitializer {
       }
 
       // Employee permissions
-      seedPermission(permissionRepository, "GET", "/api/employees", "ADMIN", "HR", "MANAGER");
-      seedPermission(permissionRepository, "POST", "/api/employees", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/employees", "ADMIN", "HR");
-      seedPermission(permissionRepository, "DELETE", "/api/employees", "ADMIN", "HR");
+      seedPermission(permissionRepository, "GET", "/api/employees", "管理员", "人事", "经理");
+      seedPermission(permissionRepository, "POST", "/api/employees", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/employees", "管理员", "人事");
+      seedPermission(permissionRepository, "DELETE", "/api/employees", "管理员", "人事");
 
       // Attendance permissions
-      seedPermission(permissionRepository, "GET", "/api/attendance", "ADMIN", "HR", "MANAGER");
-      seedPermission(permissionRepository, "POST", "/api/attendance", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/attendance", "ADMIN", "HR");
-      seedPermission(permissionRepository, "DELETE", "/api/attendance", "ADMIN", "HR");
+      seedPermission(permissionRepository, "GET", "/api/attendance", "管理员", "人事", "经理");
+      seedPermission(permissionRepository, "POST", "/api/attendance", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/attendance", "管理员", "人事");
+      seedPermission(permissionRepository, "DELETE", "/api/attendance", "管理员", "人事");
 
       // Salary permissions
-      seedPermission(permissionRepository, "GET", "/api/salaries", "ADMIN", "FINANCE");
-      seedPermission(permissionRepository, "POST", "/api/salaries", "ADMIN", "FINANCE");
-      seedPermission(permissionRepository, "PUT", "/api/salaries", "ADMIN", "FINANCE");
-      seedPermission(permissionRepository, "DELETE", "/api/salaries", "ADMIN", "FINANCE");
+      seedPermission(permissionRepository, "GET", "/api/salaries", "管理员", "财务");
+      seedPermission(permissionRepository, "POST", "/api/salaries", "管理员", "财务");
+      seedPermission(permissionRepository, "PUT", "/api/salaries", "管理员", "财务");
+      seedPermission(permissionRepository, "DELETE", "/api/salaries", "管理员", "财务");
 
       // Report permissions
-      seedPermission(permissionRepository, "GET", "/api/reports", "ADMIN", "HR", "FINANCE", "MANAGER");
+      seedPermission(permissionRepository, "GET", "/api/reports", "管理员", "人事", "财务", "经理");
       // Dashboard permissions
-      seedPermission(permissionRepository, "GET", "/api/dashboard", "ADMIN", "HR", "FINANCE", "MANAGER");
+      seedPermission(permissionRepository, "GET", "/api/dashboard", "管理员", "人事", "财务", "经理");
       // Init aggregation permissions
-      seedPermission(permissionRepository, "GET", "/api/init", "ADMIN", "HR", "FINANCE", "MANAGER");
+      seedPermission(permissionRepository, "GET", "/api/init", "管理员", "人事", "财务", "经理");
 
       // User management (admin only)
-      seedPermission(permissionRepository, "GET", "/api/users", "ADMIN");
-      seedPermission(permissionRepository, "PUT", "/api/users", "ADMIN");
-      seedPermission(permissionRepository, "POST", "/api/permissions", "ADMIN");
-      seedPermission(permissionRepository, "PUT", "/api/permissions", "ADMIN");
-      seedPermission(permissionRepository, "DELETE", "/api/permissions", "ADMIN");
-      seedPermission(permissionRepository, "GET", "/api/permissions", "ADMIN");
-      seedPermission(permissionRepository, "GET", "/api/roles", "ADMIN");
-      seedPermission(permissionRepository, "GET", "/api/departments", "ADMIN", "HR", "MANAGER");
-      seedPermission(permissionRepository, "POST", "/api/departments", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/departments", "ADMIN", "HR");
-      seedPermission(permissionRepository, "DELETE", "/api/departments", "ADMIN", "HR");
-      seedPermission(permissionRepository, "GET", "/api/positions", "ADMIN", "HR");
-      seedPermission(permissionRepository, "POST", "/api/positions", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/positions", "ADMIN", "HR");
-      seedPermission(permissionRepository, "DELETE", "/api/positions", "ADMIN", "HR");
-      seedPermission(permissionRepository, "GET", "/api/grades", "ADMIN", "HR");
-      seedPermission(permissionRepository, "POST", "/api/grades", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/grades", "ADMIN", "HR");
-      seedPermission(permissionRepository, "DELETE", "/api/grades", "ADMIN", "HR");
-      seedPermission(permissionRepository, "GET", "/api/departments/tree", "ADMIN", "HR", "MANAGER");
-      seedPermission(permissionRepository, "GET", "/api/shifts", "ADMIN", "HR", "MANAGER");
-      seedPermission(permissionRepository, "POST", "/api/shifts", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/shifts", "ADMIN", "HR");
-      seedPermission(permissionRepository, "DELETE", "/api/shifts", "ADMIN", "HR");
-      seedPermission(permissionRepository, "GET", "/api/leaves", "ADMIN", "HR");
-      seedPermission(permissionRepository, "POST", "/api/leaves", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/leaves", "ADMIN", "HR");
-      seedPermission(permissionRepository, "DELETE", "/api/leaves", "ADMIN", "HR");
-      seedPermission(permissionRepository, "GET", "/api/overtime", "ADMIN", "HR", "MANAGER");
-      seedPermission(permissionRepository, "POST", "/api/overtime", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/overtime", "ADMIN", "HR");
-      seedPermission(permissionRepository, "DELETE", "/api/overtime", "ADMIN", "HR");
-      seedPermission(permissionRepository, "GET", "/api/attendance-rules", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/attendance-rules", "ADMIN", "HR");
-      seedPermission(permissionRepository, "POST", "/api/attendance-rules", "ADMIN", "HR");
-      seedPermission(permissionRepository, "GET", "/api/data", "ADMIN", "HR", "MANAGER");
-      seedPermission(permissionRepository, "POST", "/api/data", "ADMIN", "HR");
-      seedPermission(permissionRepository, "GET", "/api/employees", "ADMIN", "HR", "MANAGER");
-      seedPermission(permissionRepository, "POST", "/api/employees", "ADMIN", "HR");
-      seedPermission(permissionRepository, "PUT", "/api/employees", "ADMIN", "HR");
-      seedPermission(permissionRepository, "DELETE", "/api/employees", "ADMIN", "HR");
-      seedPermission(permissionRepository, "POST", "/api/face", "ADMIN", "HR", "MANAGER");
+      seedPermission(permissionRepository, "GET", "/api/users", "管理员");
+      seedPermission(permissionRepository, "PUT", "/api/users", "管理员");
+      seedPermission(permissionRepository, "POST", "/api/permissions", "管理员");
+      seedPermission(permissionRepository, "PUT", "/api/permissions", "管理员");
+      seedPermission(permissionRepository, "DELETE", "/api/permissions", "管理员");
+      seedPermission(permissionRepository, "GET", "/api/permissions", "管理员");
+      seedPermission(permissionRepository, "GET", "/api/roles", "管理员");
+      seedPermission(permissionRepository, "GET", "/api/departments", "管理员", "人事", "经理");
+      seedPermission(permissionRepository, "POST", "/api/departments", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/departments", "管理员", "人事");
+      seedPermission(permissionRepository, "DELETE", "/api/departments", "管理员", "人事");
+      seedPermission(permissionRepository, "GET", "/api/positions", "管理员", "人事");
+      seedPermission(permissionRepository, "POST", "/api/positions", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/positions", "管理员", "人事");
+      seedPermission(permissionRepository, "DELETE", "/api/positions", "管理员", "人事");
+      seedPermission(permissionRepository, "GET", "/api/grades", "管理员", "人事");
+      seedPermission(permissionRepository, "POST", "/api/grades", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/grades", "管理员", "人事");
+      seedPermission(permissionRepository, "DELETE", "/api/grades", "管理员", "人事");
+      seedPermission(permissionRepository, "GET", "/api/departments/tree", "管理员", "人事", "经理");
+      seedPermission(permissionRepository, "GET", "/api/shifts", "管理员", "人事", "经理");
+      seedPermission(permissionRepository, "POST", "/api/shifts", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/shifts", "管理员", "人事");
+      seedPermission(permissionRepository, "DELETE", "/api/shifts", "管理员", "人事");
+      seedPermission(permissionRepository, "GET", "/api/leaves", "管理员", "人事");
+      seedPermission(permissionRepository, "POST", "/api/leaves", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/leaves", "管理员", "人事");
+      seedPermission(permissionRepository, "DELETE", "/api/leaves", "管理员", "人事");
+      seedPermission(permissionRepository, "GET", "/api/overtime", "管理员", "人事", "经理");
+      seedPermission(permissionRepository, "POST", "/api/overtime", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/overtime", "管理员", "人事");
+      seedPermission(permissionRepository, "DELETE", "/api/overtime", "管理员", "人事");
+      seedPermission(permissionRepository, "GET", "/api/attendance-rules", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/attendance-rules", "管理员", "人事");
+      seedPermission(permissionRepository, "POST", "/api/attendance-rules", "管理员", "人事");
+      seedPermission(permissionRepository, "GET", "/api/data", "管理员", "人事", "经理");
+      seedPermission(permissionRepository, "POST", "/api/data", "管理员", "人事");
+      seedPermission(permissionRepository, "GET", "/api/employees", "管理员", "人事", "经理");
+      seedPermission(permissionRepository, "POST", "/api/employees", "管理员", "人事");
+      seedPermission(permissionRepository, "PUT", "/api/employees", "管理员", "人事");
+      seedPermission(permissionRepository, "DELETE", "/api/employees", "管理员", "人事");
+      seedPermission(permissionRepository, "POST", "/api/face", "管理员", "人事", "经理");
 
       if (departmentRepository.count() == 0) {
         Department hq = new Department();
-        hq.setName("Headquarters");
+        hq.setName("总部");
         departmentRepository.save(hq);
 
         Department hr = new Department();
-        hr.setName("HR");
+        hr.setName("人力资源部");
         hr.setParent(hq);
         departmentRepository.save(hr);
 
         Department eng = new Department();
-        eng.setName("Engineering");
+        eng.setName("研发部");
         eng.setParent(hq);
         departmentRepository.save(eng);
 
         Department fin = new Department();
-        fin.setName("Finance");
+        fin.setName("财务部");
         fin.setParent(hq);
         departmentRepository.save(fin);
       }
 
       if (positionRepository.count() == 0) {
         Position p1 = new Position();
-        p1.setName("HR Manager");
+        p1.setName("人力资源经理");
         positionRepository.save(p1);
 
         Position p2 = new Position();
-        p2.setName("Software Engineer");
+        p2.setName("软件工程师");
         positionRepository.save(p2);
 
         Position p3 = new Position();
-        p3.setName("Analyst");
+        p3.setName("分析师");
         positionRepository.save(p3);
       }
 
@@ -182,22 +184,22 @@ public class DataInitializer {
       }
 
       if (employeeRepository.count() == 0) {
-        Department hr = departmentRepository.findAll().stream().filter(d -> "HR".equals(d.getName())).findFirst().orElse(null);
-        Department eng = departmentRepository.findAll().stream().filter(d -> "Engineering".equals(d.getName())).findFirst().orElse(null);
-        Position hrMgr = positionRepository.findAll().stream().filter(p -> "HR Manager".equals(p.getName())).findFirst().orElse(null);
-        Position engPos = positionRepository.findAll().stream().filter(p -> "Software Engineer".equals(p.getName())).findFirst().orElse(null);
+        Department hr = departmentRepository.findAll().stream().filter(d -> "人力资源部".equals(d.getName())).findFirst().orElse(null);
+        Department eng = departmentRepository.findAll().stream().filter(d -> "研发部".equals(d.getName())).findFirst().orElse(null);
+        Position hrMgr = positionRepository.findAll().stream().filter(p -> "人力资源经理".equals(p.getName())).findFirst().orElse(null);
+        Position engPos = positionRepository.findAll().stream().filter(p -> "软件工程师".equals(p.getName())).findFirst().orElse(null);
         Grade g4 = gradeRepository.findAll().stream().filter(g -> g.getLevel() == 4).findFirst().orElse(null);
         Grade g3 = gradeRepository.findAll().stream().filter(g -> g.getLevel() == 3).findFirst().orElse(null);
 
         Employee e1 = new Employee();
         e1.setEmployeeNo("E1001");
         e1.setName("Alice Chen");
-        e1.setDepartment("HR");
-        e1.setTitle("HR Manager");
+        e1.setDepartment("人力资源部");
+        e1.setTitle("人力资源经理");
         e1.setPhone("13800000001");
         e1.setEmail("alice@example.com");
         e1.setHireDate(LocalDate.now().minusYears(2));
-        e1.setStatus("Active");
+        e1.setStatus("在职");
         e1.setDepartmentRef(hr);
         e1.setPositionRef(hrMgr);
         e1.setGradeRef(g4);
@@ -206,12 +208,12 @@ public class DataInitializer {
         Employee e2 = new Employee();
         e2.setEmployeeNo("E1002");
         e2.setName("Bob Li");
-        e2.setDepartment("Engineering");
-        e2.setTitle("Software Engineer");
+        e2.setDepartment("研发部");
+        e2.setTitle("软件工程师");
         e2.setPhone("13800000002");
         e2.setEmail("bob@example.com");
         e2.setHireDate(LocalDate.now().minusYears(1));
-        e2.setStatus("Active");
+        e2.setStatus("在职");
         e2.setDepartmentRef(eng);
         e2.setPositionRef(engPos);
         e2.setGradeRef(g3);

@@ -56,6 +56,9 @@ public class AttendanceService {
         employeeRepository
             .findById(request.employeeId)
             .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+    if (!"在职".equals(employee.getStatus())) {
+      throw new IllegalArgumentException("员工未在职");
+    }
     validateStatus(request.status);
     validateTimes(request.checkIn, request.checkOut);
     attendance.setEmployee(employee);

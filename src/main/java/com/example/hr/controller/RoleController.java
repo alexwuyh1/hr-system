@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Role catalog endpoints.
- * Only ADMIN can access (enforced by AuthInterceptor).
+ * Only 管理员 can access (enforced by AuthInterceptor).
  */
 @RestController
 @RequestMapping("/api/roles")

@@ -34,7 +34,7 @@ public class Employee {
   @Column(name = "hire_date", nullable = false)
   private LocalDate hireDate;
 
-  // Active, OnLeave, Resigned, etc.
+  // 在职 / 离职等状态
   @Column(nullable = false)
   private String status;
 

@@ -21,7 +21,7 @@ public class User {
   @Column(name = "password_hash", nullable = false)
   private String passwordHash;
 
-  // Simple role: ADMIN or USER
+  // Simple role: 管理员 / 员工
   @Column(nullable = false)
   private String role;
 

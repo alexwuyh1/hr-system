@@ -143,7 +143,7 @@ function switchTab(name) {
   });
 }
 
-function buildRow(cells, onDelete) {
+function buildRow(cells, onDelete, extraActions = []) {
   const tr = document.createElement("tr");
   cells.forEach((text) => {
     const td = document.createElement("td");
@@ -151,6 +151,7 @@ function buildRow(cells, onDelete) {
     tr.appendChild(td);
   });
   const actionTd = document.createElement("td");
+  extraActions.forEach((action) => actionTd.appendChild(action));
   const delBtn = document.createElement("button");
   delBtn.textContent = "删除";
   delBtn.className = "ghost";
@@ -407,7 +408,7 @@ async function loadEmployees() {
   const profileSelect = $("profile-employee");
   if (profileSelect) {
     profileSelect.innerHTML = "";
-    list.forEach((e) => {
+    list.filter((e) => e.status === "在职").forEach((e) => {
       const option = document.createElement("option");
       option.value = e.id;
       option.textContent = `${e.employeeNo} - ${e.name}`;
@@ -415,15 +416,15 @@ async function loadEmployees() {
       option.dataset.info = JSON.stringify(e);
       profileSelect.appendChild(option);
     });
-    if (list.length > 0) {
-      renderProfile(list[0]);
+    if (profileSelect.options.length > 0) {
+      renderProfile(JSON.parse(profileSelect.options[0].dataset.info));
     }
   }
 
   const attendanceSelect = $("attendance-employee");
   if (attendanceSelect) {
     attendanceSelect.innerHTML = "";
-    list.forEach((e) => {
+    list.filter((e) => e.status === "在职").forEach((e) => {
       const option = document.createElement("option");
       option.value = e.id;
       option.textContent = `${e.employeeNo} - ${e.name}`;
@@ -448,12 +449,25 @@ function applyEmployees(list) {
   const body = $("employee-table").querySelector("tbody");
   body.innerHTML = "";
   list.forEach((e) => {
+    const statusBtn = document.createElement("button");
+    const isActive = e.status === "在职";
+    statusBtn.textContent = isActive ? "离职" : "复职";
+    statusBtn.className = "ghost";
+    statusBtn.onclick = async () => {
+      const endpoint = isActive ? "/employees/resign" : "/employees/rehire";
+      await apiRequest(endpoint, {
+        method: "POST",
+        body: JSON.stringify({ employeeNo: e.employeeNo }),
+      });
+      await safeLoad("employees", loadEmployees);
+    };
     const row = buildRow(
       [e.employeeNo, e.name, e.departmentName || e.department, e.positionName || e.title, e.status],
       async () => {
         await apiRequest(`/employees/${e.id}`, { method: "DELETE" });
         await safeLoad("employees", loadEmployees);
-      }
+      },
+      [statusBtn]
     );
     body.appendChild(row);
   });
@@ -790,6 +804,7 @@ $("employee-form").addEventListener("submit", async (e) => {
   // Sync legacy text fields for compatibility
   data.department = deptSelect ? deptSelect.options[deptSelect.selectedIndex].textContent : data.department;
   data.title = posSelect ? posSelect.options[posSelect.selectedIndex].textContent : data.title;
+  data.status = "在职";
   try {
     await apiRequest("/employees", {
       method: "POST",
@@ -801,6 +816,7 @@ $("employee-form").addEventListener("submit", async (e) => {
     alert(`保存失败: ${err.message}`);
   }
 });
+
 
 // Profile interactions
 const profileSelect = $("profile-employee");

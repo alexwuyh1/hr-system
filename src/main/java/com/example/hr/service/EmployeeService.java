@@ -38,8 +38,19 @@ public class EmployeeService {
   }
 
   public Employee create(EmployeeRequest request) {
-    Employee employee = new Employee();
+    Employee employee =
+        employeeRepository
+            .findByEmployeeNo(request.employeeNo)
+            .map(
+                existing -> {
+                  if ("在职".equals(existing.getStatus())) {
+                    throw new IllegalArgumentException("员工已在职，无法重复入职");
+                  }
+                  return existing;
+                })
+            .orElseGet(Employee::new);
     apply(employee, request);
+    employee.setStatus("在职");
     return employeeRepository.save(employee);
   }
 
@@ -49,6 +60,30 @@ public class EmployeeService {
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
     apply(employee, request);
+    return employeeRepository.save(employee);
+  }
+
+  public Employee resign(String employeeNo) {
+    Employee employee =
+        employeeRepository
+            .findByEmployeeNo(employeeNo)
+            .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+    if (!"在职".equals(employee.getStatus())) {
+      throw new IllegalArgumentException("员工未在职");
+    }
+    employee.setStatus("离职");
+    return employeeRepository.save(employee);
+  }
+
+  public Employee rehire(String employeeNo) {
+    Employee employee =
+        employeeRepository
+            .findByEmployeeNo(employeeNo)
+            .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+    if (!"离职".equals(employee.getStatus())) {
+      throw new IllegalArgumentException("员工非离职状态");
+    }
+    employee.setStatus("在职");
     return employeeRepository.save(employee);
   }
 

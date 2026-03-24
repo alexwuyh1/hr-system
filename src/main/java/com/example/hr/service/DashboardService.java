@@ -49,7 +49,7 @@ public class DashboardService {
 
     response.totalEmployees = employees.size();
     response.activeEmployees =
-        employees.stream().filter(e -> "Active".equalsIgnoreCase(e.getStatus())).count();
+        employees.stream().filter(e -> "在职".equals(e.getStatus())).count();
     response.attendanceToday = attendanceRepository.countByWorkDate(LocalDate.now());
     response.totalPayroll = safeDouble(salaryRepository.sumTotalPayroll());
 
@@ -82,7 +82,7 @@ public class DashboardService {
           hires.put(hiredMonth, hires.get(hiredMonth) + 1);
         }
         // We don't have an exit date, so we approximate leaving by inactive status in the hire month.
-        if (!"Active".equalsIgnoreCase(e.getStatus()) && leaves.containsKey(hiredMonth)) {
+        if (!"在职".equals(e.getStatus()) && leaves.containsKey(hiredMonth)) {
           leaves.put(hiredMonth, leaves.get(hiredMonth) + 1);
         }
       }

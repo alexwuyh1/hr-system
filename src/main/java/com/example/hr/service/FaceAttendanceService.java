@@ -38,6 +38,9 @@ public class FaceAttendanceService {
         employeeRepository
             .findById(employeeId)
             .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+    if (!"在职".equals(employee.getStatus())) {
+      throw new IllegalArgumentException("员工未在职");
+    }
     if (employee.getAvatarPath() == null) {
       throw new IllegalArgumentException("Employee has no avatar/face data");
     }

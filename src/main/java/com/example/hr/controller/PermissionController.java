@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Permission management endpoints.
- * Only ADMIN can access these endpoints (enforced by AuthInterceptor).
+ * Only 管理员 can access these endpoints (enforced by AuthInterceptor).
  */
 @RestController
 @RequestMapping("/api/permissions")
