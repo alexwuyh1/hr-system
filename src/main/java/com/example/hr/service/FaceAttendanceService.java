@@ -78,10 +78,19 @@ public class FaceAttendanceService {
               a.setStatus("Normal");
               return a;
             });
+    LocalTime now = LocalTime.now();
     if (attendance.getCheckIn() == null) {
-      attendance.setCheckIn(LocalTime.now());
+      if (attendance.getCheckOut() != null) {
+        throw new IllegalArgumentException("Attendance has check-out without check-in");
+      }
+      attendance.setCheckIn(now);
+    } else if (attendance.getCheckOut() == null) {
+      if (now.isBefore(attendance.getCheckIn())) {
+        throw new IllegalArgumentException("Check-out cannot be earlier than check-in");
+      }
+      attendance.setCheckOut(now);
     } else {
-      attendance.setCheckOut(LocalTime.now());
+      throw new IllegalArgumentException("Attendance already has check-in and check-out today");
     }
     return attendanceRepository.save(attendance);
   }
