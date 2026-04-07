@@ -1,9 +1,0 @@
-services:
-  hr-system:
-    build: .
-    ports:
-      - "18080:18080"
-    environment:
-      - JAVA_TOOL_OPTIONS=-Djava.library.path=/usr/lib/x86_64-linux-gnu
-    volumes:
-      - ./data:/app/data

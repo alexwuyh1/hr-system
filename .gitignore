@@ -1,3 +1,6 @@
 /debug
 /logs
 /target
+/data/hr.db
+/data/avatars/
+src/main/resources/application.yml
