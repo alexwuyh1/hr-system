@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   long countByWorkDate(LocalDate workDate);
+  List<Attendance> findByWorkDate(LocalDate workDate);
   List<Attendance> findByEmployeeIdAndWorkDate(Long employeeId, LocalDate workDate);
 
   Optional<Attendance> findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(

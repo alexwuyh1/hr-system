@@ -640,10 +640,17 @@ async function loadAttendanceRule() {
 
 function applyAttendanceRule(rule) {
   if (!rule) return;
-  const lateInput = $("rule-late");
-  const overtimeInput = $("rule-overtime");
-  if (lateInput) lateInput.value = rule.lateGraceMinutes;
-  if (overtimeInput) overtimeInput.value = rule.overtimeThresholdMinutes;
+  const setVal = (id, val) => { const el = $(id); if (el) el.value = val ?? ""; };
+  setVal("rule-start-time", rule.workStartTime);
+  setVal("rule-end-time", rule.workEndTime);
+  setVal("rule-lunch-start", rule.lunchBreakStart);
+  setVal("rule-lunch-end", rule.lunchBreakEnd);
+  setVal("rule-late", rule.lateGraceMinutes);
+  setVal("rule-early-leave", rule.earlyLeaveGraceMinutes);
+  setVal("rule-absent", rule.absentThresholdMinutes);
+  setVal("rule-overtime", rule.overtimeThresholdMinutes);
+  const approval = $("rule-ot-approval");
+  if (approval) approval.checked = rule.requireOvertimeApproval === true;
 }
 
 async function loadInit() {
@@ -1048,11 +1055,22 @@ if (ruleSaveBtn) {
       alert("请输入有效数字");
       return;
     }
+    const body = {
+      workStartTime: $("rule-start-time").value || "09:00",
+      workEndTime: $("rule-end-time").value || "18:00",
+      lunchBreakStart: $("rule-lunch-start").value || "12:00",
+      lunchBreakEnd: $("rule-lunch-end").value || "13:00",
+      lateGraceMinutes: late,
+      earlyLeaveGraceMinutes: Number($("rule-early-leave").value) || 10,
+      absentThresholdMinutes: Number($("rule-absent").value) || 240,
+      overtimeThresholdMinutes: overtime,
+      requireOvertimeApproval: $("rule-ot-approval").checked,
+    };
     const result = await apiRequest("/attendance-rules", {
       method: "PUT",
-      body: JSON.stringify({ lateGraceMinutes: late, overtimeThresholdMinutes: overtime }),
+      body: JSON.stringify(body),
     });
-    $("rule-result").textContent = `规则已保存：迟到宽限 ${result.lateGraceMinutes} 分钟，加班阈值 ${result.overtimeThresholdMinutes} 分钟`;
+    $("rule-result").textContent = `规则已保存：上班 ${result.workStartTime}-${result.workEndTime}，迟到宽限 ${result.lateGraceMinutes} 分钟，早退宽限 ${result.earlyLeaveGraceMinutes} 分钟，加班起算 ${result.overtimeThresholdMinutes} 分钟`;
   });
 }
 

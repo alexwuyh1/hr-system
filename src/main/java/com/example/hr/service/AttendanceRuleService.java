@@ -6,9 +6,6 @@ import com.example.hr.repository.AttendanceRuleRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
-/**
- * Attendance rule service.
- */
 @Service
 public class AttendanceRuleService {
   private final AttendanceRuleRepository attendanceRuleRepository;
@@ -21,8 +18,15 @@ public class AttendanceRuleService {
     List<AttendanceRule> rules = attendanceRuleRepository.findAll();
     if (rules.isEmpty()) {
       AttendanceRule rule = new AttendanceRule();
+      rule.setWorkStartTime("09:00");
+      rule.setWorkEndTime("18:00");
+      rule.setLunchBreakStart("12:00");
+      rule.setLunchBreakEnd("13:00");
       rule.setLateGraceMinutes(10);
+      rule.setEarlyLeaveGraceMinutes(10);
+      rule.setAbsentThresholdMinutes(240);
       rule.setOvertimeThresholdMinutes(30);
+      rule.setRequireOvertimeApproval(true);
       return attendanceRuleRepository.save(rule);
     }
     return rules.get(0);
@@ -30,8 +34,15 @@ public class AttendanceRuleService {
 
   public AttendanceRule update(AttendanceRuleRequest request) {
     AttendanceRule rule = getRule();
+    rule.setWorkStartTime(request.workStartTime);
+    rule.setWorkEndTime(request.workEndTime);
+    rule.setLunchBreakStart(request.lunchBreakStart);
+    rule.setLunchBreakEnd(request.lunchBreakEnd);
     rule.setLateGraceMinutes(request.lateGraceMinutes);
+    rule.setEarlyLeaveGraceMinutes(request.earlyLeaveGraceMinutes);
+    rule.setAbsentThresholdMinutes(request.absentThresholdMinutes);
     rule.setOvertimeThresholdMinutes(request.overtimeThresholdMinutes);
+    rule.setRequireOvertimeApproval(request.requireOvertimeApproval);
     return attendanceRuleRepository.save(rule);
   }
 }

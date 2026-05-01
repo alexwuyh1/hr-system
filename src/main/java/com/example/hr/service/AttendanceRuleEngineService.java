@@ -15,9 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 
-/**
- * Attendance rule engine to compute status, late minutes, and overtime.
- */
 @Service
 public class AttendanceRuleEngineService {
   private final AttendanceRepository attendanceRepository;
@@ -44,10 +41,27 @@ public class AttendanceRuleEngineService {
 
   public int computeForDate(LocalDate date) {
     AttendanceRule rule = attendanceRuleService.getRule();
+    LocalTime defaultStart = LocalTime.parse(rule.getWorkStartTime());
+    LocalTime defaultEnd = LocalTime.parse(rule.getWorkEndTime());
+
     List<Shift> shifts = shiftRepository.findByWorkDate(date);
     int updated = 0;
 
+    if (shifts.isEmpty()) {
+      List<Attendance> allRecords = attendanceRepository.findByWorkDate(date);
+      for (Attendance record : allRecords) {
+        int result = computeSingle(record, defaultStart, defaultEnd, rule);
+        if (result > 0) {
+          updated++;
+        }
+      }
+      return updated;
+    }
+
     for (Shift shift : shifts) {
+      LocalTime shiftStart = shift.getStartTime() != null ? shift.getStartTime() : defaultStart;
+      LocalTime shiftEnd = shift.getEndTime() != null ? shift.getEndTime() : defaultEnd;
+
       List<Attendance> records =
           attendanceRepository.findByEmployeeIdAndWorkDate(shift.getEmployee().getId(), date);
       if (records.isEmpty()) {
@@ -71,76 +85,85 @@ public class AttendanceRuleEngineService {
         continue;
       }
 
-      LocalTime checkIn =
-          records.stream()
-              .map(Attendance::getCheckIn)
-              .filter(Objects::nonNull)
-              .min(LocalTime::compareTo)
-              .orElse(null);
-      LocalTime checkOut =
-          records.stream()
-              .map(Attendance::getCheckOut)
-              .filter(Objects::nonNull)
-              .max(LocalTime::compareTo)
-              .orElse(null);
-
-      if (checkIn == null) {
-        for (Attendance entry : records) {
-          entry.setStatus("Absent");
-          entry.setLateMinutes(0);
-          entry.setOvertimeMinutes(0);
-          attendanceRepository.save(entry);
-        }
-        updated++;
-        continue;
-      }
-
-      LocalTime shiftStart = shift.getStartTime();
-      LocalTime shiftEnd = shift.getEndTime();
-
-      long lateMinutes =
-          Duration.between(shiftStart, checkIn).toMinutes() - rule.getLateGraceMinutes();
-      if (lateMinutes > 0) {
-        for (Attendance entry : records) {
-          entry.setStatus("Late");
-          entry.setLateMinutes((int) lateMinutes);
-        }
-      } else {
-        for (Attendance entry : records) {
-          entry.setStatus("Normal");
-          entry.setLateMinutes(0);
+      for (Attendance record : records) {
+        int result = computeSingle(record, shiftStart, shiftEnd, rule);
+        if (result > 0) {
+          updated++;
         }
       }
-
-      int overtimeMinutes = 0;
-      if (checkOut != null) {
-        long extra =
-            Duration.between(shiftEnd, checkOut).toMinutes() - rule.getOvertimeThresholdMinutes();
-        if (extra > 0) {
-          overtimeMinutes = (int) extra;
-        }
-      }
-
-      // Require approved overtime request if any overtime exists
-      if (overtimeMinutes > 0) {
-        boolean approvedOvertime =
-            !overtimeRequestRepository
-                .findApprovedForDate(shift.getEmployee().getId(), date)
-                .isEmpty();
-        if (!approvedOvertime) {
-          overtimeMinutes = 0;
-        }
-      }
-
-      for (Attendance entry : records) {
-        entry.setOvertimeMinutes(overtimeMinutes);
-        attendanceRepository.save(entry);
-      }
-      updated++;
     }
 
-    // If no shift, do nothing. This keeps the rule engine focused on schedule days.
     return updated;
+  }
+
+  private int computeSingle(Attendance record, LocalTime shiftStart, LocalTime shiftEnd, AttendanceRule rule) {
+    LocalTime checkIn = record.getCheckIn();
+    LocalTime checkOut = record.getCheckOut();
+
+    if (checkIn == null && checkOut == null) {
+      if (!"Leave".equals(record.getStatus())) {
+        record.setStatus("Absent");
+        record.setLateMinutes(0);
+        record.setOvertimeMinutes(0);
+        attendanceRepository.save(record);
+        return 1;
+      }
+      return 0;
+    }
+
+    if (checkIn == null) {
+      record.setStatus("Absent");
+      record.setLateMinutes(0);
+      record.setOvertimeMinutes(0);
+      attendanceRepository.save(record);
+      return 1;
+    }
+
+    long lateMinutes = Duration.between(shiftStart, checkIn).toMinutes() - rule.getLateGraceMinutes();
+    int absentThreshold = rule.getAbsentThresholdMinutes() != null ? rule.getAbsentThresholdMinutes() : 240;
+
+    if (lateMinutes >= absentThreshold) {
+      record.setStatus("Absent");
+      record.setLateMinutes(0);
+    } else if (lateMinutes > 0) {
+      record.setStatus("Late");
+      record.setLateMinutes((int) lateMinutes);
+    } else {
+      record.setStatus("Normal");
+      record.setLateMinutes(0);
+    }
+
+    int overtimeMinutes = 0;
+    if (checkOut != null) {
+      long earlyLeaveMinutes = Duration.between(checkOut, shiftEnd).toMinutes() - 
+          (rule.getEarlyLeaveGraceMinutes() != null ? rule.getEarlyLeaveGraceMinutes() : 10);
+      
+      if (earlyLeaveMinutes >= absentThreshold) {
+        record.setStatus("Absent");
+        record.setLateMinutes(0);
+      } else if (earlyLeaveMinutes > 0 && "Normal".equals(record.getStatus())) {
+        record.setStatus("Early Leave");
+      }
+
+      long extra = Duration.between(shiftEnd, checkOut).toMinutes() - rule.getOvertimeThresholdMinutes();
+      if (extra > 0) {
+        overtimeMinutes = (int) extra;
+      }
+    }
+
+    if (overtimeMinutes > 0 && Boolean.TRUE.equals(rule.getRequireOvertimeApproval())) {
+      boolean approvedOvertime =
+          !overtimeRequestRepository
+              .findApprovedForDate(record.getEmployee().getId(), record.getWorkDate())
+              .isEmpty();
+      if (!approvedOvertime) {
+        overtimeMinutes = 0;
+      }
+    }
+
+    record.setOvertimeMinutes(overtimeMinutes);
+    attendanceRepository.save(record);
+    return 1;
   }
 
   public int computeRange(LocalDate start, LocalDate end) {
