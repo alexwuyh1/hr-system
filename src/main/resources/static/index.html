@@ -8,7 +8,10 @@
   <link rel="stylesheet" href="styles.css?v=20260430-06" />
   <style>
     /* 强制字体设置，确保立即生效 */
-    html, body, .app, * {
+    html,
+    body,
+    .app,
+    * {
       font-family: "Inter", "Noto Sans SC", "微软雅黑", "PingFang SC", sans-serif !important;
       -webkit-font-smoothing: antialiased !important;
       -moz-osx-font-smoothing: grayscale !important;
@@ -290,34 +293,28 @@
                 <input id="rule-lunch-end" type="time" />
               </div>
             </div>
-            <h3>迟到规则</h3>
+            <h3>考勤规则</h3>
             <div class="grid-4">
               <div class="stat">
-                <label for="rule-late">宽容分钟</label>
+                <label for="rule-late">迟到宽容（分钟）</label>
                 <input id="rule-late" type="number" />
+              </div>
+              <div class="stat">
+                <label for="rule-early-leave">早退宽容（分钟）</label>
+                <input id="rule-early-leave" type="number" />
               </div>
               <div class="stat">
                 <label for="rule-absent">旷工阈值（分钟）</label>
                 <input id="rule-absent" type="number" />
               </div>
-            </div>
-            <h3>早退规则</h3>
-            <div class="grid-4">
               <div class="stat">
-                <label for="rule-early-leave">宽容分钟</label>
-                <input id="rule-early-leave" type="number" />
-              </div>
-            </div>
-            <h3>加班规则</h3>
-            <div class="grid-4">
-              <div class="stat">
-                <label for="rule-overtime">起算分钟</label>
+                <label for="rule-overtime">加班起算（分钟）</label>
                 <input id="rule-overtime" type="number" />
               </div>
               <div class="stat">
                 <label for="rule-ot-approval">
                   <input id="rule-ot-approval" type="checkbox" />
-                  需要审批
+                  加班需要审批
                 </label>
               </div>
             </div>

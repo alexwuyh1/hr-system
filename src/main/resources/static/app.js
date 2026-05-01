@@ -1,5 +1,37 @@
 const API_BASE = "/api";
 
+const API = {
+  auth: { login: "/auth/login", register: "/auth/register" },
+  dashboard: { summary: "/dashboard/summary" },
+  employees: {
+    list: "/employees", create: "/employees", resign: "/employees/resign", rehire: "/employees/rehire",
+    update: (id) => `/employees/${id}`, delete: (id) => `/employees/${id}`, avatar: (id) => `/employees/${id}/avatar`,
+  },
+  attendance: {
+    list: "/attendance", create: "/attendance",
+    update: (id) => `/attendance/${id}`, delete: (id) => `/attendance/${id}`,
+  },
+  attendanceRules: {
+    get: "/attendance-rules", update: "/attendance-rules",
+    calculate: (date) => `/attendance-rules/calculate?date=${date}`,
+    calculateRange: (start, end) => `/attendance-rules/calculate-range?start=${start}&end=${end}`,
+  },
+  salaries: {
+    list: "/salaries", create: "/salaries",
+    update: (id) => `/salaries/${id}`, delete: (id) => `/salaries/${id}`,
+  },
+  departments: {
+    list: "/departments", tree: "/departments/tree", create: "/departments",
+    update: (id) => `/departments/${id}`, delete: (id) => `/departments/${id}`,
+  },
+  positions: { list: "/positions", create: "/positions", update: (id) => `/positions/${id}`, delete: (id) => `/positions/${id}` },
+  grades: { list: "/grades", create: "/grades", update: (id) => `/grades/${id}`, delete: (id) => `/grades/${id}` },
+  permissions: { list: "/permissions", create: "/permissions", update: (id) => `/permissions/${id}`, delete: (id) => `/permissions/${id}` },
+  roles: { list: "/roles" },
+  data: { export: (type, format) => `/data/export/${type}?format=${format}`, import: (type) => `/data/import/${type}` },
+  init: "/init",
+};
+
 // Store auth token in memory and localStorage for persistence.
 let authToken = localStorage.getItem("hr_token");
 let dashboardCharts = {};
@@ -223,7 +255,7 @@ function updateChart(chart, labels, datasets) {
 }
 
 async function loadDashboard() {
-  const dashboard = await apiRequest("/dashboard/summary");
+  const dashboard = await apiRequest(API.dashboard.summary);
   initCache.dashboard = dashboard;
   applyDashboard(dashboard);
 }
@@ -375,7 +407,7 @@ function applyRoles(roles) {
 }
 
 async function loadRoles() {
-  const roles = await apiRequest("/roles");
+  const roles = await apiRequest(API.roles.list);
   initCache.roles = roles;
   applyRoles(roles);
 }
@@ -386,7 +418,7 @@ function applyPermissions(list) {
   body.innerHTML = "";
   list.forEach((p) => {
     const row = buildRow([p.role, p.method, p.pathPrefix], async () => {
-      await apiRequest(`/permissions/${p.id}`, { method: "DELETE" });
+      await apiRequest(API.permissions.delete(p.id), { method: "DELETE" });
       await safeLoad("permissions", loadPermissions);
     });
     body.appendChild(row);
@@ -394,13 +426,13 @@ function applyPermissions(list) {
 }
 
 async function loadPermissions() {
-  const list = await apiRequest("/permissions");
+  const list = await apiRequest(API.permissions.list);
   initCache.permissions = list;
   applyPermissions(list);
 }
 
 async function loadEmployees() {
-  const list = await apiRequest("/employees");
+  const list = await apiRequest(API.employees.list);
   initCache.employees = list;
   applyEmployees(list);
 
@@ -464,7 +496,7 @@ function applyEmployees(list) {
     const row = buildRow(
       [e.employeeNo, e.name, e.departmentName || e.department, e.positionName || e.title, e.status],
       async () => {
-        await apiRequest(`/employees/${e.id}`, { method: "DELETE" });
+        await apiRequest(API.employees.delete(e.id), { method: "DELETE" });
         await safeLoad("employees", loadEmployees);
       },
       [statusBtn]
@@ -474,7 +506,7 @@ function applyEmployees(list) {
 }
 
 async function loadAttendance() {
-  const list = await apiRequest("/attendance");
+  const list = await apiRequest(API.attendance.list);
   const body = $("attendance-table").querySelector("tbody");
   body.innerHTML = "";
   list.forEach((a) => {
@@ -487,7 +519,7 @@ async function loadAttendance() {
         a.status,
       ],
       async () => {
-        await apiRequest(`/attendance/${a.id}`, { method: "DELETE" });
+        await apiRequest(API.attendance.delete(a.id), { method: "DELETE" });
         await safeLoad("attendance", loadAttendance);
       }
     );
@@ -496,7 +528,7 @@ async function loadAttendance() {
 }
 
 async function loadSalary() {
-  const list = await apiRequest("/salaries");
+  const list = await apiRequest(API.salaries.list);
   const body = $("salary-table").querySelector("tbody");
   body.innerHTML = "";
   list.forEach((s) => {
@@ -509,7 +541,7 @@ async function loadSalary() {
         s.deduction,
       ],
       async () => {
-        await apiRequest(`/salaries/${s.id}`, { method: "DELETE" });
+        await apiRequest(API.salaries.delete(s.id), { method: "DELETE" });
         await safeLoad("salary", loadSalary);
       }
     );
@@ -518,11 +550,11 @@ async function loadSalary() {
 }
 
 async function loadDepartments() {
-  const list = await apiRequest("/departments");
+  const list = await apiRequest(API.departments.list);
   initCache.departments = list;
   let treeData = initCache.departmentTree;
   if (!treeData) {
-    treeData = await apiRequest("/departments/tree");
+    treeData = await apiRequest(API.departments.tree);
     initCache.departmentTree = treeData;
   }
   applyDepartments(list, treeData);
@@ -558,7 +590,7 @@ function applyDepartments(list, treeData) {
     const row = buildRow(
       [d.name, d.parent ? d.parent.name : "-"],
       async () => {
-        await apiRequest(`/departments/${d.id}`, { method: "DELETE" });
+        await apiRequest(API.departments.delete(d.id), { method: "DELETE" });
         await loadDepartments();
       }
     );
@@ -573,7 +605,7 @@ function applyDepartments(list, treeData) {
 }
 
 async function loadPositions() {
-  const list = await apiRequest("/positions");
+  const list = await apiRequest(API.positions.list);
   initCache.positions = list;
   applyPositions(list);
 }
@@ -595,7 +627,7 @@ function applyPositions(list) {
   body.innerHTML = "";
   list.forEach((p) => {
     const row = buildRow([p.name], async () => {
-      await apiRequest(`/positions/${p.id}`, { method: "DELETE" });
+      await apiRequest(API.positions.delete(p.id), { method: "DELETE" });
       await loadPositions();
     });
     body.appendChild(row);
@@ -603,7 +635,7 @@ function applyPositions(list) {
 }
 
 async function loadGrades() {
-  const list = await apiRequest("/grades");
+  const list = await apiRequest(API.grades.list);
   initCache.grades = list;
   applyGrades(list);
 }
@@ -625,7 +657,7 @@ function applyGrades(list) {
   body.innerHTML = "";
   list.forEach((g) => {
     const row = buildRow([g.name, g.level], async () => {
-      await apiRequest(`/grades/${g.id}`, { method: "DELETE" });
+      await apiRequest(API.grades.delete(g.id), { method: "DELETE" });
       await loadGrades();
     });
     body.appendChild(row);
@@ -633,7 +665,7 @@ function applyGrades(list) {
 }
 
 async function loadAttendanceRule() {
-  const rule = await apiRequest("/attendance-rules");
+  const rule = await apiRequest(API.attendanceRules.get);
   initCache.attendanceRule = rule;
   applyAttendanceRule(rule);
 }
@@ -654,7 +686,7 @@ function applyAttendanceRule(rule) {
 }
 
 async function loadInit() {
-  const init = await apiRequest("/init");
+  const init = await apiRequest(API.init);
   initCache = {
     ...initCache,
     ...init,
@@ -691,11 +723,7 @@ async function ensureTabData(tabName) {
     await safeLoad("attendance", loadAttendance);
   }
   if (tabName === "attendance-settings") {
-    if (initCache.attendanceRule) {
-      applyAttendanceRule(initCache.attendanceRule);
-    } else {
-      await safeLoad("attendance-rules", loadAttendanceRule);
-    }
+    await safeLoad("attendance-rules", loadAttendanceRule);
   }
   if (tabName === "salary") {
     await safeLoad("employees", loadEmployees);
@@ -748,7 +776,7 @@ $("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target));
   try {
-    const result = await apiRequest("/auth/login", {
+    const result = await apiRequest(API.auth.login, {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -770,7 +798,7 @@ $("register-btn").addEventListener("click", async () => {
     return;
   }
   try {
-    await apiRequest("/auth/register", {
+    await apiRequest(API.auth.register, {
       method: "POST",
       body: JSON.stringify({ username, password }),
     });
@@ -791,7 +819,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (authToken) {
     // 验证 Token 是否有效
     try {
-      const response = await fetch(`${API_BASE}/dashboard`, {
+      const response = await fetch(`${API_BASE}${API.dashboard.summary}`, {
         headers: {
           Authorization: `Bearer ${authToken}`
         }
@@ -836,7 +864,7 @@ $("employee-form").addEventListener("submit", async (e) => {
   data.title = posSelect ? posSelect.options[posSelect.selectedIndex].textContent : data.title;
   data.status = "在职";
   try {
-    await apiRequest("/employees", {
+    await apiRequest(API.employees.create, {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -998,7 +1026,7 @@ $("attendance-form").addEventListener("submit", async (e) => {
     return;
   }
   try {
-    await apiRequest("/attendance", {
+    await apiRequest(API.attendance.create, {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -1024,7 +1052,7 @@ $("salary-form").addEventListener("submit", async (e) => {
     return;
   }
   try {
-    await apiRequest("/salaries", {
+    await apiRequest(API.salaries.create, {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -1066,7 +1094,7 @@ if (ruleSaveBtn) {
       overtimeThresholdMinutes: overtime,
       requireOvertimeApproval: $("rule-ot-approval").checked,
     };
-    const result = await apiRequest("/attendance-rules", {
+    const result = await apiRequest(API.attendanceRules.update, {
       method: "PUT",
       body: JSON.stringify(body),
     });
@@ -1082,7 +1110,7 @@ if (ruleCalcBtn) {
       alert("请选择日期");
       return;
     }
-    const result = await apiRequest(`/attendance-rules/calculate?date=${date}`, { method: "POST" });
+    const result = await apiRequest(API.attendanceRules.calculate(date), { method: "POST" });
     $("rule-result").textContent = `已计算 ${date}，更新 ${result.updated} 条记录`;
     await loadAttendance();
   });
@@ -1098,7 +1126,7 @@ if (ruleCalcRangeBtn) {
       return;
     }
     const result = await apiRequest(
-      `/attendance-rules/calculate-range?start=${start}&end=${end}`,
+      API.attendanceRules.calculateRange(start, end),
       { method: "POST" }
     );
     $("rule-result").textContent = `已计算 ${start} 到 ${end}，更新 ${result.updated} 条记录`;
@@ -1143,7 +1171,7 @@ if (dataExportBtn) {
   dataExportBtn.addEventListener("click", async () => {
     const type = $("data-type-select").value;
     const format = $("data-format-select").value;
-    const url = `/data/export/${type}?format=${format}`;
+    const url = API.data.export(type, format);
     
     // 检查是否已登录
     if (!authToken) {
@@ -1202,7 +1230,7 @@ if (deptAddBtn) {
       alert("请输入部门名称");
       return;
     }
-    await apiRequest("/departments", {
+    await apiRequest(API.departments.create, {
       method: "POST",
       body: JSON.stringify({ name, parentId: parentId ? Number(parentId) : null }),
     });
@@ -1219,7 +1247,7 @@ if (posAddBtn) {
       alert("请输入岗位名称");
       return;
     }
-    await apiRequest("/positions", {
+    await apiRequest(API.positions.create, {
       method: "POST",
       body: JSON.stringify({ name }),
     });
@@ -1237,7 +1265,7 @@ if (gradeAddBtn) {
       alert("请输入职级名称和等级");
       return;
     }
-    await apiRequest("/grades", {
+    await apiRequest(API.grades.create, {
       method: "POST",
       body: JSON.stringify({ name, level }),
     });
@@ -1259,7 +1287,7 @@ if (permAddBtn) {
         alert("请输入路径前缀");
         return;
       }
-      await apiRequest("/permissions", {
+      await apiRequest(API.permissions.create, {
         method: "POST",
         body: JSON.stringify({ role, method, pathPrefix }),
       });
