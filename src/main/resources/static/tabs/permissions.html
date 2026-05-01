@@ -3,28 +3,9 @@
     <h2>权限中心</h2>
     <p>仅管理员可见，查看角色与配置访问规则</p>
   </div>
-  <form id="perm-form" class="grid-4 form-fields">
-    <div class="stat">
-      <label for="perm-role-select">角色</label>
-      <select id="perm-role-select"></select>
-    </div>
-    <div class="stat">
-      <label for="perm-method-select">方法</label>
-      <select id="perm-method-select">
-        <option>GET</option>
-        <option>POST</option>
-        <option>PUT</option>
-        <option>DELETE</option>
-      </select>
-    </div>
-    <div class="stat">
-      <label for="perm-path-input">路径</label>
-      <input id="perm-path-input" placeholder="/api/employees" />
-    </div>
-  </form>
-  <form id="perm-actions" class="form-actions">
-    <button id="perm-add" type="button" form="perm-form">新增权限</button>
-  </form>
+  <div class="panel-actions">
+    <button id="perm-add-btn">新增权限</button>
+  </div>
 </div>
 <div class="table-panel">
   <table id="perm-table">

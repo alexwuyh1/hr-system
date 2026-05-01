@@ -49,27 +49,46 @@ function applyPermissions(list) {
   });
 }
 
-function initPermissionForm() {
-  const permAddBtn = $("perm-add");
+function initPermissionTab() {
+  const permAddBtn = $("perm-add-btn");
   if (permAddBtn) {
-    permAddBtn.addEventListener("click", async () => {
-      try {
-        const role = $("perm-role-select").value;
-        const method = $("perm-method-select").value;
-        const pathPrefix = $("perm-path-input").value.trim();
-        if (!pathPrefix) {
-          alert("请输入路径前缀");
-          return;
-        }
-        await apiRequest(API.permissions.create, {
-          method: "POST",
-          body: JSON.stringify({ role, method, pathPrefix }),
-        });
-        $("perm-path-input").value = "";
-        await loadPermissions();
-      } catch (err) {
-        alert(`新增失败: ${err.message}`);
-      }
-    });
+    permAddBtn.onclick = () => openPermissionModal();
   }
+}
+
+function openPermissionModal() {
+  const roleOptions = (initCache.roles || [])
+    .map(r => `<option value="${r.name}">${r.name}</option>`)
+    .join('');
+
+  openModal(
+    '新增权限',
+    `
+      <form id="modal-permission-form">
+        <label>角色 <select id="modal-perm-role" required><option value="">请选择</option>${roleOptions}</select></label>
+        <label>方法 <select id="modal-perm-method" required>
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="DELETE">DELETE</option>
+        </select></label>
+        <label>路径 <input id="modal-perm-path" required placeholder="/api/employees"></label>
+      </form>
+    `,
+    async () => {
+      const role = $("modal-perm-role").value;
+      const method = $("modal-perm-method").value;
+      const pathPrefix = $("modal-perm-path").value.trim();
+      if (!pathPrefix) {
+        alert("请输入路径前缀");
+        return;
+      }
+      await apiRequest(API.permissions.create, {
+        method: "POST",
+        body: JSON.stringify({ role, method, pathPrefix }),
+      });
+      await loadPermissions();
+    },
+    { submitText: '保存' }
+  );
 }

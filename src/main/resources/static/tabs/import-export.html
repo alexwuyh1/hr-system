@@ -3,25 +3,9 @@
     <h2>数据导入导出</h2>
     <p>支持 CSV / Excel 批量导入导出</p>
   </div>
-  <div class="grid-2">
-    <div class="stat">
-      <label for="import-file">选择文件</label>
-      <input id="import-file" type="file" accept=".csv,.xlsx,.xls" />
-    </div>
-    <div class="stat">
-      <label for="import-type">导入类型</label>
-      <select id="import-type">
-        <option value="employees">员工</option>
-        <option value="attendance">考勤</option>
-        <option value="salary">薪资</option>
-      </select>
-    </div>
-  </div>
   <div class="form-actions">
-    <button id="import-btn" type="button">导入数据</button>
-    <button id="export-employees-btn" type="button" class="ghost">导出员工</button>
-    <button id="export-attendance-btn" type="button" class="ghost">导出考勤</button>
-    <button id="export-salary-btn" type="button" class="ghost">导出薪资</button>
+    <button id="import-btn" type="button">数据导入</button>
+    <button id="export-btn" type="button" class="ghost">数据导出</button>
   </div>
   <p id="import-result" class="subtitle"></p>
 </div>

@@ -32,29 +32,23 @@ function initTabEvents(tabName) {
     case "dashboard":
       initDashboard();
       break;
-    case "employees":
-      initEmployeeForm();
-      break;
     case "employees-attendance":
-      initProfileEvents();
+      initEmployeeCenterTab();
       break;
     case "attendance":
-      initAttendanceForm();
-      break;
-    case "attendance-settings":
-      initAttendanceRules();
+      initAttendanceTab();
       break;
     case "salary":
-      initSalaryForm();
+      initSalaryTab();
       break;
-    case "org":
-      initOrgEvents();
+    case "org-config":
+      initOrgConfigTab();
       break;
-    case "import":
-      initImportExport();
+    case "import-export":
+      initImportExportTab();
       break;
     case "permissions":
-      initPermissionForm();
+      initPermissionTab();
       break;
   }
 }
@@ -74,24 +68,18 @@ async function ensureTabData(tabName) {
       await safeLoad("dashboard", loadDashboard);
     }
   }
-  if (tabName === "employees") {
-    await safeLoad("employees", loadEmployees);
-  }
   if (tabName === "employees-attendance") {
-    await safeLoad("employees", loadEmployees);
+    await safeLoad("employees", loadEmployeeCenter);
   }
   if (tabName === "attendance") {
     await safeLoad("employees", loadEmployees);
     await safeLoad("attendance", loadAttendance);
   }
-  if (tabName === "attendance-settings") {
-    await safeLoad("attendance-rules", loadAttendanceRule);
-  }
   if (tabName === "salary") {
     await safeLoad("employees", loadEmployees);
     await safeLoad("salary", loadSalary);
   }
-  if (tabName === "org") {
+  if (tabName === "org-config") {
     if (initCache.departments && initCache.positions && initCache.grades) {
       applyDepartments(initCache.departments, initCache.departmentTree || []);
       applyPositions(initCache.positions);
@@ -114,20 +102,21 @@ async function ensureTabData(tabName) {
       await safeLoad("permissions", loadPermissions);
     }
   }
-  if (tabName === "import") {
-    await safeLoad("import-export", loadImportExport);
-  }
 }
 
 async function activateTab(tabName) {
+  console.log("Activating tab:", tabName);
   switchTab(tabName);
   await ensureTabData(tabName);
   initTabEvents(tabName);
 }
 
 function initTabs() {
-  document.querySelectorAll(".tabs button[data-tab]").forEach((btn) => {
+  const tabButtons = document.querySelectorAll(".tabs button[data-tab]");
+  console.log("Found tab buttons:", tabButtons.length);
+  tabButtons.forEach((btn) => {
     btn.addEventListener("click", async () => {
+      console.log("Tab clicked:", btn.dataset.tab);
       await activateTab(btn.dataset.tab);
     });
   });

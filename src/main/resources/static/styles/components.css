@@ -18,6 +18,8 @@
 .dashboard-stats .stat {
   align-items: center;
   text-align: center;
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .chart-panel h3 {
@@ -188,6 +190,11 @@ button.ghost {
 
 .profile-info span {
   color: var(--muted);
+}
+
+.profile-status {
+  margin-top: 8px;
+  font-size: 16px;
 }
 
 table {

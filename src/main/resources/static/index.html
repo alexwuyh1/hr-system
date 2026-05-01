@@ -4,10 +4,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>HR 管理系统</title>
-  <link rel="stylesheet" href="styles/base.css?v=3" />
-  <link rel="stylesheet" href="styles/layout.css?v=3" />
-  <link rel="stylesheet" href="styles/components.css?v=3" />
+  <link rel="stylesheet" href="styles/base.css?v=9" />
+  <link rel="stylesheet" href="styles/layout.css?v=9" />
+  <link rel="stylesheet" href="styles/components.css?v=9" />
+  <link rel="stylesheet" href="styles/modal.css?v=9" />
   <style>
     html,
     body,
@@ -54,42 +58,39 @@
     <section class="workspace hidden" id="workspace">
       <nav class="tabs">
         <button data-tab="dashboard" class="active">管理仪表盘</button>
-        <button data-tab="employees">员工中心</button>
-        <button data-tab="employees-attendance">员工考勤</button>
+        <button data-tab="employees-attendance">员工中心</button>
         <button data-tab="attendance">考勤中心</button>
-        <button data-tab="attendance-settings">考勤设置</button>
         <button data-tab="salary">薪资记录</button>
-        <button data-tab="org">组织配置</button>
-        <button data-tab="import">数据导入导出</button>
+        <button data-tab="org-config">组织配置</button>
+        <button data-tab="import-export">导入导出</button>
         <button data-tab="permissions">权限中心</button>
         <button id="logout" class="ghost">退出</button>
       </nav>
 
       <div class="tab-content active" id="tab-dashboard"></div>
-      <div class="tab-content" id="tab-employees"></div>
       <div class="tab-content" id="tab-employees-attendance"></div>
       <div class="tab-content" id="tab-attendance"></div>
-      <div class="tab-content" id="tab-attendance-settings"></div>
       <div class="tab-content" id="tab-salary"></div>
-      <div class="tab-content" id="tab-org"></div>
-      <div class="tab-content" id="tab-import"></div>
+      <div class="tab-content" id="tab-org-config"></div>
+      <div class="tab-content" id="tab-import-export"></div>
       <div class="tab-content" id="tab-permissions"></div>
     </section>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="core/api.js?v=3"></script>
-  <script src="core/utils.js?v=3"></script>
-  <script src="core/auth.js?v=3"></script>
-  <script src="core/tabs.js?v=3"></script>
-  <script src="modules/dashboard.js?v=3"></script>
-  <script src="modules/employees.js?v=3"></script>
-  <script src="modules/attendance.js?v=3"></script>
-  <script src="modules/salary.js?v=3"></script>
-  <script src="modules/org.js?v=3"></script>
-  <script src="modules/permissions.js?v=3"></script>
-  <script src="modules/import-export.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="core/api.js?v=9"></script>
+  <script src="core/utils.js?v=9"></script>
+  <script src="core/modal.js?v=9"></script>
+  <script src="core/auth.js?v=9"></script>
+  <script src="core/tabs.js?v=9"></script>
+  <script src="modules/dashboard.js?v=9"></script>
+  <script src="modules/employees.js?v=9"></script>
+  <script src="modules/attendance.js?v=9"></script>
+  <script src="modules/salary.js?v=9"></script>
+  <script src="modules/org.js?v=9"></script>
+  <script src="modules/permissions.js?v=9"></script>
+  <script src="modules/import-export.js?v=9"></script>
+  <script src="app.js?v=9"></script>
 </body>
 
 </html>

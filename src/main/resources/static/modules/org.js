@@ -156,12 +156,39 @@ function applyGrades(list) {
   });
 }
 
-function initOrgEvents() {
-  const deptAddBtn = $("dept-add");
+function initOrgConfigTab() {
+  const deptAddBtn = $("org-dept-add-btn");
   if (deptAddBtn) {
-    deptAddBtn.addEventListener("click", async () => {
-      const name = $("dept-name-input").value.trim();
-      const parentId = $("dept-parent-select").value;
+    deptAddBtn.onclick = () => openDeptModal();
+  }
+
+  const gradeAddBtn = $("org-grade-add-btn");
+  if (gradeAddBtn) {
+    gradeAddBtn.onclick = () => openGradeModal();
+  }
+
+  const posAddBtn = $("org-pos-add-btn");
+  if (posAddBtn) {
+    posAddBtn.onclick = () => openPositionModal();
+  }
+}
+
+function openDeptModal() {
+  const parentOptions = (initCache.departments || [])
+    .map(d => `<option value="${d.id}">${d.name}</option>`)
+    .join('');
+
+  openModal(
+    '新增部门',
+    `
+      <form id="modal-dept-form">
+        <label>部门名称 <input id="modal-dept-name" required placeholder="输入部门名称"></label>
+        <label>上级部门 <select id="modal-dept-parent"><option value="">无</option>${parentOptions}</select></label>
+      </form>
+    `,
+    async () => {
+      const name = $("modal-dept-name").value.trim();
+      const parentId = $("modal-dept-parent").value;
       if (!name) {
         alert("请输入部门名称");
         return;
@@ -170,33 +197,24 @@ function initOrgEvents() {
         method: "POST",
         body: JSON.stringify({ name, parentId: parentId ? Number(parentId) : null }),
       });
-      $("dept-name-input").value = "";
       await loadDepartments();
-    });
-  }
+    },
+    { submitText: '保存' }
+  );
+}
 
-  const posAddBtn = $("pos-add");
-  if (posAddBtn) {
-    posAddBtn.addEventListener("click", async () => {
-      const name = $("pos-name-input").value.trim();
-      if (!name) {
-        alert("请输入岗位名称");
-        return;
-      }
-      await apiRequest(API.positions.create, {
-        method: "POST",
-        body: JSON.stringify({ name }),
-      });
-      $("pos-name-input").value = "";
-      await loadPositions();
-    });
-  }
-
-  const gradeAddBtn = $("grade-add");
-  if (gradeAddBtn) {
-    gradeAddBtn.addEventListener("click", async () => {
-      const name = $("grade-name-input").value.trim();
-      const level = Number($("grade-level-input").value);
+function openGradeModal() {
+  openModal(
+    '新增职级',
+    `
+      <form id="modal-grade-form">
+        <label>职级名称 <input id="modal-grade-name" required placeholder="输入职级名称"></label>
+        <label>等级 <input id="modal-grade-level" type="number" required placeholder="输入等级"></label>
+      </form>
+    `,
+    async () => {
+      const name = $("modal-grade-name").value.trim();
+      const level = Number($("modal-grade-level").value);
       if (!name || Number.isNaN(level)) {
         alert("请输入职级名称和等级");
         return;
@@ -205,9 +223,32 @@ function initOrgEvents() {
         method: "POST",
         body: JSON.stringify({ name, level }),
       });
-      $("grade-name-input").value = "";
-      $("grade-level-input").value = "";
       await loadGrades();
-    });
-  }
+    },
+    { submitText: '保存' }
+  );
+}
+
+function openPositionModal() {
+  openModal(
+    '新增岗位',
+    `
+      <form id="modal-position-form">
+        <label>岗位名称 <input id="modal-position-name" required placeholder="输入岗位名称"></label>
+      </form>
+    `,
+    async () => {
+      const name = $("modal-position-name").value.trim();
+      if (!name) {
+        alert("请输入岗位名称");
+        return;
+      }
+      await apiRequest(API.positions.create, {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
+      await loadPositions();
+    },
+    { submitText: '保存' }
+  );
 }

@@ -1,33 +1,24 @@
 <div class="panel">
   <div class="panel-header">
-    <h2>员工信息与考勤</h2>
-    <p>头像上传与 1:1 人脸考勤</p>
+    <h2>员工中心</h2>
+    <p>员工管理与头像上传</p>
   </div>
-  <form id="employees-attendance-form" class="grid-4 form-fields">
-    <div class="stat">
-      <label for="profile-employee">选择员工</label>
-      <select id="profile-employee"></select>
-    </div>
-    <div class="stat">
-      <label for="profile-avatar">头像文件</label>
-      <input id="profile-avatar" type="file" />
-    </div>
-    <div class="stat">
-      <label for="profile-verify">识别文件</label>
-      <input id="profile-verify" type="file" />
-    </div>
-  </form>
-  <form id="employees-attendance-actions" class="form-actions">
-    <button id="profile-upload" type="button" form="employees-attendance-form">上传头像</button>
-    <button id="profile-verify-btn" type="button" form="employees-attendance-form">验证人脸</button>
-    <button id="profile-checkin" type="button" class="ghost" form="employees-attendance-form">人脸签到</button>
-    <button id="profile-checkout" type="button" class="ghost" form="employees-attendance-form">人脸签退</button>
-  </form>
-  <p id="profile-result" class="subtitle"></p>
+  <div class="panel-actions">
+    <button id="employee-center-add-btn">新增员工</button>
+  </div>
 </div>
-<div class="panel profile-card">
-  <div class="profile-avatar">
-    <img id="profile-avatar-img" alt="avatar" />
-  </div>
-  <div class="profile-info" id="profile-info"></div>
+<div class="table-panel">
+  <table id="employee-center-table">
+    <thead>
+      <tr>
+        <th>工号</th>
+        <th>姓名</th>
+        <th>部门</th>
+        <th>职位</th>
+        <th>状态</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>

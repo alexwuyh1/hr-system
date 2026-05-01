@@ -76,11 +76,14 @@ function initAuth() {
     }
   });
 
-  $("logout").addEventListener("click", () => {
-    persistToken(null);
-    $("workspace").classList.add("hidden");
-    $("auth-panel").classList.remove("hidden");
-  });
+  const logoutBtn = $("logout");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      persistToken(null);
+      $("workspace").classList.add("hidden");
+      $("auth-panel").classList.remove("hidden");
+    });
+  }
 
   if (authToken) {
     (async () => {
