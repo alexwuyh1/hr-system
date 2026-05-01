@@ -1,4 +1,4 @@
-package com.example.hr.config;
+package com.example.hr.seed;
 
 import com.example.hr.model.AttendanceRule;
 import com.example.hr.model.Department;
@@ -29,7 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Seed initial data for a fresh database.
- * Creates a default admin user and a few sample employees.
+ * 数据初始化：仅在新数据库时执行一次
  */
 @Configuration
 public class DataInitializer {

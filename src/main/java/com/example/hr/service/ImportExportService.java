@@ -172,8 +172,14 @@ public class ImportExportService {
       String line = lines[i].trim();
       if (line.isEmpty()) continue;
       String[] parts = line.split(",", -1);
-      Employee e = new Employee();
-      e.setEmployeeNo(parts[0]);
+      String employeeNo = parts[0];
+      
+      // 检查是否已存在，存在则更新，否则插入
+      Employee e = employeeRepository.findByEmployeeNo(employeeNo).orElse(null);
+      if (e == null) {
+        e = new Employee();
+        e.setEmployeeNo(employeeNo);
+      }
       e.setName(parts[1]);
       e.setDepartment(parts[2]);
       e.setTitle(parts[3]);
@@ -217,10 +223,18 @@ public class ImportExportService {
       String line = lines[i].trim();
       if (line.isEmpty()) continue;
       String[] parts = line.split(",", -1);
-      Salary s = new Salary();
-      s.setEmployee(employeeRepository.findById(Long.parseLong(parts[0]))
-          .orElseThrow(() -> new IllegalArgumentException("Employee not found")));
-      s.setSalaryMonth(parts[1]);
+      
+      Employee employee = employeeRepository.findById(Long.parseLong(parts[0]))
+          .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+      String salaryMonth = parts[1];
+      
+      // 检查是否已存在，存在则更新，否则插入
+      Salary s = salaryRepository.findByEmployeeAndSalaryMonth(employee, salaryMonth);
+      if (s == null) {
+        s = new Salary();
+        s.setEmployee(employee);
+        s.setSalaryMonth(salaryMonth);
+      }
       s.setBaseSalary(Double.parseDouble(parts[2]));
       s.setBonus(Double.parseDouble(parts[3]));
       s.setDeduction(Double.parseDouble(parts[4]));
@@ -238,8 +252,14 @@ public class ImportExportService {
       for (int i = 1; i <= sheet.getLastRowNum(); i++) {
         Row r = sheet.getRow(i);
         if (r == null) continue;
-        Employee e = new Employee();
-        e.setEmployeeNo(getString(r, 0));
+        String employeeNo = getString(r, 0);
+        
+        // 检查是否已存在，存在则更新，否则插入
+        Employee e = employeeRepository.findByEmployeeNo(employeeNo).orElse(null);
+        if (e == null) {
+          e = new Employee();
+          e.setEmployeeNo(employeeNo);
+        }
         e.setName(getString(r, 1));
         e.setDepartment(getString(r, 2));
         e.setTitle(getString(r, 3));
@@ -283,10 +303,18 @@ public class ImportExportService {
       for (int i = 1; i <= sheet.getLastRowNum(); i++) {
         Row r = sheet.getRow(i);
         if (r == null) continue;
-        Salary s = new Salary();
-        s.setEmployee(employeeRepository.findById(Long.parseLong(getString(r, 0)))
-            .orElseThrow(() -> new IllegalArgumentException("Employee not found")));
-        s.setSalaryMonth(getString(r, 1));
+        
+        Employee employee = employeeRepository.findById(Long.parseLong(getString(r, 0)))
+            .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+        String salaryMonth = getString(r, 1);
+        
+        // 检查是否已存在，存在则更新，否则插入
+        Salary s = salaryRepository.findByEmployeeAndSalaryMonth(employee, salaryMonth);
+        if (s == null) {
+          s = new Salary();
+          s.setEmployee(employee);
+          s.setSalaryMonth(salaryMonth);
+        }
         s.setBaseSalary(Double.parseDouble(getString(r, 2)));
         s.setBonus(Double.parseDouble(getString(r, 3)));
         s.setDeduction(Double.parseDouble(getString(r, 4)));
@@ -301,8 +329,23 @@ public class ImportExportService {
   private String getString(Row r, int idx) {
     Cell cell = r.getCell(idx);
     if (cell == null) return "";
-    cell.setCellType(CellType.STRING);
-    return cell.getStringCellValue().trim();
+    
+    // 根据单元格类型获取值
+    switch (cell.getCellType()) {
+      case STRING:
+        return cell.getStringCellValue().trim();
+      case NUMERIC:
+        // 数字类型：如果是整数则去掉小数部分
+        double value = cell.getNumericCellValue();
+        if (value == (long) value) {
+          return String.valueOf((long) value);
+        }
+        return String.valueOf(value);
+      case BOOLEAN:
+        return String.valueOf(cell.getBooleanCellValue());
+      default:
+        return "";
+    }
   }
 
   private LocalTime parseTime(String value) {

@@ -1,5 +1,6 @@
-/* ==================== 字体引入 ==================== */
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap");
+/* ==================== 字体设置 ==================== */
+/* 引入 Inter 字体（英文）和 Noto Sans SC（中文）- 美观且易读 */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap");
 
 /* ==================== CSS 变量定义 ==================== */
 :root {
@@ -9,11 +10,11 @@
   
   /* 强调色 - 橙色主题 */
   --accent: #f48c06;                /* 主色调 */
-  --accent-dark: #c76b00;           /* 深橙色(悬停/边框) */
+  --accent-dark: #c76b00;           /* 深橙色 (悬停/边框) */
   
   /* 文字色 */
   --text: #1d1a17;                  /* 主文字颜色 */
-  --muted: #6d6255;                 /* 次要文字颜色(灰色) */
+  --muted: #6d6255;                 /* 次要文字颜色 (灰色) */
   --line: #e9dfd3;                  /* 分割线颜色 */
   
   /* 阴影 */
@@ -45,14 +46,18 @@
 body {
   margin: 0;
   background: radial-gradient(circle at top, #fff7ea 0%, var(--bg) 70%);  /* 渐变背景 */
-  font-family: "Space Grotesk", "ZCOOL XiaoWei", sans-serif;  /* 中英文字体 */
+  font-family: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;  /* 美观易读字体 */
   color: var(--text);
+  -webkit-font-smoothing: antialiased;  /* Mac 字体平滑 */
+  -moz-osx-font-smoothing: grayscale;   /* Firefox 字体平滑 */
+  line-height: 1.6;  /* 行高优化阅读体验 */
 }
 
 .app {
   max-width: 1920px;                /* 最大宽度 */
   margin: 0 auto;                   /* 居中 */
   padding: var(--space-4);          /* 内边距 */
+  font-family: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif !important;  /* 美观易读字体 */
 }
 
 /* ==================== Hero 区域 ==================== */

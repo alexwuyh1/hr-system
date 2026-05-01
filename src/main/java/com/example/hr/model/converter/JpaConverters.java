@@ -1,4 +1,4 @@
-package com.example.hr.config;
+package com.example.hr.model.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

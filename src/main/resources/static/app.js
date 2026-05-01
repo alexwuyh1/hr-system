@@ -782,11 +782,34 @@ $("logout").addEventListener("click", () => {
 // Auto-login if token exists
 window.addEventListener("DOMContentLoaded", async () => {
   if (authToken) {
-    $("auth-panel").classList.add("hidden");
-    $("workspace").classList.remove("hidden");
-    switchTab("dashboard");
-    await safeLoad("init", loadInit);
-    await ensureTabData("dashboard");
+    // 验证 Token 是否有效
+    try {
+      const response = await fetch(`${API_BASE}/dashboard`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        // Token 无效，清除并显示登录界面
+        persistToken(null);
+        $("auth-panel").classList.remove("hidden");
+        $("workspace").classList.add("hidden");
+        return;
+      }
+      
+      // Token 有效，进入工作区
+      $("auth-panel").classList.add("hidden");
+      $("workspace").classList.remove("hidden");
+      switchTab("dashboard");
+      await safeLoad("init", loadInit);
+      await ensureTabData("dashboard");
+    } catch (err) {
+      console.error("自动登录失败:", err);
+      persistToken(null);
+      $("auth-panel").classList.remove("hidden");
+      $("workspace").classList.add("hidden");
+    }
   }
 });
 
@@ -1102,12 +1125,52 @@ if (dataExportBtn) {
   dataExportBtn.addEventListener("click", async () => {
     const type = $("data-type-select").value;
     const format = $("data-format-select").value;
-    const url = `/api/data/export/${type}?format=${format}`;
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.click();
+    const url = `/data/export/${type}?format=${format}`;
+    
+    // 检查是否已登录
+    if (!authToken) {
+      alert("请先登录");
+      $("auth-panel").classList.remove("hidden");
+      $("workspace").classList.add("hidden");
+      return;
+    }
+    
+    try {
+      const headers = {};
+      if (authToken) {
+        headers.Authorization = `Bearer ${authToken}`;
+      }
+      
+      const response = await fetch(`${API_BASE}${url}`, { headers });
+      
+      if (!response.ok) {
+        if (response.status === 403) {
+          alert("认证已过期，请重新登录");
+          persistToken(null);
+          $("auth-panel").classList.remove("hidden");
+          $("workspace").classList.add("hidden");
+          return;
+        }
+        const error = await response.text();
+        throw new Error(error || "导出失败");
+      }
+      
+      const blob = await response.blob();
+      const filename = `${type}.${format}`;
+      
+      // 创建下载链接
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error("导出失败:", err);
+      alert(`导出失败：${err.message}`);
+    }
   });
 }
 

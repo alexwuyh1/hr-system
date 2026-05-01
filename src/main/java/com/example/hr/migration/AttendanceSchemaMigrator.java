@@ -1,4 +1,4 @@
-package com.example.hr.config;
+package com.example.hr.migration;
 
 import java.util.List;
 import java.util.Map;

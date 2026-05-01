@@ -10,6 +10,9 @@ import org.springframework.data.jpa.repository.Query;
  */
 public interface SalaryRepository extends JpaRepository<Salary, Long> {
   List<Salary> findBySalaryMonth(String salaryMonth);
+  
+  // Find by employee and salary month
+  Salary findByEmployeeAndSalaryMonth(com.example.hr.model.Employee employee, String salaryMonth);
 
   // Sum of (base + bonus - deduction) across all salary records.
   @Query("select coalesce(sum(s.baseSalary + s.bonus - s.deduction), 0) from Salary s")

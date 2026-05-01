@@ -1,39 +1,40 @@
 package com.example.hr.service;
 
+import com.example.hr.exception.ResourceNotFoundException;
 import com.example.hr.model.Position;
 import com.example.hr.repository.PositionRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Position service for CRUD.
- */
 @Service
+@Transactional(readOnly = true)
 public class PositionService {
-  private final PositionRepository positionRepository;
+    private final PositionRepository positionRepository;
 
-  public PositionService(PositionRepository positionRepository) {
-    this.positionRepository = positionRepository;
-  }
+    public PositionService(PositionRepository positionRepository) {
+        this.positionRepository = positionRepository;
+    }
 
-  public List<Position> list() {
-    return positionRepository.findAll();
-  }
+    public List<Position> list() {
+        return positionRepository.findAll();
+    }
 
-  public Position create(Position position) {
-    return positionRepository.save(position);
-  }
+    @Transactional(rollbackFor = Exception.class)
+    public Position create(Position position) {
+        return positionRepository.save(position);
+    }
 
-  public Position update(Long id, Position position) {
-    Position existing =
-        positionRepository
-            .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Position not found"));
-    existing.setName(position.getName());
-    return positionRepository.save(existing);
-  }
+    @Transactional(rollbackFor = Exception.class)
+    public Position update(Long id, Position position) {
+        Position existing = positionRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("岗位", id));
+        existing.setName(position.getName());
+        return positionRepository.save(existing);
+    }
 
-  public void delete(Long id) {
-    positionRepository.deleteById(id);
-  }
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(Long id) {
+        positionRepository.deleteById(id);
+    }
 }

@@ -1,6 +1,10 @@
 package com.example.hr.service;
 
 import com.example.hr.dto.EmployeeRequest;
+import com.example.hr.exception.DuplicateResourceException;
+import com.example.hr.exception.EmployeeNotFoundException;
+import com.example.hr.exception.InvalidStateException;
+import com.example.hr.exception.ResourceNotFoundException;
 import com.example.hr.model.Employee;
 import com.example.hr.model.Department;
 import com.example.hr.model.Position;
@@ -11,131 +15,123 @@ import com.example.hr.repository.PositionRepository;
 import com.example.hr.repository.GradeRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Employee service with CRUD business logic.
- */
 @Service
+@Transactional(readOnly = true)
 public class EmployeeService {
-  private final EmployeeRepository employeeRepository;
-  private final DepartmentRepository departmentRepository;
-  private final PositionRepository positionRepository;
-  private final GradeRepository gradeRepository;
+    private final EmployeeRepository employeeRepository;
+    private final DepartmentRepository departmentRepository;
+    private final PositionRepository positionRepository;
+    private final GradeRepository gradeRepository;
 
-  public EmployeeService(
-      EmployeeRepository employeeRepository,
-      DepartmentRepository departmentRepository,
-      PositionRepository positionRepository,
-      GradeRepository gradeRepository) {
-    this.employeeRepository = employeeRepository;
-    this.departmentRepository = departmentRepository;
-    this.positionRepository = positionRepository;
-    this.gradeRepository = gradeRepository;
-  }
+    public EmployeeService(
+            EmployeeRepository employeeRepository,
+            DepartmentRepository departmentRepository,
+            PositionRepository positionRepository,
+            GradeRepository gradeRepository) {
+        this.employeeRepository = employeeRepository;
+        this.departmentRepository = departmentRepository;
+        this.positionRepository = positionRepository;
+        this.gradeRepository = gradeRepository;
+    }
 
-  public List<Employee> list() {
-    return employeeRepository.findAll();
-  }
+    public List<Employee> list() {
+        return employeeRepository.findAll();
+    }
 
-  public Employee create(EmployeeRequest request) {
-    Employee employee =
-        employeeRepository
-            .findByEmployeeNo(request.employeeNo)
-            .map(
-                existing -> {
-                  if ("在职".equals(existing.getStatus())) {
-                    throw new IllegalArgumentException("员工已在职，无法重复入职");
-                  }
-                  return existing;
-                })
+    @Transactional(rollbackFor = Exception.class)
+    public Employee create(EmployeeRequest request) {
+        employeeRepository.findByEmployeeNo(request.employeeNo)
+            .ifPresent(existing -> {
+                if ("在职".equals(existing.getStatus())) {
+                    throw new DuplicateResourceException("员工", request.employeeNo);
+                }
+            });
+
+        Employee employee = employeeRepository.findByEmployeeNo(request.employeeNo)
             .orElseGet(Employee::new);
-    apply(employee, request);
-    employee.setStatus("在职");
-    return employeeRepository.save(employee);
-  }
-
-  public Employee update(Long id, EmployeeRequest request) {
-    Employee employee =
-        employeeRepository
-            .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-    apply(employee, request);
-    return employeeRepository.save(employee);
-  }
-
-  public Employee resign(String employeeNo) {
-    Employee employee =
-        employeeRepository
-            .findByEmployeeNo(employeeNo)
-            .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-    if (!"在职".equals(employee.getStatus())) {
-      throw new IllegalArgumentException("员工未在职");
-    }
-    employee.setStatus("离职");
-    return employeeRepository.save(employee);
-  }
-
-  public Employee rehire(String employeeNo) {
-    Employee employee =
-        employeeRepository
-            .findByEmployeeNo(employeeNo)
-            .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-    if (!"离职".equals(employee.getStatus())) {
-      throw new IllegalArgumentException("员工非离职状态");
-    }
-    employee.setStatus("在职");
-    return employeeRepository.save(employee);
-  }
-
-  public void delete(Long id) {
-    employeeRepository.deleteById(id);
-  }
-
-  private void apply(Employee employee, EmployeeRequest request) {
-    employee.setEmployeeNo(request.employeeNo);
-    employee.setName(request.name);
-    employee.setDepartment(request.department);
-    employee.setTitle(request.title);
-    employee.setPhone(request.phone);
-    employee.setEmail(request.email);
-    employee.setHireDate(request.hireDate);
-    employee.setStatus(request.status);
-
-    if (request.departmentId != null) {
-      Department department =
-          departmentRepository
-              .findById(request.departmentId)
-              .orElseThrow(() -> new IllegalArgumentException("Department not found"));
-      employee.setDepartmentRef(department);
-      // Keep legacy text field in sync
-      employee.setDepartment(department.getName());
+        
+        apply(employee, request);
+        employee.setStatus("在职");
+        return employeeRepository.save(employee);
     }
 
-    if (request.positionId != null) {
-      Position position =
-          positionRepository
-              .findById(request.positionId)
-              .orElseThrow(() -> new IllegalArgumentException("Position not found"));
-      employee.setPositionRef(position);
-      employee.setTitle(position.getName());
+    @Transactional(rollbackFor = Exception.class)
+    public Employee update(Long id, EmployeeRequest request) {
+        Employee employee = employeeRepository.findById(id)
+            .orElseThrow(() -> new EmployeeNotFoundException(id));
+        apply(employee, request);
+        return employeeRepository.save(employee);
     }
 
-    if (request.gradeId != null) {
-      Grade grade =
-          gradeRepository
-              .findById(request.gradeId)
-              .orElseThrow(() -> new IllegalArgumentException("Grade not found"));
-      employee.setGradeRef(grade);
+    @Transactional(rollbackFor = Exception.class)
+    public Employee resign(String employeeNo) {
+        Employee employee = employeeRepository.findByEmployeeNo(employeeNo)
+            .orElseThrow(() -> new EmployeeNotFoundException(employeeNo));
+        
+        if (!"在职".equals(employee.getStatus())) {
+            throw new InvalidStateException("员工", employee.getStatus(), "在职");
+        }
+        
+        employee.setStatus("离职");
+        return employeeRepository.save(employee);
     }
 
-    if (request.managerId != null) {
-      Employee manager =
-          employeeRepository
-              .findById(request.managerId)
-              .orElseThrow(() -> new IllegalArgumentException("Manager not found"));
-      employee.setManagerRef(manager);
-    } else {
-      employee.setManagerRef(null);
+    @Transactional(rollbackFor = Exception.class)
+    public Employee rehire(String employeeNo) {
+        Employee employee = employeeRepository.findByEmployeeNo(employeeNo)
+            .orElseThrow(() -> new EmployeeNotFoundException(employeeNo));
+        
+        if (!"离职".equals(employee.getStatus())) {
+            throw new InvalidStateException("员工", employee.getStatus(), "离职");
+        }
+        
+        employee.setStatus("在职");
+        return employeeRepository.save(employee);
     }
-  }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(Long id) {
+        employeeRepository.deleteById(id);
+    }
+
+    private void apply(Employee employee, EmployeeRequest request) {
+        employee.setEmployeeNo(request.employeeNo);
+        employee.setName(request.name);
+        employee.setDepartment(request.department);
+        employee.setTitle(request.title);
+        employee.setPhone(request.phone);
+        employee.setEmail(request.email);
+        employee.setHireDate(request.hireDate);
+        employee.setStatus(request.status);
+
+        if (request.departmentId != null) {
+            Department department = departmentRepository.findById(request.departmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("部门", request.departmentId));
+            employee.setDepartmentRef(department);
+            employee.setDepartment(department.getName());
+        }
+
+        if (request.positionId != null) {
+            Position position = positionRepository.findById(request.positionId)
+                .orElseThrow(() -> new ResourceNotFoundException("岗位", request.positionId));
+            employee.setPositionRef(position);
+            employee.setTitle(position.getName());
+        }
+
+        if (request.gradeId != null) {
+            Grade grade = gradeRepository.findById(request.gradeId)
+                .orElseThrow(() -> new ResourceNotFoundException("职级", request.gradeId));
+            employee.setGradeRef(grade);
+        }
+
+        if (request.managerId != null) {
+            Employee manager = employeeRepository.findById(request.managerId)
+                .orElseThrow(() -> new EmployeeNotFoundException(request.managerId));
+            employee.setManagerRef(manager);
+        } else {
+            employee.setManagerRef(null);
+        }
+    }
 }

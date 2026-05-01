@@ -1,135 +1,128 @@
 package com.example.hr.service;
 
+import com.example.hr.exception.EmployeeNotActiveException;
+import com.example.hr.exception.EmployeeNotFoundException;
+import com.example.hr.exception.FaceVerificationFailedException;
+import com.example.hr.exception.InvalidStateException;
 import com.example.hr.model.Attendance;
 import com.example.hr.model.Employee;
 import com.example.hr.repository.AttendanceRepository;
 import com.example.hr.repository.EmployeeRepository;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Face verification and attendance check-in service.
- */
 @Service
+@Transactional(readOnly = true)
 public class FaceAttendanceService {
-  private static final int DEFAULT_THRESHOLD = 10;
-  private static final double FACE_SIMILARITY_THRESHOLD = 80.0;
+    
+    private static final double FACE_SIMILARITY_THRESHOLD = 80.0;
 
-  private final EmployeeRepository employeeRepository;
-  private final AttendanceRepository attendanceRepository;
-  private final FaceService faceService;
-  private final OpenCvFaceService openCvFaceService;
+    private final EmployeeRepository employeeRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final FaceRecognitionService faceRecognitionService;
 
-  public FaceAttendanceService(
-      EmployeeRepository employeeRepository,
-      AttendanceRepository attendanceRepository,
-      FaceService faceService,
-      OpenCvFaceService openCvFaceService) {
-    this.employeeRepository = employeeRepository;
-    this.attendanceRepository = attendanceRepository;
-    this.faceService = faceService;
-    this.openCvFaceService = openCvFaceService;
-  }
+    public FaceAttendanceService(
+            EmployeeRepository employeeRepository,
+            AttendanceRepository attendanceRepository,
+            FaceRecognitionService faceRecognitionService) {
+        this.employeeRepository = employeeRepository;
+        this.attendanceRepository = attendanceRepository;
+        this.faceRecognitionService = faceRecognitionService;
+    }
 
-  public VerificationResult verify(Long employeeId, InputStream image) throws Exception {
-    Employee employee =
-        employeeRepository
-            .findById(employeeId)
-            .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-    if (!"在职".equals(employee.getStatus())) {
-      throw new IllegalArgumentException("员工未在职");
+    public VerificationResult verify(Long employeeId, InputStream image) throws Exception {
+        Employee employee = employeeRepository.findById(employeeId)
+            .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
+        
+        if (!"在职".equals(employee.getStatus())) {
+            throw new EmployeeNotActiveException(employeeId);
+        }
+        
+        if (employee.getAvatarPath() == null) {
+            throw new InvalidStateException("员工", "无头像", "有头像");
+        }
+        
+        byte[] probeImage = image.readAllBytes();
+        byte[] referenceImage = Files.readAllBytes(Path.of(employee.getAvatarPath()));
+        
+        FaceRecognitionService.FaceResult result = faceRecognitionService.verify(
+            probeImage, 
+            referenceImage
+        );
+        
+        return new VerificationResult(
+            result.matched(),
+            result.similarity(),
+            result.algorithm(),
+            100.0 - result.similarity(),
+            result.threshold()
+        );
     }
-    if (employee.getAvatarPath() == null) {
-      throw new IllegalArgumentException("Employee has no avatar/face data");
-    }
-    byte[] bytes = image.readAllBytes();
-    // Prefer OpenCV verification; fallback to hash if needed.
-    try {
-      var result =
-          openCvFaceService.verify(new java.io.ByteArrayInputStream(bytes),
-              java.nio.file.Path.of(employee.getAvatarPath()));
-      double similarity = result.similarity();
-      return new VerificationResult(
-          result.matched(),
-          similarity,
-          "opencv-cosine",
-          result.distance(),
-          result.threshold());
-    } catch (IllegalStateException | UnsatisfiedLinkError ex) {
-      if (employee.getFaceHash() == null) {
-        throw ex;
-      }
-      String hash = faceService.computeHash(new java.io.ByteArrayInputStream(bytes));
-      int distance = faceService.hammingDistance(employee.getFaceHash(), hash);
-      boolean matched = distance <= DEFAULT_THRESHOLD;
-      double similarity = toHashSimilarity(distance, DEFAULT_THRESHOLD);
-      return new VerificationResult(matched, similarity, "hash", distance, DEFAULT_THRESHOLD);
-    }
-  }
 
-  public Attendance checkIn(Long employeeId, InputStream image) throws Exception {
-    VerificationResult result = verify(employeeId, image);
-    ensureSimilarity(result);
-    if (!result.matched()) {
-      throw new IllegalArgumentException("Face verification failed");
+    @Transactional(rollbackFor = Exception.class)
+    public Attendance checkIn(Long employeeId, InputStream image) throws Exception {
+        VerificationResult result = verify(employeeId, image);
+        ensureSimilarity(result);
+        
+        if (!result.matched()) {
+            throw new FaceVerificationFailedException(result.similarity(), FACE_SIMILARITY_THRESHOLD);
+        }
+        
+        LocalDate today = LocalDate.now();
+        attendanceRepository.findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(
+            employeeId, today
+        ).ifPresent(open -> {
+            throw new InvalidStateException("考勤", "已签到未签退", "已签退");
+        });
+        
+        Attendance attendance = new Attendance();
+        attendance.setEmployee(employeeRepository.findById(employeeId)
+            .orElseThrow(() -> new EmployeeNotFoundException(employeeId)));
+        attendance.setWorkDate(today);
+        attendance.setStatus("Normal");
+        attendance.setCheckIn(LocalTime.now());
+        return attendanceRepository.save(attendance);
     }
-    LocalDate today = LocalDate.now();
-    attendanceRepository
-        .findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(employeeId, today)
-        .ifPresent(
-            open -> {
-              throw new IllegalArgumentException("Please check out before checking in again");
-            });
-    Attendance attendance = new Attendance();
-    attendance.setEmployee(
-        employeeRepository
-            .findById(employeeId)
-            .orElseThrow(() -> new IllegalArgumentException("Employee not found")));
-    attendance.setWorkDate(today);
-    attendance.setStatus("Normal");
-    attendance.setCheckIn(LocalTime.now());
-    return attendanceRepository.save(attendance);
-  }
 
-  public Attendance checkOut(Long employeeId, InputStream image) throws Exception {
-    VerificationResult result = verify(employeeId, image);
-    ensureSimilarity(result);
-    if (!result.matched()) {
-      throw new IllegalArgumentException("Face verification failed");
+    @Transactional(rollbackFor = Exception.class)
+    public Attendance checkOut(Long employeeId, InputStream image) throws Exception {
+        VerificationResult result = verify(employeeId, image);
+        ensureSimilarity(result);
+        
+        if (!result.matched()) {
+            throw new FaceVerificationFailedException(result.similarity(), FACE_SIMILARITY_THRESHOLD);
+        }
+        
+        LocalDate today = LocalDate.now();
+        Attendance attendance = attendanceRepository.findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(
+            employeeId, today
+        ).orElseThrow(() -> new InvalidStateException("考勤", "无签到记录", "已签到"));
+        
+        LocalTime now = LocalTime.now();
+        if (now.isBefore(attendance.getCheckIn())) {
+            throw new InvalidStateException("考勤", "签退时间早于签到时间", "签退时间晚于签到时间");
+        }
+        
+        attendance.setCheckOut(now);
+        return attendanceRepository.save(attendance);
     }
-    LocalDate today = LocalDate.now();
-    Attendance attendance =
-        attendanceRepository
-            .findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(employeeId, today)
-            .orElseThrow(() -> new IllegalArgumentException("No open check-in for today"));
-    LocalTime now = LocalTime.now();
-    if (now.isBefore(attendance.getCheckIn())) {
-      throw new IllegalArgumentException("Check-out cannot be earlier than check-in");
-    }
-    attendance.setCheckOut(now);
-    return attendanceRepository.save(attendance);
-  }
 
-  private void ensureSimilarity(VerificationResult result) {
-    if (result.similarity() < FACE_SIMILARITY_THRESHOLD) {
-      throw new IllegalArgumentException(
-          String.format(
-              "Face similarity %.1f%% is below required %.0f%%",
-              result.similarity(), FACE_SIMILARITY_THRESHOLD));
+    private void ensureSimilarity(VerificationResult result) {
+        if (result.similarity() < FACE_SIMILARITY_THRESHOLD) {
+            throw new FaceVerificationFailedException(result.similarity(), FACE_SIMILARITY_THRESHOLD);
+        }
     }
-  }
 
-  private double toHashSimilarity(double distance, double threshold) {
-    if (threshold <= 0) {
-      return 0.0;
-    }
-    double ratio = 1.0 - (distance / threshold);
-    double clamped = Math.max(0.0, Math.min(1.0, ratio));
-    return clamped * 100.0;
-  }
-
-  public record VerificationResult(
-      boolean matched, double similarity, String algorithm, double distance, double threshold) {}
+    public record VerificationResult(
+        boolean matched, 
+        double similarity, 
+        String algorithm, 
+        double distance, 
+        double threshold
+    ) {}
 }

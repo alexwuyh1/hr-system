@@ -1,29 +1,214 @@
 package com.example.hr.controller;
 
+import com.example.hr.dto.ErrorResponse;
+import com.example.hr.exception.BusinessException;
+import com.example.hr.exception.DuplicateResourceException;
+import com.example.hr.exception.EmployeeNotActiveException;
+import com.example.hr.exception.EmployeeNotFoundException;
+import com.example.hr.exception.FaceVerificationFailedException;
+import com.example.hr.exception.InvalidParameterException;
+import com.example.hr.exception.InvalidStateException;
+import com.example.hr.exception.ResourceNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Global exception handler to return JSON-friendly errors.
+ * 全局异常处理器 - 所有错误响应的唯一入口
+ * 
+ * 架构约束：
+ * - 不要在其他地方直接写入错误响应到 response
+ * - 所有错误统一使用 ErrorResponse 格式
+ * - 认证和授权错误也通过此类处理
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-  private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-  @ExceptionHandler(IllegalArgumentException.class)
-  public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
-    return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
-  }
+    @ExceptionHandler(EmployeeNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEmployeeNotFound(
+            EmployeeNotFoundException ex, HttpServletRequest request) {
+        log.warn("Employee not found: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            ex.getCode(),
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, ex.getStatus());
+    }
 
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
-    // Log full stack trace to server logs, return a concise error to client.
-    log.error("Unhandled error", ex);
-    return ResponseEntity.internalServerError()
-        .body(Map.of("error", ex.getClass().getSimpleName() + ": " + ex.getMessage()));
-  }
+    @ExceptionHandler(EmployeeNotActiveException.class)
+    public ResponseEntity<ErrorResponse> handleEmployeeNotActive(
+            EmployeeNotActiveException ex, HttpServletRequest request) {
+        log.warn("Employee not active: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            ex.getCode(),
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, ex.getStatus());
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(
+            ResourceNotFoundException ex, HttpServletRequest request) {
+        log.warn("Resource not found: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            ex.getCode(),
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, ex.getStatus());
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResource(
+            DuplicateResourceException ex, HttpServletRequest request) {
+        log.warn("Duplicate resource: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            ex.getCode(),
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, ex.getStatus());
+    }
+
+    @ExceptionHandler(InvalidStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidState(
+            InvalidStateException ex, HttpServletRequest request) {
+        log.warn("Invalid state: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            ex.getCode(),
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, ex.getStatus());
+    }
+
+    @ExceptionHandler(FaceVerificationFailedException.class)
+    public ResponseEntity<ErrorResponse> handleFaceVerificationFailed(
+            FaceVerificationFailedException ex, HttpServletRequest request) {
+        log.warn("Face verification failed: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            ex.getCode(),
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, ex.getStatus());
+    }
+
+    @ExceptionHandler(InvalidParameterException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidParameter(
+            InvalidParameterException ex, HttpServletRequest request) {
+        log.warn("Invalid parameter: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            ex.getCode(),
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, ex.getStatus());
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(
+            BusinessException ex, HttpServletRequest request) {
+        log.warn("Business exception: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            ex.getCode(),
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, ex.getStatus());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(
+            IllegalArgumentException ex, HttpServletRequest request) {
+        log.warn("Illegal argument: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            "ILLEGAL_ARGUMENT",
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            fieldErrors.put(fieldName, errorMessage);
+        });
+        
+        String message = "验证失败：" + String.join(", ", fieldErrors.values());
+        ErrorResponse error = new ErrorResponse(
+            "VALIDATION_ERROR",
+            message,
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        log.warn("Validation errors: {}", fieldErrors);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
+        log.error("Unhandled error", ex);
+        ErrorResponse error = new ErrorResponse(
+            "INTERNAL_ERROR",
+            "系统内部错误：" + ex.getClass().getSimpleName(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationNotFound(
+            AuthenticationCredentialsNotFoundException ex, HttpServletRequest request) {
+        log.warn("Authentication not found: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            "UNAUTHORIZED",
+            "未提供有效的认证令牌",
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException ex, HttpServletRequest request) {
+        log.warn("Access denied: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            "FORBIDDEN",
+            "没有访问权限",
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
 }

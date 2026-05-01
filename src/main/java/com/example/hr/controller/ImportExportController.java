@@ -67,4 +67,10 @@ public class ImportExportController {
         .contentType(mediaType)
         .body(content);
   }
+
+  // 热重载测试 v4 - DevTools 已启用
+  @GetMapping("/hot-reload-test")
+  public String hotReloadTest() {
+    return "热重载已生效 v4 - DevTools 自动重启 " + System.currentTimeMillis();
+  }
 }

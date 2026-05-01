@@ -24,10 +24,10 @@ CREATE TABLE IF NOT EXISTS employees (
   manager_id INTEGER,
   avatar_path TEXT,
   face_hash TEXT,
-  FOREIGN KEY (department_id) REFERENCES departments(id),
-  FOREIGN KEY (position_id) REFERENCES positions(id),
-  FOREIGN KEY (grade_id) REFERENCES grades(id),
-  FOREIGN KEY (manager_id) REFERENCES employees(id)
+  FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL,
+  FOREIGN KEY (position_id) REFERENCES positions(id) ON DELETE SET NULL,
+  FOREIGN KEY (grade_id) REFERENCES grades(id) ON DELETE SET NULL,
+  FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL
 );
 
 -- Attendance records per employee and date.
@@ -41,10 +41,11 @@ CREATE TABLE IF NOT EXISTS attendance (
   note TEXT,
   late_minutes INTEGER,
   overtime_minutes INTEGER,
-  FOREIGN KEY (employee_id) REFERENCES employees(id)
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
 -- Salary records per employee and month.
+-- Removed UNIQUE constraint to support multiple salary payments per month (e.g., base + bonus)
 CREATE TABLE IF NOT EXISTS salaries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   employee_id INTEGER NOT NULL,
@@ -53,11 +54,11 @@ CREATE TABLE IF NOT EXISTS salaries (
   bonus REAL NOT NULL,
   deduction REAL NOT NULL,
   note TEXT,
-  UNIQUE(employee_id, salary_month),
-  FOREIGN KEY (employee_id) REFERENCES employees(id)
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
 -- Shift schedule per employee/day
+-- Removed UNIQUE constraint to support multiple shifts per day (e.g., day/night shifts)
 CREATE TABLE IF NOT EXISTS shifts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   employee_id INTEGER NOT NULL,
@@ -65,8 +66,7 @@ CREATE TABLE IF NOT EXISTS shifts (
   start_time TEXT NOT NULL,
   end_time TEXT NOT NULL,
   note TEXT,
-  UNIQUE(employee_id, work_date),
-  FOREIGN KEY (employee_id) REFERENCES employees(id)
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
 -- Leave requests (approval workflow)
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS leave_requests (
   type TEXT NOT NULL,
   status TEXT NOT NULL,
   note TEXT,
-  FOREIGN KEY (employee_id) REFERENCES employees(id)
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
 -- Overtime requests (approval workflow)
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS overtime_requests (
   minutes INTEGER NOT NULL,
   status TEXT NOT NULL,
   note TEXT,
-  FOREIGN KEY (employee_id) REFERENCES employees(id)
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
 -- Attendance rule config (single row)
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS departments (
   name TEXT NOT NULL,
   parent_id INTEGER,
   UNIQUE(name, parent_id),
-  FOREIGN KEY (parent_id) REFERENCES departments(id)
+  FOREIGN KEY (parent_id) REFERENCES departments(id) ON DELETE SET NULL
 );
 
 -- Position catalog
