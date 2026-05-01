@@ -1,0 +1,33 @@
+<div class="panel">
+  <div class="panel-header">
+    <h2>员工信息与考勤</h2>
+    <p>头像上传与 1:1 人脸考勤</p>
+  </div>
+  <form id="employees-attendance-form" class="grid-4 form-fields">
+    <div class="stat">
+      <label for="profile-employee">选择员工</label>
+      <select id="profile-employee"></select>
+    </div>
+    <div class="stat">
+      <label for="profile-avatar">头像文件</label>
+      <input id="profile-avatar" type="file" />
+    </div>
+    <div class="stat">
+      <label for="profile-verify">识别文件</label>
+      <input id="profile-verify" type="file" />
+    </div>
+  </form>
+  <form id="employees-attendance-actions" class="form-actions">
+    <button id="profile-upload" type="button" form="employees-attendance-form">上传头像</button>
+    <button id="profile-verify-btn" type="button" form="employees-attendance-form">验证人脸</button>
+    <button id="profile-checkin" type="button" class="ghost" form="employees-attendance-form">人脸签到</button>
+    <button id="profile-checkout" type="button" class="ghost" form="employees-attendance-form">人脸签退</button>
+  </form>
+  <p id="profile-result" class="subtitle"></p>
+</div>
+<div class="panel profile-card">
+  <div class="profile-avatar">
+    <img id="profile-avatar-img" alt="avatar" />
+  </div>
+  <div class="profile-info" id="profile-info"></div>
+</div>

@@ -1,0 +1,46 @@
+<div class="panel">
+  <div class="panel-header">
+    <h2>管理层仪表盘</h2>
+    <p>从人力、考勤与薪酬角度快速洞察组织状态</p>
+  </div>
+  <div class="grid-4 dashboard-stats">
+    <div class="stat">
+      <label for="dash-active">在岗员工</label>
+      <span class="value" id="dash-active">-</span>
+    </div>
+    <div class="stat">
+      <label for="dash-total">员工总数</label>
+      <span class="value" id="dash-total">-</span>
+    </div>
+    <div class="stat">
+      <label for="dash-attendance">今日考勤</label>
+      <span class="value" id="dash-attendance">-</span>
+    </div>
+    <div class="stat">
+      <label for="dash-payroll">薪资成本</label>
+      <span class="value" id="dash-payroll">-</span>
+    </div>
+  </div>
+</div>
+<div class="dashboard-grid">
+  <div class="panel chart-panel">
+    <h3>员工规模趋势</h3>
+    <canvas id="chart-headcount"></canvas>
+  </div>
+  <div class="panel chart-panel">
+    <h3>入职/离职趋势</h3>
+    <canvas id="chart-flow"></canvas>
+  </div>
+  <div class="panel chart-panel">
+    <h3>部门人数分布</h3>
+    <canvas id="chart-dept"></canvas>
+  </div>
+  <div class="panel chart-panel">
+    <h3>考勤异常排行</h3>
+    <canvas id="chart-attendance"></canvas>
+  </div>
+  <div class="panel chart-panel">
+    <h3>部门人力成本</h3>
+    <canvas id="chart-payroll"></canvas>
+  </div>
+</div>

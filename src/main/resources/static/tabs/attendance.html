@@ -1,0 +1,55 @@
+<div class="panel">
+  <div class="panel-header">
+    <h2>考勤记录</h2>
+    <p>记录每日出勤情况</p>
+  </div>
+  <form id="attendance-form" class="grid-4 form-fields">
+    <div class="stat">
+      <label for="attendance-employee">员工</label>
+      <select id="attendance-employee" name="employeeId" required></select>
+    </div>
+    <div class="stat">
+      <label for="attendance-date">日期</label>
+      <input id="attendance-date" name="workDate" type="date" required />
+    </div>
+    <div class="stat">
+      <label for="attendance-checkin">签到</label>
+      <input id="attendance-checkin" name="checkIn" type="time" />
+    </div>
+    <div class="stat">
+      <label for="attendance-checkout">签退</label>
+      <input id="attendance-checkout" name="checkOut" type="time" />
+    </div>
+    <div class="stat">
+      <label for="attendance-status">状态</label>
+      <select id="attendance-status" name="status" required>
+        <option value="Normal">Normal</option>
+        <option value="Late">Late</option>
+        <option value="Absent">Absent</option>
+        <option value="Leave">Leave</option>
+      </select>
+    </div>
+    <div class="stat">
+      <label for="attendance-note">备注</label>
+      <input id="attendance-note" name="note" placeholder="备注（可选）" />
+    </div>
+  </form>
+  <form id="attendance-actions" class="form-actions">
+    <button type="submit" form="attendance-form">保存</button>
+  </form>
+</div>
+<div class="table-panel">
+  <table id="attendance-table">
+    <thead>
+      <tr>
+        <th>员工</th>
+        <th>日期</th>
+        <th>签到</th>
+        <th>签退</th>
+        <th>状态</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>

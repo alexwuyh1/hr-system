@@ -1,0 +1,54 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap");
+
+:root {
+  --bg: #f6f0e8;
+  --panel: #ffffff;
+  --accent: #f48c06;
+  --accent-dark: #c76b00;
+  --text: #1d1a17;
+  --muted: #6d6255;
+  --line: #e9dfd3;
+  --shadow: 0 20px 40px rgba(60, 45, 30, 0.15);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --radius-1: 10px;
+  --radius-2: 16px;
+  --radius-3: 20px;
+  --input-height: 40px;
+  --button-height: 40px;
+  --card-min-height: 140px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #fff7ea 0%, var(--bg) 70%);
+  font-family: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+.app {
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  font-family: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif !important;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin: 0;
+  font-size: 20px;
+}
+
+.hidden {
+  display: none;
+}

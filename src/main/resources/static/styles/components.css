@@ -1,0 +1,263 @@
+.stat {
+  background: var(--panel);
+  border-radius: var(--radius-1);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.stat label {
+  font-size: 25px;
+  color: var(--muted);
+}
+
+.dashboard-stats .stat {
+  align-items: center;
+  text-align: center;
+}
+
+.chart-panel h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.chart-panel {
+  display: flex;
+  flex-direction: column;
+  height: 340px;
+}
+
+.chart-panel canvas {
+  width: 100%;
+  height: 240px !important;
+}
+
+#chart-headcount,
+#chart-flow,
+#chart-dept,
+#chart-attendance,
+#chart-payroll {
+  display: block;
+  max-height: 240px !important;
+  min-height: 240px !important;
+}
+
+form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.form-fields {
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+
+.form-actions button {
+  min-width: 120px;
+}
+
+input,
+select,
+button {
+  font-family: inherit;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-1);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  height: var(--input-height);
+  max-width: 100%;
+  align-self: center;
+}
+
+input,
+select {
+  width: 100%;
+  max-width: 320px;
+}
+
+input[type="file"] {
+  width: auto;
+  max-width: 100%;
+}
+
+form .grid-2 input,
+form .grid-2 select,
+form .grid-4 input,
+form .grid-4 select {
+  width: 100%;
+  max-width: 320px;
+}
+
+input:focus {
+  outline: 2px solid rgba(244, 140, 6, 0.3);
+  border-color: var(--accent);
+}
+
+button {
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+  height: var(--button-height);
+  min-width: 120px;
+  max-width: 220px;
+  width: auto;
+  align-self: start;
+}
+
+#login-actions button,
+#auth-panel button {
+  max-width: 160px;
+  min-width: 120px;
+  width: auto;
+  justify-self: start;
+}
+
+#login-actions {
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+#login-form input {
+  max-width: 260px;
+}
+
+button:hover {
+  background: var(--accent-dark);
+  transform: translateY(-1px);
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--accent-dark);
+  border: 1px dashed var(--accent);
+}
+
+.table-panel {
+  margin-top: var(--space-3);
+  overflow-x: auto;
+  border-radius: var(--radius-1);
+  border: 1px solid var(--line);
+  background: #fff;
+  min-height: var(--card-min-height);
+}
+
+.profile-card {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.profile-avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: var(--radius-2);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #fff3e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-info {
+  display: grid;
+  gap: 4px;
+  font-size: 18px;
+}
+
+.profile-info span {
+  color: var(--muted);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+th,
+td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 16px;
+}
+
+.tree {
+  list-style: none;
+  margin: 0;
+  padding-left: 16px;
+}
+
+.tree li {
+  margin: 4px 0;
+  position: relative;
+  padding-left: 14px;
+}
+
+.tree li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  width: 8px;
+  height: 1px;
+  background: var(--line);
+}
+
+.tree-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #f7d6b4;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.tree-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-size: 11px;
+  background: #fff;
+}
+
+.tree-children {
+  margin-left: 10px;
+  border-left: 1px dashed var(--line);
+  padding-left: 10px;
+}
+
+.tree-children.hidden {
+  display: none;
+}

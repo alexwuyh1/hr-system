@@ -49,7 +49,7 @@ public class SecurityConfig {
                 // 允许访问头像接口（用于图片显示）
                 .requestMatchers("/api/employees/*/avatar").permitAll()
                 // 允许访问静态资源
-                .requestMatchers("/", "/index.html", "/styles.css", "/app.js").permitAll()
+                .requestMatchers("/", "/index.html", "/styles.css", "/styles/**", "/core/**", "/modules/**", "/tabs/**", "/app.js").permitAll()
                 // 其他 API 需要认证
                 .requestMatchers("/api/**").authenticated()
                 // 其他所有请求需要认证
