@@ -75,7 +75,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             path.startsWith("/core/") ||
             path.startsWith("/modules/") ||
             path.startsWith("/tabs/") ||
-            "/styles.css".equals(path) ||
             "/app.js".equals(path)) {
             filterChain.doFilter(request, response);
             return;
