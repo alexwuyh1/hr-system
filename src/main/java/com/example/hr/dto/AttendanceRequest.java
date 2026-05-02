@@ -16,8 +16,7 @@ public class AttendanceRequest {
   public LocalDate workDate;
   public LocalTime checkIn;
   public LocalTime checkOut;
-  @NotBlank
   @Pattern(regexp = "Normal|Late|Absent|Leave", message = "Invalid attendance status")
-  public String status;
+  public String status = "Normal";
   public String note;
 }

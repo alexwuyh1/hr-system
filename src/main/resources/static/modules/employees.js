@@ -125,23 +125,23 @@ function getEmployeeFormHTML(data = {}) {
     <form id="modal-employee-form">
       <input type="hidden" name="id" value="${data.id || ''}">
       <div class="form-grid-2">
-        <label>工号 <input name="employeeNo" value="${data.employeeNo || ''}" required></label>
-        <label>姓名 <input name="name" value="${data.name || ''}" required></label>
+        <label>工号 <input name="employeeNo" value="${data.employeeNo || ''}" required placeholder="唯一标识，如 EMP001"></label>
+        <label>姓名 <input name="name" value="${data.name || ''}" required placeholder="员工真实姓名"></label>
       </div>
       <div class="form-grid-2">
-        <label>部门 <select name="departmentId" required><option value="">请选择</option>${deptOptions}</select></label>
-        <label>职位 <select name="positionId" required><option value="">请选择</option>${posOptions}</select></label>
+        <label>部门 <select name="departmentId" required title="请选择所属部门"><option value="">请选择部门</option>${deptOptions}</select></label>
+        <label>职位 <select name="positionId" required title="请选择担任职位"><option value="">请选择职位</option>${posOptions}</select></label>
       </div>
       <div class="form-grid-2">
-        <label>职级 <select name="gradeId"><option value="">请选择</option>${gradeOptions}</select></label>
-        <label>直属上级 <select name="managerId"><option value="">无</option>${managerOptions}</select></label>
+        <label>职级 <select name="gradeId" title="可选，如 P3、P4"><option value="">请选择职级</option>${gradeOptions}</select></label>
+        <label>直属上级 <select name="managerId" title="可选，默认为无"><option value="">无</option>${managerOptions}</select></label>
       </div>
       <div class="form-grid-2">
-        <label>入职日期 <input name="hireDate" type="date" value="${data.hireDate || ''}" required></label>
-        <label>邮箱 <input name="email" type="email" value="${data.email || ''}"></label>
+        <label>入职日期 <input name="hireDate" type="date" value="${data.hireDate || ''}" required title="不能晚于今天"></label>
+        <label>邮箱 <input name="email" type="email" value="${data.email || ''}" placeholder="example@company.com"></label>
       </div>
       <div class="form-grid-2">
-        <label>电话 <input name="phone" value="${data.phone || ''}"></label>
+        <label>电话 <input name="phone" value="${data.phone || ''}" placeholder="11 位手机号，如 13800138000"></label>
         <label></label>
       </div>
     </form>
@@ -211,69 +211,46 @@ function initEmployeeTab() {
   // 员工管理页仅展示表格，新增功能已移至员工中心
 }
 
-let selectedEmployee = null;
-
 function applyEmployeesCenter(list) {
   if (!list) return;
-  const table = $("employee-center-table");
-  if (!table) return;
-  const body = table.querySelector("tbody");
-  body.innerHTML = "";
+  const container = $("employee-center-cards");
+  if (!container) return;
+  container.innerHTML = "";
   list.forEach((e) => {
-    const row = document.createElement("tr");
-    [e.employeeNo, e.name, e.departmentName || e.department, e.positionName || e.title, e.status].forEach((text) => {
-      const td = document.createElement("td");
-      td.textContent = text;
-      row.appendChild(td);
-    });
-    row.style.cursor = "pointer";
-    row.onclick = () => selectEmployee(e);
-    body.appendChild(row);
-  });
-}
-
-function selectEmployee(employee) {
-  selectedEmployee = employee;
-  openModal(
-    '员工详情',
-    `
-      <div class="profile-card">
-        <div class="profile-avatar">
-          <img id="modal-avatar-img" src="${employee.avatarUrl || ''}" alt="avatar" />
-        </div>
-        <div>
-          <div class="profile-info">
-            <div><strong>${employee.name}</strong> <span>(${employee.employeeNo})</span></div>
-            <div>部门：${employee.departmentName || employee.department || "-"}</div>
-            <div>岗位：${employee.positionName || employee.title || "-"}</div>
-            <div>职级：${employee.gradeName || "-"}</div>
-            <div>邮箱：${employee.email || "-"}</div>
-            <div>电话：${employee.phone || "-"}</div>
-          </div>
-          <div class="profile-status">
-            <span style="color: ${employee.status === '在职' ? '#16a34a' : '#dc2626'}; font-weight: 600;">${employee.status}</span>
-          </div>
-          <div class="panel-actions" style="margin-top: 16px;">
-            <button id="modal-edit-btn">编辑</button>
-            <button id="modal-status-btn" class="ghost">${employee.status === '在职' ? '离职' : '复职'}</button>
-            <button id="modal-delete-btn" class="ghost">删除</button>
-            <button id="modal-upload-btn" class="ghost">上传头像</button>
-          </div>
+    const card = document.createElement("div");
+    card.className = "employee-card";
+    card.innerHTML = `
+      <div class="employee-card-avatar">
+        <img src="${e.avatarUrl || ''}" alt="${e.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22 x=%2210%22>👤</text></svg>'" />
+      </div>
+      <div class="employee-card-info">
+        <div class="employee-card-name">${e.name} <span class="employee-card-no">(${e.employeeNo})</span></div>
+        <div>部门：${e.departmentName || e.department || "-"}</div>
+        <div>岗位：${e.positionName || e.title || "-"}</div>
+        <div>职级：${e.gradeName || "-"}</div>
+        <div>邮箱：${e.email || "-"}</div>
+        <div>电话：${e.phone || "-"}</div>
+        <div class="employee-card-status">
+          <span style="color: ${e.status === '在职' ? '#16a34a' : '#dc2626'}; font-weight: 600;">${e.status}</span>
         </div>
       </div>
-    `,
-    null,
-    { submitText: null }
-  );
-  $("modal-edit-btn").onclick = () => { closeModal(); openEditEmployeeModal(employee); };
-  $("modal-status-btn").onclick = async () => {
-    const endpoint = employee.status === '在职' ? API.employees.resign : API.employees.rehire;
-    await apiRequest(endpoint, { method: "POST", body: JSON.stringify({ employeeNo: employee.employeeNo }) });
-    closeModal();
-    await loadEmployeeCenter();
-  };
-  $("modal-delete-btn").onclick = () => { closeModal(); confirmDeleteEmployee(employee.id); };
-  $("modal-upload-btn").onclick = () => { closeModal(); openAvatarUploadModal(employee.id); };
+      <div class="employee-card-actions">
+        <button class="ghost" data-action="edit">编辑</button>
+        <button class="ghost" data-action="status">${e.status === '在职' ? '离职' : '复职'}</button>
+        <button class="ghost" data-action="delete">删除</button>
+        <button class="ghost" data-action="avatar">上传头像</button>
+      </div>
+    `;
+    card.querySelector('[data-action="edit"]').onclick = () => openEditEmployeeModal(e);
+    card.querySelector('[data-action="status"]').onclick = async () => {
+      const endpoint = e.status === '在职' ? API.employees.resign : API.employees.rehire;
+      await apiRequest(endpoint, { method: "POST", body: JSON.stringify({ employeeNo: e.employeeNo }) });
+      await loadEmployeeCenter();
+    };
+    card.querySelector('[data-action="delete"]').onclick = () => confirmDeleteEmployee(e.id);
+    card.querySelector('[data-action="avatar"]').onclick = () => openAvatarUploadModal(e.id);
+    container.appendChild(card);
+  });
 }
 
 async function loadEmployeeCenter() {

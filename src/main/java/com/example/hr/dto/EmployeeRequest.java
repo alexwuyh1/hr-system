@@ -1,12 +1,10 @@
 package com.example.hr.dto;
 
-import com.example.hr.validation.EmployeeNoFormat;
 import com.example.hr.validation.Phone;
-import com.example.hr.validation.UniqueEmployeeNo;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
 
 /**
@@ -15,8 +13,6 @@ import java.time.LocalDate;
 public class EmployeeRequest {
     
     @NotBlank(message = "员工工号不能为空")
-    @EmployeeNoFormat
-    @UniqueEmployeeNo
     public String employeeNo;
     
     @NotBlank(message = "员工姓名不能为空")
@@ -35,7 +31,7 @@ public class EmployeeRequest {
     public String email;
     
     @NotNull(message = "入职日期不能为空")
-    @Past(message = "入职日期必须是过去的日期")
+    @PastOrPresent(message = "入职日期不能晚于今天")
     public LocalDate hireDate;
     
     @NotBlank(message = "员工状态不能为空")

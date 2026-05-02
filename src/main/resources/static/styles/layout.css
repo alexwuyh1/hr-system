@@ -41,10 +41,9 @@
 
 .dashboard-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(170px, 190px));
-  gap: var(--space-3);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
   align-items: stretch;
-  justify-content: start;
 }
 
 .dashboard-grid .panel {
@@ -55,7 +54,7 @@
   margin-top: var(--space-4);
   background: var(--panel);
   border-radius: var(--radius-2);
-  padding: var(--space-4);
+  padding: var(--space-5);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
 }

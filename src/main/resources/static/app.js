@@ -25,6 +25,7 @@ async function loadInit() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+  console.log("[热重载测试] 页面加载成功 - " + new Date().toLocaleTimeString());
   initAuth();
   initTabs();
   await activateTab("dashboard");

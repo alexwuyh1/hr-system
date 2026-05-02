@@ -61,6 +61,15 @@ public class EmployeeService {
     public Employee update(Long id, EmployeeRequest request) {
         Employee employee = employeeRepository.findById(id)
             .orElseThrow(() -> new EmployeeNotFoundException(id));
+        
+        // 检查工号是否被其他员工占用
+        employeeRepository.findByEmployeeNo(request.employeeNo)
+            .ifPresent(existing -> {
+                if (!existing.getId().equals(id)) {
+                    throw new DuplicateResourceException("员工工号", request.employeeNo);
+                }
+            });
+        
         apply(employee, request);
         return employeeRepository.save(employee);
     }

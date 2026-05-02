@@ -43,17 +43,17 @@ function getAttendanceFormHTML(data = {}) {
   return `
     <form id="modal-attendance-form">
       <input type="hidden" name="id" value="${data.id || ''}">
-      <label>员工 <select name="employeeId" required><option value="">请选择</option>${employeeOptions}</select></label>
-      <label>日期 <input name="workDate" type="date" value="${data.workDate || ''}" required></label>
+      <label>员工 <select name="employeeId" required title="仅显示在职员工"><option value="">请选择在职员工</option>${employeeOptions}</select></label>
+      <label>日期 <input name="workDate" type="date" value="${data.workDate || ''}" required title="考勤日期"></label>
       <div class="form-grid-2">
-        <label>签到时间 <input name="checkIn" type="time" value="${data.checkIn || ''}"></label>
-        <label>签退时间 <input name="checkOut" type="time" value="${data.checkOut || ''}"></label>
+        <label>签到时间 <input name="checkIn" type="time" value="${data.checkIn || ''}" title="可选，如 09:00"></label>
+        <label>签退时间 <input name="checkOut" type="time" value="${data.checkOut || ''}" title="可选，如 18:00"></label>
       </div>
-      <label>状态 <select name="status" required>
-        <option value="Normal" ${data.status === 'Normal' ? 'selected' : ''}>Normal</option>
-        <option value="Late" ${data.status === 'Late' ? 'selected' : ''}>Late</option>
-        <option value="Absent" ${data.status === 'Absent' ? 'selected' : ''}>Absent</option>
-        <option value="Leave" ${data.status === 'Leave' ? 'selected' : ''}>Leave</option>
+      <label>状态 <select name="status" required title="考勤状态">
+        <option value="Normal" ${data.status === 'Normal' ? 'selected' : ''}>正常</option>
+        <option value="Late" ${data.status === 'Late' ? 'selected' : ''}>迟到</option>
+        <option value="Absent" ${data.status === 'Absent' ? 'selected' : ''}>缺勤</option>
+        <option value="Leave" ${data.status === 'Leave' ? 'selected' : ''}>请假</option>
       </select></label>
       <label>备注 <input name="note" value="${data.note || ''}" placeholder="备注（可选）"></label>
     </form>

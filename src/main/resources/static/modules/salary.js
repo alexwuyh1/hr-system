@@ -42,12 +42,12 @@ function getSalaryFormHTML(data = {}) {
   return `
     <form id="modal-salary-form">
       <input type="hidden" name="id" value="${data.id || ''}">
-      <label>员工 <select name="employeeId" required><option value="">请选择</option>${employeeOptions}</select></label>
-      <label>薪资月份 <input name="salaryMonth" type="month" value="${data.salaryMonth || ''}" required></label>
+      <label>员工 <select name="employeeId" required title="选择薪资所属员工"><option value="">请选择员工</option>${employeeOptions}</select></label>
+      <label>薪资月份 <input name="salaryMonth" type="month" value="${data.salaryMonth || ''}" required title="格式：YYYY-MM"></label>
       <div class="form-grid-3">
-        <label>基本薪资 <input name="baseSalary" type="number" step="0.01" value="${data.baseSalary || ''}" placeholder="输入基本薪资" required></label>
-        <label>奖金 <input name="bonus" type="number" step="0.01" value="${data.bonus || ''}" placeholder="输入奖金" required></label>
-        <label>扣款 <input name="deduction" type="number" step="0.01" value="${data.deduction || ''}" placeholder="输入扣款" required></label>
+        <label>基本薪资 <input name="baseSalary" type="number" step="0.01" value="${data.baseSalary || ''}" placeholder="输入基本薪资" required title="≥ 0"></label>
+        <label>奖金 <input name="bonus" type="number" step="0.01" value="${data.bonus || ''}" placeholder="输入奖金" required title="≥ 0"></label>
+        <label>扣款 <input name="deduction" type="number" step="0.01" value="${data.deduction || ''}" placeholder="输入扣款" required title="≥ 0"></label>
       </div>
     </form>
   `;

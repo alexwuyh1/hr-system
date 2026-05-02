@@ -22,4 +22,7 @@ public @interface UniqueEmployeeNo {
     Class<?>[] groups() default {};
     
     Class<? extends Payload>[] payload() default {};
+    
+    /** 排除的员工 ID（用于更新时忽略自身） */
+    long excludeId() default -1;
 }

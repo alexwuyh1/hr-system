@@ -1,7 +1,7 @@
 .stat {
   background: var(--panel);
   border-radius: var(--radius-1);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-4) var(--space-5);
   border: none;
   display: flex;
   flex-direction: column;
@@ -20,6 +20,27 @@
   text-align: center;
   border: 1px solid var(--line);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: var(--space-5) var(--space-4);
+  min-height: 120px;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-stats .stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-stats .stat .value {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: var(--space-2);
+}
+
+.dashboard-stats .stat label {
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .chart-panel h3 {
@@ -267,4 +288,85 @@ td {
 
 .tree-children.hidden {
   display: none;
+}
+
+/* 员工卡片网格 */
+.employee-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+/* 员工卡片 */
+.employee-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.employee-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.employee-card-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-2);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #fff3e6;
+  margin: 0 auto;
+}
+
+.employee-card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.employee-card-info {
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.employee-card-name {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.employee-card-no {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.employee-card-status {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.employee-card-actions {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--line);
+}
+
+.employee-card-actions button {
+  min-width: 60px;
+  height: 32px;
+  font-size: 12px;
+  padding: 0 var(--space-2);
 }
