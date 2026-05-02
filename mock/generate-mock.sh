@@ -138,56 +138,72 @@ create_employees() {
   done
 }
 
-# 创建考勤记录
+# 创建考勤记录（每个员工 3 条签到签退记录）
 create_attendance() {
   section "创建考勤记录"
-  local emp_id
-  emp_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^emp:" | head -1 | cut -d: -f2)
-  if [ -z "$emp_id" ]; then
+  local emp_ids
+  emp_ids=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^emp:" | cut -d: -f2)
+  if [ -z "$emp_ids" ]; then
     warn "无员工 ID，跳过考勤记录"
     return
   fi
 
-  local today
+  local today yesterday day_before
   today=$(date +%Y-%m-%d)
-  local resp
-  resp=$(curl -s -X POST "$BASE_URL/api/attendance" \
-    -H "$(AUTH)" -H "Content-Type: application/json" \
-    -d "{\"employeeId\":$emp_id,\"workDate\":\"$today\",\"checkIn\":\"09:00:00\",\"checkOut\":\"18:00:00\"}")
-  local id
-  id=$(extract_id "$resp")
-  if [ -n "$id" ]; then
-    success "创建考勤记录 (ID: $id)"
-    record_id "att:$id"
-  else
-    error "创建考勤记录失败: $resp"
-  fi
+  yesterday=$(date -d "-1 day" +%Y-%m-%d 2>/dev/null || date -v-1d +%Y-%m-%d 2>/dev/null || echo "2024-12-30")
+  day_before=$(date -d "-2 days" +%Y-%m-%d 2>/dev/null || date -v-2d +%Y-%m-%d 2>/dev/null || echo "2024-12-29")
+  local dates=("$today" "$yesterday" "$day_before")
+
+  for emp_id in $emp_ids; do
+    for work_date in "${dates[@]}"; do
+      local resp
+      resp=$(curl -s -X POST "$BASE_URL/api/attendance" \
+        -H "$(AUTH)" -H "Content-Type: application/json" \
+        -d "{\"employeeId\":$emp_id,\"workDate\":\"$work_date\",\"checkIn\":\"09:00:00\",\"checkOut\":\"18:00:00\"}")
+      local id
+      id=$(extract_id "$resp")
+      if [ -n "$id" ]; then
+        success "创建考勤记录: 员工 $emp_id, 日期 $work_date (ID: $id)"
+        record_id "att:$id"
+      else
+        error "创建考勤记录失败: $resp"
+      fi
+    done
+  done
 }
 
-# 创建薪资记录
+# 创建薪资记录（每个员工 3 个月份）
 create_salary() {
   section "创建薪资记录"
-  local emp_id
-  emp_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^emp:" | head -1 | cut -d: -f2)
-  if [ -z "$emp_id" ]; then
+  local emp_ids
+  emp_ids=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^emp:" | cut -d: -f2)
+  if [ -z "$emp_ids" ]; then
     warn "无员工 ID，跳过薪资记录"
     return
   fi
 
-  local month
-  month=$(date +%Y-%m)
-  local resp
-  resp=$(curl -s -X POST "$BASE_URL/api/salaries" \
-    -H "$(AUTH)" -H "Content-Type: application/json" \
-    -d "{\"employeeId\":$emp_id,\"salaryMonth\":\"$month\",\"baseSalary\":8000,\"bonus\":2000,\"deduction\":0}")
-  local id
-  id=$(extract_id "$resp")
-  if [ -n "$id" ]; then
-    success "创建薪资记录 (ID: $id)"
-    record_id "sal:$id"
-  else
-    error "创建薪资记录失败: $resp"
-  fi
+  local m1 m2 m3
+  m1=$(date +%Y-%m)
+  m2=$(date -d "-1 month" +%Y-%m 2>/dev/null || date -v-1m +%Y-%m 2>/dev/null || echo "2024-11")
+  m3=$(date -d "-2 months" +%Y-%m 2>/dev/null || date -v-2m +%Y-%m 2>/dev/null || echo "2024-10")
+  local months=("$m1" "$m2" "$m3")
+
+  for emp_id in $emp_ids; do
+    for month in "${months[@]}"; do
+      local resp
+      resp=$(curl -s -X POST "$BASE_URL/api/salaries" \
+        -H "$(AUTH)" -H "Content-Type: application/json" \
+        -d "{\"employeeId\":$emp_id,\"salaryMonth\":\"$month\",\"baseSalary\":8000,\"bonus\":2000,\"deduction\":0}")
+      local id
+      id=$(extract_id "$resp")
+      if [ -n "$id" ]; then
+        success "创建薪资记录: 员工 $emp_id, 月份 $month (ID: $id)"
+        record_id "sal:$id"
+      else
+        error "创建薪资记录失败: $resp"
+      fi
+    done
+  done
 }
 
 # 创建请假记录
@@ -272,6 +288,34 @@ verify_data() {
     pass=$((pass + 1))
   else
     error "员工数据不足: $emp_count 条"
+    fail=$((fail + 1))
+  fi
+
+  # 验证考勤（每个员工至少 3 条）
+  local atts
+  atts=$(curl -s "$BASE_URL/api/attendance" -H "$(AUTH)")
+  local att_count
+  att_count=$(echo "$atts" | grep -o '"id":[0-9]*' | wc -l)
+  local expected_att=$((emp_count * 3))
+  if [ "$att_count" -ge "$expected_att" ]; then
+    success "考勤数据: $att_count 条 (预期 >= $expected_att)"
+    pass=$((pass + 1))
+  else
+    error "考勤数据不足: $att_count 条 (预期 >= $expected_att)"
+    fail=$((fail + 1))
+  fi
+
+  # 验证薪资（每个员工至少 3 个月）
+  local sals
+  sals=$(curl -s "$BASE_URL/api/salaries" -H "$(AUTH)")
+  local sal_count
+  sal_count=$(echo "$sals" | grep -o '"id":[0-9]*' | wc -l)
+  local expected_sal=$((emp_count * 3))
+  if [ "$sal_count" -ge "$expected_sal" ]; then
+    success "薪资数据: $sal_count 条 (预期 >= $expected_sal)"
+    pass=$((pass + 1))
+  else
+    error "薪资数据不足: $sal_count 条 (预期 >= $expected_sal)"
     fail=$((fail + 1))
   fi
 
