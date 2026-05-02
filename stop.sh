@@ -94,7 +94,7 @@ if [[ -n "${PID_BY_CMD}" ]]; then
 fi
 
 # Check PID file
-PID_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/logs/hr-system.pid"
+PID_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/logs/hr-system.pid"
 if [[ -f "${PID_FILE}" ]]; then
   PID_FROM_FILE=$(cat "${PID_FILE}")
   if ps -p "${PID_FROM_FILE}" >/dev/null 2>&1; then

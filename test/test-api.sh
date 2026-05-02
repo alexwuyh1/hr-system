@@ -1,6 +1,6 @@
 #!/bin/bash
 # HR System API 功能测试脚本
-# 用法: bash scripts/test-api.sh
+# 用法: bash test/test-api.sh
 
 BASE_URL="http://localhost:18080"
 PASS=0

@@ -6,7 +6,7 @@ set -euo pipefail
 
 PORT="${PORT:-18080}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="${SCRIPT_DIR}"
 LOG_FILE="${ROOT_DIR}/logs/hr-system.log"
 PID_FILE="${ROOT_DIR}/logs/hr-system.pid"
 
