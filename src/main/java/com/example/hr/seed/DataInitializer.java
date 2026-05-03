@@ -60,81 +60,116 @@ public class DataInitializer {
       }
 
       if (roleRepository.count() == 0) {
-        for (String roleName : new String[] {"管理员", "人事", "财务", "经理", "员工"}) {
+        for (String roleName : new String[] {"管理员", "人事", "员工"}) {
           Role role = new Role();
           role.setName(roleName);
           roleRepository.save(role);
         }
       }
 
-      // Employee permissions
-      seedPermission(permissionRepository, "GET", "/api/employees", "管理员", "人事", "经理");
-      seedPermission(permissionRepository, "POST", "/api/employees", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/employees", "管理员", "人事");
-      seedPermission(permissionRepository, "DELETE", "/api/employees", "管理员", "人事");
+      // 管理员：所有API权限
+      String[] adminRoles = {"管理员"};
 
-      // Attendance permissions
-      seedPermission(permissionRepository, "GET", "/api/attendance", "管理员", "人事", "经理");
-      seedPermission(permissionRepository, "POST", "/api/attendance", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/attendance", "管理员", "人事");
-      seedPermission(permissionRepository, "DELETE", "/api/attendance", "管理员", "人事");
+      // 人事：除权限管理外的所有权限
+      String[] hrRoles = {"管理员", "人事"};
 
-      // Salary permissions
-      seedPermission(permissionRepository, "GET", "/api/salaries", "管理员", "财务");
-      seedPermission(permissionRepository, "POST", "/api/salaries", "管理员", "财务");
-      seedPermission(permissionRepository, "PUT", "/api/salaries", "管理员", "财务");
-      seedPermission(permissionRepository, "DELETE", "/api/salaries", "管理员", "财务");
+      // 员工：仅人脸打卡
+      String[] employeeRoles = {"管理员", "人事", "员工"};
 
-      // Report permissions
-      seedPermission(permissionRepository, "GET", "/api/reports", "管理员", "人事", "财务", "经理");
-      // Dashboard permissions
-      seedPermission(permissionRepository, "GET", "/api/dashboard", "管理员", "人事", "财务", "经理");
-      // Init aggregation permissions
-      seedPermission(permissionRepository, "GET", "/api/init", "管理员", "人事", "财务", "经理");
+      // 员工管理
+      seedPermission(permissionRepository, "GET", "/api/employees", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/employees", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/employees", hrRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/employees", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/employees/resign", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/employees/rehire", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/employees/{id}/avatar", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/employees/{id}/avatar", hrRoles);
 
-      // User management (admin only)
-      seedPermission(permissionRepository, "GET", "/api/users", "管理员");
-      seedPermission(permissionRepository, "PUT", "/api/users", "管理员");
-      seedPermission(permissionRepository, "POST", "/api/permissions", "管理员");
-      seedPermission(permissionRepository, "PUT", "/api/permissions", "管理员");
-      seedPermission(permissionRepository, "DELETE", "/api/permissions", "管理员");
-      seedPermission(permissionRepository, "GET", "/api/permissions", "管理员");
-      seedPermission(permissionRepository, "GET", "/api/roles", "管理员");
-      seedPermission(permissionRepository, "GET", "/api/departments", "管理员", "人事", "经理");
-      seedPermission(permissionRepository, "POST", "/api/departments", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/departments", "管理员", "人事");
-      seedPermission(permissionRepository, "DELETE", "/api/departments", "管理员", "人事");
-      seedPermission(permissionRepository, "GET", "/api/positions", "管理员", "人事");
-      seedPermission(permissionRepository, "POST", "/api/positions", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/positions", "管理员", "人事");
-      seedPermission(permissionRepository, "DELETE", "/api/positions", "管理员", "人事");
-      seedPermission(permissionRepository, "GET", "/api/grades", "管理员", "人事");
-      seedPermission(permissionRepository, "POST", "/api/grades", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/grades", "管理员", "人事");
-      seedPermission(permissionRepository, "DELETE", "/api/grades", "管理员", "人事");
-      seedPermission(permissionRepository, "GET", "/api/departments/tree", "管理员", "人事", "经理");
-      seedPermission(permissionRepository, "GET", "/api/shifts", "管理员", "人事", "经理");
-      seedPermission(permissionRepository, "POST", "/api/shifts", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/shifts", "管理员", "人事");
-      seedPermission(permissionRepository, "DELETE", "/api/shifts", "管理员", "人事");
-      seedPermission(permissionRepository, "GET", "/api/leaves", "管理员", "人事");
-      seedPermission(permissionRepository, "POST", "/api/leaves", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/leaves", "管理员", "人事");
-      seedPermission(permissionRepository, "DELETE", "/api/leaves", "管理员", "人事");
-      seedPermission(permissionRepository, "GET", "/api/overtime", "管理员", "人事", "经理");
-      seedPermission(permissionRepository, "POST", "/api/overtime", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/overtime", "管理员", "人事");
-      seedPermission(permissionRepository, "DELETE", "/api/overtime", "管理员", "人事");
-      seedPermission(permissionRepository, "GET", "/api/attendance-rules", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/attendance-rules", "管理员", "人事");
-      seedPermission(permissionRepository, "POST", "/api/attendance-rules", "管理员", "人事");
-      seedPermission(permissionRepository, "GET", "/api/data", "管理员", "人事", "经理");
-      seedPermission(permissionRepository, "POST", "/api/data", "管理员", "人事");
-      seedPermission(permissionRepository, "GET", "/api/employees", "管理员", "人事", "经理");
-      seedPermission(permissionRepository, "POST", "/api/employees", "管理员", "人事");
-      seedPermission(permissionRepository, "PUT", "/api/employees", "管理员", "人事");
-      seedPermission(permissionRepository, "DELETE", "/api/employees", "管理员", "人事");
-      seedPermission(permissionRepository, "POST", "/api/face", "管理员", "人事", "经理");
+      // 考勤管理
+      seedPermission(permissionRepository, "GET", "/api/attendance", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/attendance", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/attendance", hrRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/attendance", hrRoles);
+
+      // 考勤规则
+      seedPermission(permissionRepository, "GET", "/api/attendance-rules", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/attendance-rules", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/attendance-rules", hrRoles);
+
+      // 薪资管理
+      seedPermission(permissionRepository, "GET", "/api/salaries", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/salaries", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/salaries", hrRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/salaries", hrRoles);
+
+      // 部门管理
+      seedPermission(permissionRepository, "GET", "/api/departments", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/departments/tree", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/departments", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/departments", hrRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/departments", hrRoles);
+
+      // 职位管理
+      seedPermission(permissionRepository, "GET", "/api/positions", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/positions", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/positions", hrRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/positions", hrRoles);
+
+      // 职级管理
+      seedPermission(permissionRepository, "GET", "/api/grades", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/grades", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/grades", hrRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/grades", hrRoles);
+
+      // 排班管理
+      seedPermission(permissionRepository, "GET", "/api/shifts", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/shifts", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/shifts", hrRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/shifts", hrRoles);
+
+      // 请假管理
+      seedPermission(permissionRepository, "GET", "/api/leaves", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/leaves", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/leaves", hrRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/leaves", hrRoles);
+
+      // 加班管理
+      seedPermission(permissionRepository, "GET", "/api/overtime", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/overtime", hrRoles);
+      seedPermission(permissionRepository, "PUT", "/api/overtime", hrRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/overtime", hrRoles);
+
+      // 人脸打卡
+      seedPermission(permissionRepository, "POST", "/api/face/verify", employeeRoles);
+      seedPermission(permissionRepository, "POST", "/api/face/checkin", employeeRoles);
+      seedPermission(permissionRepository, "POST", "/api/face/checkout", employeeRoles);
+
+      // 导入导出
+      seedPermission(permissionRepository, "GET", "/api/data", hrRoles);
+      seedPermission(permissionRepository, "POST", "/api/data", hrRoles);
+
+      // 仪表盘
+      seedPermission(permissionRepository, "GET", "/api/dashboard", hrRoles);
+
+      // 报表
+      seedPermission(permissionRepository, "GET", "/api/reports", hrRoles);
+
+      // 初始化
+      seedPermission(permissionRepository, "GET", "/api/init", hrRoles);
+
+      // 用户管理（仅管理员）
+      seedPermission(permissionRepository, "GET", "/api/users", adminRoles);
+      seedPermission(permissionRepository, "PUT", "/api/users", adminRoles);
+
+      // 权限管理（仅管理员）
+      seedPermission(permissionRepository, "GET", "/api/permissions", adminRoles);
+      seedPermission(permissionRepository, "POST", "/api/permissions", adminRoles);
+      seedPermission(permissionRepository, "PUT", "/api/permissions", adminRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/permissions", adminRoles);
+      seedPermission(permissionRepository, "GET", "/api/roles", adminRoles);
+      seedPermission(permissionRepository, "POST", "/api/roles", adminRoles);
+      seedPermission(permissionRepository, "DELETE", "/api/roles", adminRoles);
 
       if (departmentRepository.count() == 0) {
         Department hq = new Department();

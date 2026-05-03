@@ -12,6 +12,8 @@ public class AuthRequests {
     public String username;
     @NotBlank
     public String password;
+    @NotBlank
+    public String role;
   }
 
   public static class LoginRequest {

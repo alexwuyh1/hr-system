@@ -126,14 +126,9 @@ function initAttendanceTab() {
     rulesBtn.onclick = () => openAttendanceRulesModal();
   }
 
-  const faceCheckinBtn = $("attendance-face-checkin-btn");
-  if (faceCheckinBtn) {
-    faceCheckinBtn.onclick = () => openFaceCheckinModal();
-  }
-
-  const faceCheckoutBtn = $("attendance-face-checkout-btn");
-  if (faceCheckoutBtn) {
-    faceCheckoutBtn.onclick = () => openFaceCheckoutModal();
+  const faceBtn = $("attendance-face-btn");
+  if (faceBtn) {
+    faceBtn.onclick = () => openFaceAttendanceModal();
   }
 
   const faceVerifyBtn = $("attendance-face-verify-btn");
@@ -209,31 +204,37 @@ function openAttendanceRulesModal() {
   );
 }
 
-function openFaceCheckinModal() {
+function openFaceAttendanceModal() {
   const employeeOptions = (initCache.employees || [])
     .filter(e => e.status === "在职")
     .map(e => `<option value="${e.id}">${e.employeeNo} - ${e.name}</option>`)
     .join('');
 
   openModal(
-    '人脸签到',
+    '人脸打卡',
     `
-      <form id="modal-face-checkin-form">
-        <label>选择员工 <select id="modal-checkin-employee" required><option value="">请选择</option>${employeeOptions}</select></label>
-        <label>识别文件 <input id="modal-checkin-file" type="file" accept="image/*" required></label>
+      <form id="modal-face-attendance-form">
+        <label>选择员工 <select id="modal-face-employee" required><option value="">请选择</option>${employeeOptions}</select></label>
+        <label>打卡类型 <select id="modal-face-type" required>
+          <option value="checkin">签到</option>
+          <option value="checkout">签退</option>
+        </select></label>
+        <label>识别文件 <input id="modal-face-file" type="file" accept="image/*" required></label>
       </form>
     `,
     async () => {
-      const employeeId = $("modal-checkin-employee").value;
-      const file = $("modal-checkin-file").files[0];
-      if (!employeeId || !file) {
-        alert("请选择员工和识别文件");
+      const employeeId = $("modal-face-employee").value;
+      const type = $("modal-face-type").value;
+      const file = $("modal-face-file").files[0];
+      if (!employeeId || !type || !file) {
+        alert("请选择员工、打卡类型和识别文件");
         return;
       }
       const form = new FormData();
       form.append("employeeId", employeeId);
       form.append("file", file);
-      const response = await fetch(`${API_BASE}/face/checkin`, {
+      const endpoint = type === "checkin" ? "checkin" : "checkout";
+      const response = await fetch(`${API_BASE}/face/${endpoint}`, {
         method: "POST",
         headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         body: form,
@@ -243,51 +244,13 @@ function openFaceCheckinModal() {
         throw new Error(err);
       }
       const data = await response.json();
-      alert(`签到成功：${data.workDate} ${data.checkIn || ""}`);
+      const msg = type === "checkin"
+        ? `签到成功：${data.workDate} ${data.checkIn || ""}`
+        : `签退成功：${data.workDate} ${data.checkOut || ""}`;
+      alert(msg);
       await loadAttendance();
     },
-    { submitText: '签到' }
-  );
-}
-
-function openFaceCheckoutModal() {
-  const employeeOptions = (initCache.employees || [])
-    .filter(e => e.status === "在职")
-    .map(e => `<option value="${e.id}">${e.employeeNo} - ${e.name}</option>`)
-    .join('');
-
-  openModal(
-    '人脸签退',
-    `
-      <form id="modal-face-checkout-form">
-        <label>选择员工 <select id="modal-checkout-employee" required><option value="">请选择</option>${employeeOptions}</select></label>
-        <label>识别文件 <input id="modal-checkout-file" type="file" accept="image/*" required></label>
-      </form>
-    `,
-    async () => {
-      const employeeId = $("modal-checkout-employee").value;
-      const file = $("modal-checkout-file").files[0];
-      if (!employeeId || !file) {
-        alert("请选择员工和识别文件");
-        return;
-      }
-      const form = new FormData();
-      form.append("employeeId", employeeId);
-      form.append("file", file);
-      const response = await fetch(`${API_BASE}/face/checkout`, {
-        method: "POST",
-        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
-        body: form,
-      });
-      if (!response.ok) {
-        const err = await response.text();
-        throw new Error(err);
-      }
-      const data = await response.json();
-      alert(`签退成功：${data.workDate} ${data.checkOut || ""}`);
-      await loadAttendance();
-    },
-    { submitText: '签退' }
+    { submitText: '打卡' }
   );
 }
 

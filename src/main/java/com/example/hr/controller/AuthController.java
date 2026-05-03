@@ -27,7 +27,7 @@ public class AuthController {
 
   @PostMapping("/login")
   public Map<String, String> login(@Valid @RequestBody LoginRequest request) {
-    String token = authService.login(request);
-    return Map.of("token", token);
+    Map<String, String> result = authService.login(request);
+    return result;
   }
 }

@@ -1,13 +1,27 @@
 <div class="panel">
   <div class="panel-header">
-    <h2>权限中心</h2>
-    <p>仅管理员可见，查看角色与配置访问规则</p>
+    <h2>权限管理</h2>
+    <p>角色管理与权限规则配置</p>
   </div>
   <div class="panel-actions">
+    <button id="role-add-btn">新增角色</button>
     <button id="perm-add-btn">新增权限</button>
   </div>
 </div>
 <div class="table-panel">
+  <h3>角色列表</h3>
+  <table id="role-table">
+    <thead>
+      <tr>
+        <th>角色名称</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+<div class="table-panel">
+  <h3>权限规则</h3>
   <table id="perm-table">
     <thead>
       <tr>

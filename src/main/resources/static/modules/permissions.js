@@ -22,12 +22,62 @@ function applyRoles(roles) {
     body.innerHTML = "";
     roles.forEach((r) => {
       const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.textContent = r.name;
-      tr.appendChild(td);
+      const td1 = document.createElement("td");
+      td1.textContent = r.name;
+      tr.appendChild(td1);
+      const td2 = document.createElement("td");
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "删除";
+      deleteBtn.className = "ghost";
+      deleteBtn.onclick = () => confirmDeleteRole(r.id, r.name);
+      td2.appendChild(deleteBtn);
+      tr.appendChild(td2);
       body.appendChild(tr);
     });
   }
+}
+
+function confirmDeleteRole(id, name) {
+  showConfirm(`确定要删除角色"${name}"吗？`, async () => {
+    await apiRequest(`/roles/${id}`, { method: "DELETE" });
+    await safeLoad("roles", loadRoles);
+  });
+}
+
+function initPermissionTab() {
+  const roleAddBtn = $("role-add-btn");
+  if (roleAddBtn) {
+    roleAddBtn.onclick = () => openRoleModal();
+  }
+
+  const permAddBtn = $("perm-add-btn");
+  if (permAddBtn) {
+    permAddBtn.onclick = () => openPermissionModal();
+  }
+}
+
+function openRoleModal() {
+  openModal(
+    '新增角色',
+    `
+      <form id="modal-role-form">
+        <label>角色名称 <input id="modal-role-name" required placeholder="如：财务"></label>
+      </form>
+    `,
+    async () => {
+      const name = $("modal-role-name").value.trim();
+      if (!name) {
+        alert("请输入角色名称");
+        return;
+      }
+      await apiRequest(API.roles.create, {
+        method: "POST",
+        body: JSON.stringify({ name }),
+      });
+      await loadRoles();
+    },
+    { submitText: '保存' }
+  );
 }
 
 async function loadPermissions() {
@@ -47,13 +97,6 @@ function applyPermissions(list) {
     });
     body.appendChild(row);
   });
-}
-
-function initPermissionTab() {
-  const permAddBtn = $("perm-add-btn");
-  if (permAddBtn) {
-    permAddBtn.onclick = () => openPermissionModal();
-  }
 }
 
 function openPermissionModal() {

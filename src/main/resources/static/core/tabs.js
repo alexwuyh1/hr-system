@@ -32,7 +32,7 @@ function initTabEvents(tabName) {
     case "dashboard":
       initDashboard();
       break;
-    case "employees-attendance":
+    case "employees":
       initEmployeeCenterTab();
       break;
     case "attendance":
@@ -68,7 +68,7 @@ async function ensureTabData(tabName) {
       await safeLoad("dashboard", loadDashboard);
     }
   }
-  if (tabName === "employees-attendance") {
+  if (tabName === "employees") {
     await safeLoad("employees", loadEmployeeCenter);
   }
   if (tabName === "attendance") {

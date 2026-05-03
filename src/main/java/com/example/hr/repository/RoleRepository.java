@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * Role repository for role catalog.
  */
-public interface RoleRepository extends JpaRepository<Role, Long> {}
+public interface RoleRepository extends JpaRepository<Role, Long> {
+  boolean existsByName(String name);
+}

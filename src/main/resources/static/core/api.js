@@ -27,7 +27,8 @@ const API = {
   positions: { list: "/positions", create: "/positions", update: (id) => `/positions/${id}`, delete: (id) => `/positions/${id}` },
   grades: { list: "/grades", create: "/grades", update: (id) => `/grades/${id}`, delete: (id) => `/grades/${id}` },
   permissions: { list: "/permissions", create: "/permissions", update: (id) => `/permissions/${id}`, delete: (id) => `/permissions/${id}` },
-  roles: { list: "/roles" },
+  roles: { list: "/roles", create: "/roles" },
+  users: { list: "/users", me: "/users/me" },
   data: { export: (type, format) => `/data/export/${type}?format=${format}`, import: (type) => `/data/import/${type}` },
   init: "/init",
 };

@@ -57,18 +57,19 @@
 
     <section class="workspace hidden" id="workspace">
       <nav class="tabs">
-        <button data-tab="dashboard" class="active">管理仪表盘</button>
-        <button data-tab="employees-attendance">员工中心</button>
-        <button data-tab="attendance">考勤中心</button>
-        <button data-tab="salary">薪资记录</button>
+        <button data-tab="dashboard" class="active">仪表盘</button>
+        <button data-tab="employees">员工管理</button>
+        <button data-tab="attendance">考勤管理</button>
+        <button data-tab="salary">薪资管理</button>
         <button data-tab="org-config">组织配置</button>
         <button data-tab="import-export">导入导出</button>
-        <button data-tab="permissions">权限中心</button>
-        <button id="logout" class="ghost">退出</button>
+        <button data-tab="permissions">权限管理</button>
+        <span id="role-badge" class="role-badge"></span>
+        <button id="logout" class="ghost">登出</button>
       </nav>
 
       <div class="tab-content active" id="tab-dashboard"></div>
-      <div class="tab-content" id="tab-employees-attendance"></div>
+      <div class="tab-content" id="tab-employees"></div>
       <div class="tab-content" id="tab-attendance"></div>
       <div class="tab-content" id="tab-salary"></div>
       <div class="tab-content" id="tab-org-config"></div>

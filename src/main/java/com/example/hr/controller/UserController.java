@@ -7,10 +7,6 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * User management endpoints.
- * Only 管理员 can access these endpoints (enforced by AuthInterceptor).
- */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -23,6 +19,13 @@ public class UserController {
   @GetMapping
   public List<User> list() {
     return userRepository.findAll();
+  }
+
+  @GetMapping("/me")
+  public Map<String, String> me(@RequestAttribute("userId") Long userId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    return Map.of("username", user.getUsername(), "role", user.getRole());
   }
 
   @PutMapping("/{id}/role")

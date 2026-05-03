@@ -5,6 +5,7 @@ import com.example.hr.dto.AuthRequests.RegisterRequest;
 import com.example.hr.model.User;
 import com.example.hr.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,17 +31,17 @@ public class AuthService {
     userRepository
         .findByUsername(request.username)
         .ifPresent(u -> {
-          throw new IllegalArgumentException("Username already exists");
+          throw new IllegalArgumentException("用户名已存在");
         });
     User user = new User();
     user.setUsername(request.username);
     user.setPasswordHash(passwordEncoder.encode(request.password));
-    user.setRole("员工");
+    user.setRole(request.role);
     user.setCreatedAt(System.currentTimeMillis());
     userRepository.save(user);
   }
 
-  public String login(LoginRequest request) {
+  public Map<String, String> login(LoginRequest request) {
     User user =
         userRepository
             .findByUsername(request.username)
@@ -48,6 +49,7 @@ public class AuthService {
     if (!passwordEncoder.matches(request.password, user.getPasswordHash())) {
       throw new IllegalArgumentException("Invalid username or password");
     }
-    return tokenService.issueToken(user.getId());
+    String token = tokenService.issueToken(user.getId());
+    return Map.of("token", token, "role", user.getRole());
   }
 }

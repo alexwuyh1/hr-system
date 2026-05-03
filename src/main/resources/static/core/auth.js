@@ -1,4 +1,5 @@
 let authToken = localStorage.getItem("hr_token");
+let currentRole = localStorage.getItem("hr_role");
 
 function persistToken(token) {
   authToken = token;
@@ -6,6 +7,22 @@ function persistToken(token) {
     localStorage.setItem("hr_token", token);
   } else {
     localStorage.removeItem("hr_token");
+  }
+}
+
+function setRole(role) {
+  currentRole = role;
+  if (role) {
+    localStorage.setItem("hr_role", role);
+  } else {
+    localStorage.removeItem("hr_role");
+  }
+}
+
+function updateRoleBadge() {
+  const badge = $("role-badge");
+  if (badge && currentRole) {
+    badge.textContent = currentRole;
   }
 }
 
@@ -49,6 +66,8 @@ function initAuth() {
         body: JSON.stringify(data),
       });
       persistToken(result.token);
+      setRole(result.role);
+      updateRoleBadge();
       $("auth-panel").classList.add("hidden");
       $("workspace").classList.remove("hidden");
       switchTab("dashboard");
@@ -60,26 +79,36 @@ function initAuth() {
   });
 
   $("register-btn").addEventListener("click", async () => {
-    const username = prompt("输入新用户名");
-    const password = prompt("输入新密码");
-    if (!username || !password) {
-      return;
-    }
-    try {
-      await apiRequest(API.auth.register, {
-        method: "POST",
-        body: JSON.stringify({ username, password }),
-      });
-      alert("注册成功，请登录");
-    } catch (err) {
-      alert(`注册失败: ${err.message}`);
-    }
+    openModal(
+      '注册新用户',
+      `
+        <form id="modal-register-form">
+          <label>用户名 <input name="username" required placeholder="输入用户名"></label>
+          <label>密码 <input name="password" type="password" required placeholder="输入密码"></label>
+          <label>角色 <select name="role" required>
+            <option value="">请选择角色</option>
+            <option value="管理员">管理员</option>
+            <option value="人事">人事</option>
+            <option value="员工">员工</option>
+          </select></label>
+        </form>
+      `,
+      async (formData) => {
+        await apiRequest(API.auth.register, {
+          method: "POST",
+          body: JSON.stringify(formData),
+        });
+        alert("注册成功，请登录");
+      },
+      { submitText: '注册' }
+    );
   });
 
   const logoutBtn = $("logout");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
       persistToken(null);
+      setRole(null);
       $("workspace").classList.add("hidden");
       $("auth-panel").classList.remove("hidden");
     });
@@ -96,11 +125,20 @@ function initAuth() {
         
         if (!response.ok) {
           persistToken(null);
+          setRole(null);
           $("auth-panel").classList.remove("hidden");
           $("workspace").classList.add("hidden");
           return;
         }
+
+        if (!currentRole) {
+          const users = await apiRequest(API.users.me);
+          if (users && users.role) {
+            setRole(users.role);
+          }
+        }
         
+        updateRoleBadge();
         $("auth-panel").classList.add("hidden");
         $("workspace").classList.remove("hidden");
         switchTab("dashboard");
