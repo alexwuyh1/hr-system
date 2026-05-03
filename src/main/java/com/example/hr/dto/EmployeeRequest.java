@@ -18,12 +18,6 @@ public class EmployeeRequest {
     @NotBlank(message = "员工姓名不能为空")
     public String name;
     
-    @NotBlank(message = "部门不能为空")
-    public String department;
-    
-    @NotBlank(message = "职位不能为空")
-    public String title;
-    
     @Phone
     public String phone;
     
@@ -38,5 +32,6 @@ public class EmployeeRequest {
     public String status;
     
     public Long orgId;
+    public Long positionId;
     public Long managerId;
 }

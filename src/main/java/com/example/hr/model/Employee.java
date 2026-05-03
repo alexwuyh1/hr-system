@@ -17,12 +17,6 @@ public class Employee {
   @Column(nullable = false)
   private String name;
 
-  @Column(nullable = false)
-  private String department;
-
-  @Column(nullable = false)
-  private String title;
-
   private String phone;
   private String email;
 
@@ -36,6 +30,11 @@ public class Employee {
   @JoinColumn(name = "org_id")
   @JsonIgnoreProperties({"parent"})
   private Organization orgRef;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "position_id")
+  @JsonIgnoreProperties({"parent", "grade"})
+  private Organization positionRef;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "manager_id")
@@ -66,22 +65,6 @@ public class Employee {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  public String getDepartment() {
-    return department;
-  }
-
-  public void setDepartment(String department) {
-    this.department = department;
-  }
-
-  public String getTitle() {
-    return title;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
   }
 
   public String getPhone() {
@@ -122,6 +105,14 @@ public class Employee {
 
   public void setOrgRef(Organization orgRef) {
     this.orgRef = orgRef;
+  }
+
+  public Organization getPositionRef() {
+    return positionRef;
+  }
+
+  public void setPositionRef(Organization positionRef) {
+    this.positionRef = positionRef;
   }
 
   public Employee getManagerRef() {

@@ -43,11 +43,11 @@ AUTH() { echo "Authorization: Bearer $TOKEN"; }
 
 section() { echo -e "\n${YELLOW}=== $1 ===${NC}"; }
 
-# 创建组织（部门）
+# 创建组织（部门+岗位）
 create_organizations() {
-  section "创建组织（部门）"
-  local org_names=("${PREFIX}研发部${SUFFIX}" "${PREFIX}市场部${SUFFIX}" "${PREFIX}人事部${SUFFIX}")
-  for name in "${org_names[@]}"; do
+  section "创建组织（部门+岗位）"
+  local dept_names=("${PREFIX}研发部${SUFFIX}" "${PREFIX}市场部${SUFFIX}" "${PREFIX}人事部${SUFFIX}")
+  for name in "${dept_names[@]}"; do
     local resp
     resp=$(curl -s -X POST "$BASE_URL/api/organizations" \
       -H "$(AUTH)" -H "Content-Type: application/json" \
@@ -55,10 +55,28 @@ create_organizations() {
     local id
     id=$(extract_id "$resp")
     if [ -n "$id" ]; then
-      success "创建组织: $name (ID: $id)"
-      record_id "org:$id"
+      success "创建部门: $name (ID: $id)"
+      record_id "dept:$id"
     else
-      error "创建组织失败: $name - $resp"
+      error "创建部门失败: $name - $resp"
+    fi
+  done
+
+  local dept_id
+  dept_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^dept:" | head -1 | cut -d: -f2)
+  local pos_names=("${PREFIX}工程师${SUFFIX}" "${PREFIX}经理${SUFFIX}")
+  for name in "${pos_names[@]}"; do
+    local resp
+    resp=$(curl -s -X POST "$BASE_URL/api/organizations" \
+      -H "$(AUTH)" -H "Content-Type: application/json" \
+      -d "{\"name\":\"$name\",\"type\":\"岗位\",\"parentId\":$dept_id}")
+    local id
+    id=$(extract_id "$resp")
+    if [ -n "$id" ]; then
+      success "创建岗位: $name (ID: $id)"
+      record_id "pos:$id"
+    else
+      error "创建岗位失败: $name - $resp"
     fi
   done
 }
@@ -66,8 +84,8 @@ create_organizations() {
 # 创建员工
 create_employees() {
   section "创建员工"
-  local org_id
-  org_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^org:" | head -1 | cut -d: -f2)
+  local pos_id
+  pos_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^pos:" | head -1 | cut -d: -f2)
 
   local employees=(
     "张三:MOCK_EMP001${SUFFIX}:zhangsan@mock.com:13800000001"
@@ -79,7 +97,7 @@ create_employees() {
     local resp
     resp=$(curl -s -X POST "$BASE_URL/api/employees" \
       -H "$(AUTH)" -H "Content-Type: application/json" \
-      -d "{\"employeeNo\":\"$emp_no\",\"name\":\"$name\",\"department\":\"${PREFIX}研发部${SUFFIX}\",\"title\":\"工程师\",\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"$email\",\"phone\":\"$phone\"}")
+      -d "{\"employeeNo\":\"$emp_no\",\"name\":\"$name\",\"positionId\":$pos_id,\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"$email\",\"phone\":\"$phone\"}")
     local id
     id=$(extract_id "$resp")
     if [ -n "$id" ]; then
@@ -168,7 +186,7 @@ verify_data() {
   orgs=$(curl -s "$BASE_URL/api/organizations" -H "$(AUTH)")
   local org_count
   org_count=$(echo "$orgs" | grep -o '"name":"MOCK_[^"]*"' | wc -l)
-  if [ "$org_count" -ge 3 ]; then
+  if [ "$org_count" -ge 5 ]; then
     success "组织数据: $org_count 条"
     pass=$((pass + 1))
   else

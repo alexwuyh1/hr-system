@@ -165,9 +165,6 @@ public class DashboardService {
         && employee.getOrgRef().getName() != null) {
       return employee.getOrgRef().getName();
     }
-    if (employee.getDepartment() != null && !employee.getDepartment().isBlank()) {
-      return employee.getDepartment();
-    }
     return "未分配";
   }
 

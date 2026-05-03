@@ -21,9 +21,6 @@ public class AttendanceRule {
   @Column(name = "absent_threshold_minutes")
   private Integer absentThresholdMinutes;
 
-  @Column(name = "overtime_threshold_minutes", nullable = false)
-  private Integer overtimeThresholdMinutes;
-
   public Long getId() {
     return id;
   }
@@ -58,13 +55,5 @@ public class AttendanceRule {
 
   public void setAbsentThresholdMinutes(Integer absentThresholdMinutes) {
     this.absentThresholdMinutes = absentThresholdMinutes;
-  }
-
-  public Integer getOvertimeThresholdMinutes() {
-    return overtimeThresholdMinutes;
-  }
-
-  public void setOvertimeThresholdMinutes(Integer overtimeThresholdMinutes) {
-    this.overtimeThresholdMinutes = overtimeThresholdMinutes;
   }
 }

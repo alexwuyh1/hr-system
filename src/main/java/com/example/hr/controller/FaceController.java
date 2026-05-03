@@ -31,6 +31,13 @@ public class FaceController {
         "threshold", result.threshold());
   }
 
+  @PostMapping("/attendance")
+  public Attendance attendance(
+      @RequestParam("employeeId") Long employeeId, @RequestParam("file") MultipartFile file)
+      throws Exception {
+    return faceAttendanceService.attendance(employeeId, file.getInputStream());
+  }
+
   @PostMapping("/checkin")
   public Attendance checkIn(
       @RequestParam("employeeId") Long employeeId, @RequestParam("file") MultipartFile file)

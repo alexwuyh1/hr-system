@@ -1,30 +1,78 @@
 <div class="panel">
   <div class="panel-header">
     <h2>组织配置</h2>
-    <p>维护部门树、岗位与职级</p>
+    <p>维护岗位、部门与职级</p>
   </div>
-  <div class="panel-actions">
-    <button id="org-add-btn">新增组织</button>
+  <nav class="sub-tabs">
+    <button data-subtab="position" class="active">岗位管理</button>
+    <button data-subtab="dept">部门管理</button>
+    <button data-subtab="grade">职级管理</button>
+  </nav>
+</div>
+
+<div class="sub-content active" id="subtab-position">
+  <div class="panel">
+    <div class="panel-actions">
+      <button id="position-add-btn">新增岗位</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header">
+      <h3>组织结构树</h3>
+    </div>
+    <div id="position-tree"></div>
+  </div>
+  <div class="table-panel">
+    <table id="position-table">
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>部门</th>
+          <th>职级</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 </div>
-<div class="panel">
-  <div class="panel-header">
-    <h3>组织结构树</h3>
-    <p>支持折叠/展开</p>
+
+<div class="sub-content" id="subtab-dept">
+  <div class="panel">
+    <div class="panel-actions">
+      <button id="dept-add-btn">新增部门</button>
+    </div>
   </div>
-  <div id="org-tree"></div>
+  <div class="table-panel">
+    <table id="dept-table">
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>上级</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
-<div class="table-panel">
-  <table id="org-table">
-    <thead>
-      <tr>
-        <th>名称</th>
-        <th>类型</th>
-        <th>上级</th>
-        <th>等级</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+
+<div class="sub-content" id="subtab-grade">
+  <div class="panel">
+    <div class="panel-actions">
+      <button id="grade-add-btn">新增职级</button>
+    </div>
+  </div>
+  <div class="table-panel">
+    <table id="grade-table">
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>等级</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>

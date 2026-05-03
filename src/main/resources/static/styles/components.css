@@ -370,3 +370,81 @@ td {
   font-size: 12px;
   padding: 0 var(--space-2);
 }
+
+/* 权限管理布局 */
+.perm-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.perm-sidebar {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  padding: var(--space-3);
+  min-height: 400px;
+}
+
+.perm-sidebar h3 {
+  margin: 0 0 var(--space-2);
+  font-size: 16px;
+}
+
+.perm-sidebar ul {
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+}
+
+.perm-sidebar li {
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  border-radius: var(--radius-1);
+  margin-bottom: 4px;
+}
+
+.perm-sidebar li:hover {
+  background: #fff3e6;
+}
+
+.perm-sidebar li.active {
+  background: var(--accent);
+  color: white;
+}
+
+.perm-sidebar button {
+  width: 100%;
+  max-width: none;
+}
+
+.perm-main {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  padding: var(--space-3);
+}
+
+.perm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.perm-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.mode-allow {
+  color: #52c41a;
+  font-weight: 600;
+}
+
+.mode-deny {
+  color: #ff4d4f;
+  font-weight: 600;
+}
+

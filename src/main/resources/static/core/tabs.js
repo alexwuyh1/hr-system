@@ -93,7 +93,7 @@ async function ensureTabData(tabName) {
       await safeLoad("roles", loadRoles);
     }
     if (initCache.permissions) {
-      applyPermissions(initCache.permissions);
+      loadPermissions();
     } else {
       await safeLoad("permissions", loadPermissions);
     }

@@ -43,17 +43,12 @@ function getAttendanceFormHTML(data = {}) {
   return `
     <form id="modal-attendance-form">
       <input type="hidden" name="id" value="${data.id || ''}">
-      <label>员工 <select name="employeeId" required title="仅显示在职员工"><option value="">请选择在职员工</option>${employeeOptions}</select></label>
-      <label>日期 <input name="workDate" type="date" value="${data.workDate || ''}" required title="考勤日期"></label>
+      <label>员工 <select name="employeeId" required><option value="">请选择在职员工</option>${employeeOptions}</select></label>
+      <label>日期 <input name="workDate" type="date" value="${data.workDate || ''}" required></label>
       <div class="form-grid-2">
-        <label>签到时间 <input name="checkIn" type="time" value="${data.checkIn || ''}" title="可选，如 09:00"></label>
-        <label>签退时间 <input name="checkOut" type="time" value="${data.checkOut || ''}" title="可选，如 18:00"></label>
+        <label>签到时间 <input name="checkIn" type="time" value="${data.checkIn || ''}"></label>
+        <label>签退时间 <input name="checkOut" type="time" value="${data.checkOut || ''}"></label>
       </div>
-      <label>状态 <select name="status" required title="考勤状态">
-        <option value="Normal" ${data.status === 'Normal' ? 'selected' : ''}>正常</option>
-        <option value="Late" ${data.status === 'Late' ? 'selected' : ''}>迟到</option>
-        <option value="Absent" ${data.status === 'Absent' ? 'selected' : ''}>缺勤</option>
-      </select></label>
       <label>备注 <input name="note" value="${data.note || ''}" placeholder="备注（可选）"></label>
     </form>
   `;
@@ -152,7 +147,6 @@ function openAttendanceRulesModal() {
           <label>迟到宽限(分钟) <input id="modal-rule-late" type="number" value="${rule.lateGraceMinutes ?? 10}"></label>
           <label>旷工阈值(分钟) <input id="modal-rule-absent" type="number" value="${rule.absentThresholdMinutes ?? 240}"></label>
         </div>
-        <label>加班起算(分钟) <input id="modal-rule-overtime" type="number" value="${rule.overtimeThresholdMinutes ?? 60}"></label>
         <h4>计算功能</h4>
         <div class="form-grid-2">
           <label>单日计算日期 <input id="modal-rule-date" type="date"></label>
@@ -167,7 +161,6 @@ function openAttendanceRulesModal() {
         workEndTime: $("modal-rule-end-time").value || "18:00",
         lateGraceMinutes: Number($("modal-rule-late").value) || 10,
         absentThresholdMinutes: Number($("modal-rule-absent").value) || 240,
-        overtimeThresholdMinutes: Number($("modal-rule-overtime").value) || 60,
       };
       await apiRequest(API.attendanceRules.update, {
         method: "PUT",
@@ -202,26 +195,20 @@ function openFaceAttendanceModal() {
     `
       <form id="modal-face-attendance-form">
         <label>选择员工 <select id="modal-face-employee" required><option value="">请选择</option>${employeeOptions}</select></label>
-        <label>打卡类型 <select id="modal-face-type" required>
-          <option value="checkin">签到</option>
-          <option value="checkout">签退</option>
-        </select></label>
         <label>识别文件 <input id="modal-face-file" type="file" accept="image/*" required></label>
       </form>
     `,
     async () => {
       const employeeId = $("modal-face-employee").value;
-      const type = $("modal-face-type").value;
       const file = $("modal-face-file").files[0];
-      if (!employeeId || !type || !file) {
-        alert("请选择员工、打卡类型和识别文件");
+      if (!employeeId || !file) {
+        alert("请选择员工和识别文件");
         return;
       }
       const form = new FormData();
       form.append("employeeId", employeeId);
       form.append("file", file);
-      const endpoint = type === "checkin" ? "checkin" : "checkout";
-      const response = await fetch(`${API_BASE}/face/${endpoint}`, {
+      const response = await fetch(`${API_BASE}/face/attendance`, {
         method: "POST",
         headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         body: form,
@@ -231,10 +218,7 @@ function openFaceAttendanceModal() {
         throw new Error(err);
       }
       const data = await response.json();
-      const msg = type === "checkin"
-        ? `签到成功：${data.workDate} ${data.checkIn || ""}`
-        : `签退成功：${data.workDate} ${data.checkOut || ""}`;
-      alert(msg);
+      alert(`打卡成功：${data.workDate} ${data.checkIn || data.checkOut || ""}`);
       await loadAttendance();
     },
     { submitText: '打卡' }
@@ -284,8 +268,7 @@ function initAttendanceRules() {
   if (ruleSaveBtn) {
     ruleSaveBtn.addEventListener("click", async () => {
       const late = Number($("rule-late").value);
-      const overtime = Number($("rule-overtime").value);
-      if (Number.isNaN(late) || Number.isNaN(overtime)) {
+      if (Number.isNaN(late)) {
         alert("请输入有效数字");
         return;
       }
@@ -294,13 +277,12 @@ function initAttendanceRules() {
         workEndTime: $("rule-end-time").value || "18:00",
         lateGraceMinutes: late,
         absentThresholdMinutes: Number($("rule-absent").value) || 240,
-        overtimeThresholdMinutes: overtime,
       };
       const result = await apiRequest(API.attendanceRules.update, {
         method: "PUT",
         body: JSON.stringify(body),
       });
-      $("rule-result").textContent = `规则已保存：上班 ${result.workStartTime}-${result.workEndTime}，迟到宽限 ${result.lateGraceMinutes} 分钟，加班起算 ${result.overtimeThresholdMinutes} 分钟`;
+      $("rule-result").textContent = `规则已保存：上班 ${result.workStartTime}-${result.workEndTime}，迟到宽限 ${result.lateGraceMinutes} 分钟`;
     });
   }
 
@@ -350,5 +332,4 @@ function applyAttendanceRule(rule) {
   setVal("rule-end-time", rule.workEndTime);
   setVal("rule-late", rule.lateGraceMinutes);
   setVal("rule-absent", rule.absentThresholdMinutes);
-  setVal("rule-overtime", rule.overtimeThresholdMinutes);
 }

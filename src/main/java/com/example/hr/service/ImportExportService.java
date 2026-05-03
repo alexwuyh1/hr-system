@@ -60,12 +60,12 @@ public class ImportExportService {
 
   public byte[] exportEmployeesCsv() {
     StringBuilder sb = new StringBuilder();
-    sb.append("employeeNo,name,department,title,phone,email,hireDate,status\n");
+    sb.append("employeeNo,name,position,phone,email,hireDate,status\n");
     for (Employee e : employeeRepository.findAll()) {
+      String position = e.getPositionRef() != null ? e.getPositionRef().getName() : "";
       sb.append(e.getEmployeeNo()).append(",")
           .append(safe(e.getName())).append(",")
-          .append(safe(e.getDepartment())).append(",")
-          .append(safe(e.getTitle())).append(",")
+          .append(safe(position)).append(",")
           .append(safe(e.getPhone())).append(",")
           .append(safe(e.getEmail())).append(",")
           .append(e.getHireDate()).append(",")
@@ -106,19 +106,19 @@ public class ImportExportService {
     try (Workbook wb = new XSSFWorkbook()) {
       Sheet sheet = wb.createSheet("employees");
       Row header = sheet.createRow(0);
-      String[] headers = {"employeeNo","name","department","title","phone","email","hireDate","status"};
+      String[] headers = {"employeeNo","name","position","phone","email","hireDate","status"};
       for (int i = 0; i < headers.length; i++) header.createCell(i).setCellValue(headers[i]);
       int row = 1;
       for (Employee e : employeeRepository.findAll()) {
         Row r = sheet.createRow(row++);
+        String position = e.getPositionRef() != null ? e.getPositionRef().getName() : "";
         r.createCell(0).setCellValue(e.getEmployeeNo());
         r.createCell(1).setCellValue(e.getName());
-        r.createCell(2).setCellValue(e.getDepartment());
-        r.createCell(3).setCellValue(e.getTitle());
-        r.createCell(4).setCellValue(nullSafe(e.getPhone()));
-        r.createCell(5).setCellValue(nullSafe(e.getEmail()));
-        r.createCell(6).setCellValue(e.getHireDate().toString());
-        r.createCell(7).setCellValue(e.getStatus());
+        r.createCell(2).setCellValue(position);
+        r.createCell(3).setCellValue(nullSafe(e.getPhone()));
+        r.createCell(4).setCellValue(nullSafe(e.getEmail()));
+        r.createCell(5).setCellValue(e.getHireDate().toString());
+        r.createCell(6).setCellValue(e.getStatus());
       }
       return workbookToBytes(wb);
     }
@@ -174,19 +174,16 @@ public class ImportExportService {
       String[] parts = line.split(",", -1);
       String employeeNo = parts[0];
       
-      // 检查是否已存在，存在则更新，否则插入
       Employee e = employeeRepository.findByEmployeeNo(employeeNo).orElse(null);
       if (e == null) {
         e = new Employee();
         e.setEmployeeNo(employeeNo);
       }
       e.setName(parts[1]);
-      e.setDepartment(parts[2]);
-      e.setTitle(parts[3]);
-      e.setPhone(parts[4].isEmpty() ? null : parts[4]);
-      e.setEmail(parts[5].isEmpty() ? null : parts[5]);
-      e.setHireDate(LocalDate.parse(parts[6]));
-      e.setStatus(parts[7]);
+      e.setPhone(parts[3].isEmpty() ? null : parts[3]);
+      e.setEmail(parts[4].isEmpty() ? null : parts[4]);
+      e.setHireDate(LocalDate.parse(parts[5]));
+      e.setStatus(parts[6]);
       employeeRepository.save(e);
       count++;
     }
@@ -254,19 +251,16 @@ public class ImportExportService {
         if (r == null) continue;
         String employeeNo = getString(r, 0);
         
-        // 检查是否已存在，存在则更新，否则插入
         Employee e = employeeRepository.findByEmployeeNo(employeeNo).orElse(null);
         if (e == null) {
           e = new Employee();
           e.setEmployeeNo(employeeNo);
         }
         e.setName(getString(r, 1));
-        e.setDepartment(getString(r, 2));
-        e.setTitle(getString(r, 3));
-        e.setPhone(getString(r, 4));
-        e.setEmail(getString(r, 5));
-        e.setHireDate(LocalDate.parse(getString(r, 6)));
-        e.setStatus(getString(r, 7));
+        e.setPhone(getString(r, 3));
+        e.setEmail(getString(r, 4));
+        e.setHireDate(LocalDate.parse(getString(r, 5)));
+        e.setStatus(getString(r, 6));
         employeeRepository.save(e);
         count++;
       }

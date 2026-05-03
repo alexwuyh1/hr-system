@@ -102,8 +102,8 @@ function renderProfile(employee) {
 }
 
 function getEmployeeFormHTML(data = {}) {
-  const orgOptions = (initCache.organizations || []).filter(o => o.type === "部门").map(o => 
-    `<option value="${o.id}" ${data.orgId === o.id ? 'selected' : ''}>${o.name}</option>`
+  const positionOptions = (initCache.organizations || []).filter(o => o.type === "岗位").map(o => 
+    `<option value="${o.id}" ${data.positionId === o.id ? 'selected' : ''}>${o.name}</option>`
   ).join('');
   
   const managerOptions = (initCache.employees || [])
@@ -111,6 +111,12 @@ function getEmployeeFormHTML(data = {}) {
     .map(e => 
       `<option value="${e.id}" ${data.managerId === e.id ? 'selected' : ''}>${e.employeeNo} - ${e.name}</option>`
     ).join('');
+
+  const dept = data.orgId ? (initCache.organizations || []).find(o => o.id === data.orgId)?.name || '' : '';
+  const grade = data.positionId ? (() => {
+    const pos = (initCache.organizations || []).find(o => o.id === data.positionId);
+    return pos?.grade?.name || '';
+  })() : '';
 
   return `
     <form id="modal-employee-form">
@@ -120,17 +126,18 @@ function getEmployeeFormHTML(data = {}) {
         <label>姓名 <input name="name" value="${data.name || ''}" required placeholder="员工真实姓名"></label>
       </div>
       <div class="form-grid-2">
-        <label>部门 <select name="orgId" required title="请选择所属部门"><option value="">请选择部门</option>${orgOptions}</select></label>
-        <label>职位 <input name="title" value="${data.title || ''}" required placeholder="担任职位"></label>
+        <label>岗位 <select name="positionId" required><option value="">请选择岗位</option>${positionOptions}</select></label>
+        <label>部门 <input name="departmentName" value="${dept}" readonly></label>
       </div>
       <div class="form-grid-2">
-        <label>入职日期 <input name="hireDate" type="date" value="${data.hireDate || ''}" required title="不能晚于今天"></label>
-        <label>直属上级 <select name="managerId" title="可选，默认为无"><option value="">无</option>${managerOptions}</select></label>
+        <label>职级 <input name="gradeName" value="${grade}" readonly></label>
+        <label>入职日期 <input name="hireDate" type="date" value="${data.hireDate || ''}" required></label>
       </div>
       <div class="form-grid-2">
         <label>邮箱 <input name="email" type="email" value="${data.email || ''}" placeholder="example@company.com"></label>
         <label>电话 <input name="phone" value="${data.phone || ''}" placeholder="11 位手机号，如 13800138000"></label>
       </div>
+      <label>直属上级 <select name="managerId"><option value="">无</option>${managerOptions}</select></label>
     </form>
   `;
 }
@@ -140,12 +147,14 @@ function openCreateEmployeeModal() {
     '新增员工',
     getEmployeeFormHTML(),
     async (formData) => {
-      formData.orgId = Number(formData.orgId);
+      formData.positionId = Number(formData.positionId);
       formData.managerId = formData.managerId ? Number(formData.managerId) : null;
       formData.status = "在职";
       
-      const org = (initCache.organizations || []).find(o => o.id === formData.orgId);
-      formData.department = org ? org.name : '';
+      const pos = (initCache.organizations || []).find(o => o.id === formData.positionId);
+      if (pos && pos.parent) {
+        formData.orgId = pos.parent.id;
+      }
 
       await apiRequest(API.employees.create, {
         method: "POST",
@@ -163,11 +172,13 @@ function openEditEmployeeModal(employee) {
     getEmployeeFormHTML(employee),
     async (formData) => {
       formData.id = employee.id;
-      formData.orgId = Number(formData.orgId);
+      formData.positionId = Number(formData.positionId);
       formData.managerId = formData.managerId ? Number(formData.managerId) : null;
       
-      const org = (initCache.organizations || []).find(o => o.id === formData.orgId);
-      formData.department = org ? org.name : '';
+      const pos = (initCache.organizations || []).find(o => o.id === formData.positionId);
+      if (pos && pos.parent) {
+        formData.orgId = pos.parent.id;
+      }
 
       await apiRequest(API.employees.update(employee.id), {
         method: "PUT",

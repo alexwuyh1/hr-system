@@ -36,6 +36,7 @@ public class DataInitializer {
     return args -> {
       ensureEmployeeColumns(dataSource);
       ensureAttendanceColumns(dataSource);
+      ensurePermissionColumns(dataSource);
 
       if (userRepository.count() == 0) {
         User admin = new User();
@@ -50,55 +51,56 @@ public class DataInitializer {
       String[] hrRoles = {"管理员", "人事"};
       String[] employeeRoles = {"管理员", "人事", "员工"};
 
-      seedPermission(permissionRepository, "GET", "/api/employees", hrRoles);
-      seedPermission(permissionRepository, "POST", "/api/employees", hrRoles);
-      seedPermission(permissionRepository, "PUT", "/api/employees", hrRoles);
-      seedPermission(permissionRepository, "DELETE", "/api/employees", hrRoles);
-      seedPermission(permissionRepository, "POST", "/api/employees/resign", hrRoles);
-      seedPermission(permissionRepository, "POST", "/api/employees/rehire", hrRoles);
-      seedPermission(permissionRepository, "POST", "/api/employees/{id}/avatar", hrRoles);
-      seedPermission(permissionRepository, "GET", "/api/employees/{id}/avatar", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/employees", hrRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/employees", hrRoles, "allow");
+      seedPermission(permissionRepository, "PUT", "/api/employees", hrRoles, "allow");
+      seedPermission(permissionRepository, "DELETE", "/api/employees", hrRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/employees/resign", hrRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/employees/rehire", hrRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/employees/{id}/avatar", hrRoles, "allow");
+      seedPermission(permissionRepository, "GET", "/api/employees/{id}/avatar", hrRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/attendance", hrRoles);
-      seedPermission(permissionRepository, "POST", "/api/attendance", hrRoles);
-      seedPermission(permissionRepository, "PUT", "/api/attendance", hrRoles);
-      seedPermission(permissionRepository, "DELETE", "/api/attendance", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/attendance", hrRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/attendance", hrRoles, "allow");
+      seedPermission(permissionRepository, "PUT", "/api/attendance", hrRoles, "allow");
+      seedPermission(permissionRepository, "DELETE", "/api/attendance", hrRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/attendance-rules", hrRoles);
-      seedPermission(permissionRepository, "PUT", "/api/attendance-rules", hrRoles);
-      seedPermission(permissionRepository, "POST", "/api/attendance-rules", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/attendance-rules", hrRoles, "allow");
+      seedPermission(permissionRepository, "PUT", "/api/attendance-rules", hrRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/attendance-rules", hrRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/salaries", hrRoles);
-      seedPermission(permissionRepository, "POST", "/api/salaries", hrRoles);
-      seedPermission(permissionRepository, "PUT", "/api/salaries", hrRoles);
-      seedPermission(permissionRepository, "DELETE", "/api/salaries", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/salaries", hrRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/salaries", hrRoles, "allow");
+      seedPermission(permissionRepository, "PUT", "/api/salaries", hrRoles, "allow");
+      seedPermission(permissionRepository, "DELETE", "/api/salaries", hrRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/organizations", hrRoles);
-      seedPermission(permissionRepository, "POST", "/api/organizations", hrRoles);
-      seedPermission(permissionRepository, "PUT", "/api/organizations", hrRoles);
-      seedPermission(permissionRepository, "DELETE", "/api/organizations", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/organizations", hrRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/organizations", hrRoles, "allow");
+      seedPermission(permissionRepository, "PUT", "/api/organizations", hrRoles, "allow");
+      seedPermission(permissionRepository, "DELETE", "/api/organizations", hrRoles, "allow");
 
-      seedPermission(permissionRepository, "POST", "/api/face/verify", employeeRoles);
-      seedPermission(permissionRepository, "POST", "/api/face/checkin", employeeRoles);
-      seedPermission(permissionRepository, "POST", "/api/face/checkout", employeeRoles);
+      seedPermission(permissionRepository, "POST", "/api/face/verify", employeeRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/face/checkin", employeeRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/face/checkout", employeeRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/face/attendance", employeeRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/data", hrRoles);
-      seedPermission(permissionRepository, "POST", "/api/data", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/data", hrRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/data", hrRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/dashboard", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/dashboard", hrRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/reports", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/reports", hrRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/init", hrRoles);
+      seedPermission(permissionRepository, "GET", "/api/init", hrRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/users", adminRoles);
-      seedPermission(permissionRepository, "PUT", "/api/users", adminRoles);
+      seedPermission(permissionRepository, "GET", "/api/users", adminRoles, "allow");
+      seedPermission(permissionRepository, "PUT", "/api/users", adminRoles, "allow");
 
-      seedPermission(permissionRepository, "GET", "/api/permissions", adminRoles);
-      seedPermission(permissionRepository, "POST", "/api/permissions", adminRoles);
-      seedPermission(permissionRepository, "PUT", "/api/permissions", adminRoles);
-      seedPermission(permissionRepository, "DELETE", "/api/permissions", adminRoles);
-      seedPermission(permissionRepository, "GET", "/api/permissions/roles", adminRoles);
+      seedPermission(permissionRepository, "GET", "/api/permissions", adminRoles, "allow");
+      seedPermission(permissionRepository, "POST", "/api/permissions", adminRoles, "allow");
+      seedPermission(permissionRepository, "PUT", "/api/permissions", adminRoles, "allow");
+      seedPermission(permissionRepository, "DELETE", "/api/permissions", adminRoles, "allow");
+      seedPermission(permissionRepository, "GET", "/api/permissions/roles", adminRoles, "allow");
 
       if (organizationRepository.count() == 0) {
         Organization hq = new Organization();
@@ -156,29 +158,29 @@ public class DataInitializer {
       if (employeeRepository.count() == 0) {
         Organization hr = organizationRepository.findAll().stream().filter(o -> "人力资源部".equals(o.getName())).findFirst().orElse(null);
         Organization eng = organizationRepository.findAll().stream().filter(o -> "研发部".equals(o.getName())).findFirst().orElse(null);
+        Organization hrMgrPos = organizationRepository.findAll().stream().filter(o -> "人力资源经理".equals(o.getName())).findFirst().orElse(null);
+        Organization engPos = organizationRepository.findAll().stream().filter(o -> "软件工程师".equals(o.getName())).findFirst().orElse(null);
 
         Employee e1 = new Employee();
         e1.setEmployeeNo("E1001");
         e1.setName("Alice Chen");
-        e1.setDepartment("人力资源部");
-        e1.setTitle("人力资源经理");
         e1.setPhone("13800000001");
         e1.setEmail("alice@example.com");
         e1.setHireDate(LocalDate.now().minusYears(2));
         e1.setStatus("在职");
         e1.setOrgRef(hr);
+        e1.setPositionRef(hrMgrPos);
         employeeRepository.save(e1);
 
         Employee e2 = new Employee();
         e2.setEmployeeNo("E1002");
         e2.setName("Bob Li");
-        e2.setDepartment("研发部");
-        e2.setTitle("软件工程师");
         e2.setPhone("13800000002");
         e2.setEmail("bob@example.com");
         e2.setHireDate(LocalDate.now().minusYears(1));
         e2.setStatus("在职");
         e2.setOrgRef(eng);
+        e2.setPositionRef(engPos);
         e2.setManagerRef(e1);
         employeeRepository.save(e2);
       }
@@ -186,7 +188,6 @@ public class DataInitializer {
       if (attendanceRuleRepository.count() == 0) {
         AttendanceRule rule = new AttendanceRule();
         rule.setLateGraceMinutes(10);
-        rule.setOvertimeThresholdMinutes(30);
         attendanceRuleRepository.save(rule);
       }
     };
@@ -196,13 +197,15 @@ public class DataInitializer {
       PermissionRepository permissionRepository,
       String method,
       String pathPrefix,
-      String... roles) {
+      String[] roles,
+      String mode) {
     for (String role : roles) {
-      if (!permissionRepository.existsByRoleAndMethodAndPathPrefix(role, method, pathPrefix)) {
+      if (!permissionRepository.existsByRoleAndMethodAndPathPrefixAndMode(role, method, pathPrefix, mode)) {
         Permission permission = new Permission();
         permission.setRole(role);
         permission.setMethod(method);
         permission.setPathPrefix(pathPrefix);
+        permission.setMode(mode);
         permissionRepository.save(permission);
       }
     }
@@ -213,18 +216,27 @@ public class DataInitializer {
         Statement stmt = conn.createStatement()) {
       ResultSet rs = stmt.executeQuery("PRAGMA table_info(employees)");
       boolean hasOrgId = false;
+      boolean hasPositionId = false;
       boolean hasManagerId = false;
       boolean hasAvatar = false;
       boolean hasFaceHash = false;
+      boolean hasPhone = false;
+      boolean hasEmail = false;
       while (rs.next()) {
         String name = rs.getString("name");
         if ("org_id".equals(name)) hasOrgId = true;
+        if ("position_id".equals(name)) hasPositionId = true;
         if ("manager_id".equals(name)) hasManagerId = true;
         if ("avatar_path".equals(name)) hasAvatar = true;
         if ("face_hash".equals(name)) hasFaceHash = true;
+        if ("phone".equals(name)) hasPhone = true;
+        if ("email".equals(name)) hasEmail = true;
       }
       if (!hasOrgId) {
         stmt.execute("ALTER TABLE employees ADD COLUMN org_id INTEGER");
+      }
+      if (!hasPositionId) {
+        stmt.execute("ALTER TABLE employees ADD COLUMN position_id INTEGER");
       }
       if (!hasManagerId) {
         stmt.execute("ALTER TABLE employees ADD COLUMN manager_id INTEGER");
@@ -234,6 +246,12 @@ public class DataInitializer {
       }
       if (!hasFaceHash) {
         stmt.execute("ALTER TABLE employees ADD COLUMN face_hash TEXT");
+      }
+      if (!hasPhone) {
+        stmt.execute("ALTER TABLE employees ADD COLUMN phone TEXT");
+      }
+      if (!hasEmail) {
+        stmt.execute("ALTER TABLE employees ADD COLUMN email TEXT");
       }
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -245,17 +263,29 @@ public class DataInitializer {
         Statement stmt = conn.createStatement()) {
       ResultSet rs = stmt.executeQuery("PRAGMA table_info(attendance)");
       boolean hasLate = false;
-      boolean hasOvertime = false;
       while (rs.next()) {
         String name = rs.getString("name");
         if ("late_minutes".equals(name)) hasLate = true;
-        if ("overtime_minutes".equals(name)) hasOvertime = true;
       }
       if (!hasLate) {
         stmt.execute("ALTER TABLE attendance ADD COLUMN late_minutes INTEGER");
       }
-      if (!hasOvertime) {
-        stmt.execute("ALTER TABLE attendance ADD COLUMN overtime_minutes INTEGER");
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  private void ensurePermissionColumns(DataSource dataSource) {
+    try (Connection conn = dataSource.getConnection();
+        Statement stmt = conn.createStatement()) {
+      ResultSet rs = stmt.executeQuery("PRAGMA table_info(permissions)");
+      boolean hasMode = false;
+      while (rs.next()) {
+        String name = rs.getString("name");
+        if ("mode".equals(name)) hasMode = true;
+      }
+      if (!hasMode) {
+        stmt.execute("ALTER TABLE permissions ADD COLUMN mode TEXT DEFAULT 'allow'");
       }
     } catch (Exception ex) {
       ex.printStackTrace();

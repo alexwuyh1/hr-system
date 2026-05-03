@@ -19,6 +19,10 @@ public class Organization {
   @JoinColumn(name = "parent_id")
   private Organization parent;
 
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "grade_id")
+  private Organization grade;
+
   @Column
   private Integer level;
 
@@ -48,6 +52,14 @@ public class Organization {
 
   public void setParent(Organization parent) {
     this.parent = parent;
+  }
+
+  public Organization getGrade() {
+    return grade;
+  }
+
+  public void setGrade(Organization grade) {
+    this.grade = grade;
   }
 
   public Integer getLevel() {

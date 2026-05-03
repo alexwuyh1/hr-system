@@ -21,6 +21,13 @@ public class AttendanceRuleEngineService {
     this.attendanceRuleService = attendanceRuleService;
   }
 
+  public void computeSingle(Attendance record) {
+    AttendanceRule rule = attendanceRuleService.getRule();
+    LocalTime defaultStart = LocalTime.parse(rule.getWorkStartTime());
+    LocalTime defaultEnd = LocalTime.parse(rule.getWorkEndTime());
+    computeSingle(record, defaultStart, defaultEnd, rule);
+  }
+
   public int computeForDate(LocalDate date) {
     AttendanceRule rule = attendanceRuleService.getRule();
     LocalTime defaultStart = LocalTime.parse(rule.getWorkStartTime());
@@ -30,10 +37,8 @@ public class AttendanceRuleEngineService {
     int updated = 0;
 
     for (Attendance record : allRecords) {
-      int result = computeSingle(record, defaultStart, defaultEnd, rule);
-      if (result > 0) {
-        updated++;
-      }
+      computeSingle(record, defaultStart, defaultEnd, rule);
+      updated++;
     }
     return updated;
   }
@@ -45,7 +50,6 @@ public class AttendanceRuleEngineService {
     if (checkIn == null && checkOut == null) {
       record.setStatus("Absent");
       record.setLateMinutes(0);
-      record.setOvertimeMinutes(0);
       attendanceRepository.save(record);
       return 1;
     }
@@ -53,7 +57,6 @@ public class AttendanceRuleEngineService {
     if (checkIn == null) {
       record.setStatus("Absent");
       record.setLateMinutes(0);
-      record.setOvertimeMinutes(0);
       attendanceRepository.save(record);
       return 1;
     }
@@ -72,15 +75,6 @@ public class AttendanceRuleEngineService {
       record.setLateMinutes(0);
     }
 
-    int overtimeMinutes = 0;
-    if (checkOut != null) {
-      long extra = Duration.between(shiftEnd, checkOut).toMinutes() - rule.getOvertimeThresholdMinutes();
-      if (extra > 0) {
-        overtimeMinutes = (int) extra;
-      }
-    }
-
-    record.setOvertimeMinutes(overtimeMinutes);
     attendanceRepository.save(record);
     return 1;
   }

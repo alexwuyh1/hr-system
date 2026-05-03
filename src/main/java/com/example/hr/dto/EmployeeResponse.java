@@ -14,6 +14,8 @@ public class EmployeeResponse {
   public String status;
   public Long orgId;
   public String orgName;
+  public Long positionId;
+  public String positionName;
   public Long managerId;
   public String managerName;
   public String avatarUrl;
@@ -23,8 +25,6 @@ public class EmployeeResponse {
     r.id = employee.getId();
     r.employeeNo = employee.getEmployeeNo();
     r.name = employee.getName();
-    r.department = employee.getDepartment();
-    r.title = employee.getTitle();
     r.phone = employee.getPhone();
     r.email = employee.getEmail();
     r.hireDate = employee.getHireDate() == null ? null : employee.getHireDate().toString();
@@ -32,6 +32,12 @@ public class EmployeeResponse {
     if (employee.getOrgRef() != null) {
       r.orgId = employee.getOrgRef().getId();
       r.orgName = employee.getOrgRef().getName();
+      r.department = employee.getOrgRef().getName();
+    }
+    if (employee.getPositionRef() != null) {
+      r.positionId = employee.getPositionRef().getId();
+      r.positionName = employee.getPositionRef().getName();
+      r.title = employee.getPositionRef().getName();
     }
     if (employee.getManagerRef() != null) {
       r.managerId = employee.getManagerRef().getId();

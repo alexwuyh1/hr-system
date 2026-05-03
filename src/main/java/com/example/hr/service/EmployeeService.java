@@ -97,8 +97,6 @@ public class EmployeeService {
     private void apply(Employee employee, EmployeeRequest request) {
         employee.setEmployeeNo(request.employeeNo);
         employee.setName(request.name);
-        employee.setDepartment(request.department);
-        employee.setTitle(request.title);
         employee.setPhone(request.phone);
         employee.setEmail(request.email);
         employee.setHireDate(request.hireDate);
@@ -108,9 +106,14 @@ public class EmployeeService {
             Organization org = organizationRepository.findById(request.orgId)
                 .orElseThrow(() -> new ResourceNotFoundException("组织", request.orgId));
             employee.setOrgRef(org);
-            if ("部门".equals(org.getType())) {
-                employee.setDepartment(org.getName());
-            }
+        }
+
+        if (request.positionId != null) {
+            Organization position = organizationRepository.findById(request.positionId)
+                .orElseThrow(() -> new ResourceNotFoundException("岗位", request.positionId));
+            employee.setPositionRef(position);
+        } else {
+            employee.setPositionRef(null);
         }
 
         if (request.managerId != null) {

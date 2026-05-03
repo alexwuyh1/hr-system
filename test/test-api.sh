@@ -49,7 +49,7 @@ AUTH_HEADER="Authorization: Bearer $TOKEN"
 TEST_USER="testuser_$(date +%s)"
 REG_RESP=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/api/auth/register" \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"$TEST_USER\",\"password\":\"test123456\"}")
+  -d "{\"username\":\"$TEST_USER\",\"password\":\"test123456\",\"role\":\"user\"}")
 check_status 200 "$REG_RESP" "注册新用户"
 
 # ==================== 3. 仪表盘 ====================
@@ -64,11 +64,21 @@ section "4. 组织配置"
 ORG_RESP=$(curl -s -X POST "$BASE_URL/api/organizations" \
   -H "$AUTH_HEADER" -H "Content-Type: application/json" \
   -d '{"name":"测试部门","type":"部门"}')
-ORG_ID=$(echo "$ORG_RESP" | grep -o '"id":[0-9]*' | cut -d: -f2)
+ORG_ID=$(echo "$ORG_RESP" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
 if [ -n "$ORG_ID" ]; then
   pass "创建组织成功 (ID: $ORG_ID)"
 else
   fail "创建组织" "$ORG_RESP"
+fi
+
+POS_RESP=$(curl -s -X POST "$BASE_URL/api/organizations" \
+  -H "$AUTH_HEADER" -H "Content-Type: application/json" \
+  -d "{\"name\":\"测试岗位\",\"type\":\"岗位\",\"parentId\":${ORG_ID:-null}}")
+POS_ID=$(echo "$POS_RESP" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
+if [ -n "$POS_ID" ]; then
+  pass "创建岗位成功 (ID: $POS_ID)"
+else
+  fail "创建岗位" "$POS_RESP"
 fi
 
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/api/organizations" \
@@ -80,8 +90,8 @@ section "5. 员工管理"
 
 EMP_RESP=$(curl -s -X POST "$BASE_URL/api/employees" \
   -H "$AUTH_HEADER" -H "Content-Type: application/json" \
-  -d "{\"employeeNo\":\"TEST001\",\"name\":\"测试员工\",\"department\":\"测试部门\",\"title\":\"测试岗位\",\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"test@test.com\",\"phone\":\"13800138000\"}")
-EMP_ID=$(echo "$EMP_RESP" | grep -o '"id":[0-9]*' | cut -d: -f2)
+  -d "{\"employeeNo\":\"TEST001\",\"name\":\"测试员工\",\"positionId\":${POS_ID:-1},\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"test@test.com\",\"phone\":\"13800138000\"}")
+EMP_ID=$(echo "$EMP_RESP" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
 if [ -n "$EMP_ID" ]; then
   pass "创建员工成功 (ID: $EMP_ID)"
 else
@@ -95,7 +105,7 @@ check_status 200 "$STATUS" "获取员工列表"
 if [ -n "$EMP_ID" ]; then
   UPDATE_RESP=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "$BASE_URL/api/employees/$EMP_ID" \
     -H "$AUTH_HEADER" -H "Content-Type: application/json" \
-    -d "{\"employeeNo\":\"TEST001\",\"name\":\"测试员工更新\",\"department\":\"测试部门\",\"title\":\"测试岗位\",\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"test@test.com\",\"phone\":\"13800138000\"}")
+    -d "{\"employeeNo\":\"TEST001\",\"name\":\"测试员工更新\",\"positionId\":${POS_ID:-1},\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"test@test.com\",\"phone\":\"13800138000\"}")
   check_status 200 "$UPDATE_RESP" "更新员工"
 fi
 
@@ -170,7 +180,7 @@ section "10. 数据验证"
 
 DUP_RESP=$(curl -s -X POST "$BASE_URL/api/employees" \
   -H "$AUTH_HEADER" -H "Content-Type: application/json" \
-  -d "{\"employeeNo\":\"TEST001\",\"name\":\"重复员工\",\"department\":\"测试部门\",\"title\":\"测试岗位\",\"hireDate\":\"2024-01-01\",\"status\":\"在职\"}")
+  -d "{\"employeeNo\":\"TEST001\",\"name\":\"重复员工\",\"positionId\":${POS_ID:-1},\"hireDate\":\"2024-01-01\",\"status\":\"在职\"}")
 if echo "$DUP_RESP" | grep -q "已存在\|error\|message"; then
   pass "工号重复验证生效"
 else
@@ -179,7 +189,7 @@ fi
 
 BAD_EMAIL=$(curl -s -X POST "$BASE_URL/api/employees" \
   -H "$AUTH_HEADER" -H "Content-Type: application/json" \
-  -d "{\"employeeNo\":\"TEST999\",\"name\":\"测试\",\"department\":\"测试部门\",\"title\":\"测试岗位\",\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"invalid-email\"}")
+  -d "{\"employeeNo\":\"TEST999\",\"name\":\"测试\",\"positionId\":${POS_ID:-1},\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"invalid-email\"}")
 if echo "$BAD_EMAIL" | grep -q "邮箱\|error\|message"; then
   pass "邮箱格式验证生效"
 else
@@ -188,7 +198,7 @@ fi
 
 BAD_PHONE=$(curl -s -X POST "$BASE_URL/api/employees" \
   -H "$AUTH_HEADER" -H "Content-Type: application/json" \
-  -d "{\"employeeNo\":\"TEST998\",\"name\":\"测试\",\"department\":\"测试部门\",\"title\":\"测试岗位\",\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"phone\":\"12345\"}")
+  -d "{\"employeeNo\":\"TEST998\",\"name\":\"测试\",\"positionId\":${POS_ID:-1},\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"phone\":\"12345\"}")
 if echo "$BAD_PHONE" | grep -q "手机\|error\|message"; then
   pass "手机号格式验证生效"
 else

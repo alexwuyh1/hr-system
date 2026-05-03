@@ -22,10 +22,19 @@ public class AttendanceRuleService {
       rule.setWorkEndTime("18:00");
       rule.setLateGraceMinutes(10);
       rule.setAbsentThresholdMinutes(240);
-      rule.setOvertimeThresholdMinutes(30);
       return attendanceRuleRepository.save(rule);
     }
-    return rules.get(0);
+    AttendanceRule rule = rules.get(0);
+    if (rule.getWorkStartTime() == null) {
+      rule.setWorkStartTime("09:00");
+    }
+    if (rule.getWorkEndTime() == null) {
+      rule.setWorkEndTime("18:00");
+    }
+    if (rule.getLateGraceMinutes() == null) {
+      rule.setLateGraceMinutes(10);
+    }
+    return attendanceRuleRepository.save(rule);
   }
 
   public AttendanceRule update(AttendanceRuleRequest request) {
@@ -34,7 +43,6 @@ public class AttendanceRuleService {
     rule.setWorkEndTime(request.workEndTime);
     rule.setLateGraceMinutes(request.lateGraceMinutes);
     rule.setAbsentThresholdMinutes(request.absentThresholdMinutes);
-    rule.setOvertimeThresholdMinutes(request.overtimeThresholdMinutes);
     return attendanceRuleRepository.save(rule);
   }
 }

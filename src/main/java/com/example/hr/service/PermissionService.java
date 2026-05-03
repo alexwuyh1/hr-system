@@ -32,6 +32,7 @@ public class PermissionService {
     existing.setRole(permission.getRole());
     existing.setMethod(permission.getMethod());
     existing.setPathPrefix(permission.getPathPrefix());
+    existing.setMode(permission.getMode());
     return permissionRepository.save(existing);
   }
 
@@ -40,12 +41,18 @@ public class PermissionService {
   }
 
   public boolean isAllowed(String role, String method, String path) {
-    List<Permission> permissions = permissionRepository.findByRoleAndMethod(role, method);
-    for (Permission permission : permissions) {
-      if (path.startsWith(permission.getPathPrefix())) {
-        return true;
-      }
+    if ("管理员".equals(role)) return true;
+    
+    List<Permission> denyRules = permissionRepository.findByRoleAndMethodAndMode(role, method, "deny");
+    for (Permission p : denyRules) {
+      if (path.startsWith(p.getPathPrefix())) return false;
     }
+    
+    List<Permission> allowRules = permissionRepository.findByRoleAndMethodAndMode(role, method, "allow");
+    for (Permission p : allowRules) {
+      if (path.startsWith(p.getPathPrefix())) return true;
+    }
+    
     return false;
   }
 }

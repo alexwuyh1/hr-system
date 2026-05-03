@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +66,30 @@ public class FaceAttendanceService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public Attendance attendance(Long employeeId, InputStream image) throws Exception {
+        VerificationResult result = verify(employeeId, image);
+        ensureSimilarity(result);
+        
+        if (!result.matched()) {
+            throw new FaceVerificationFailedException(result.similarity(), FACE_SIMILARITY_THRESHOLD);
+        }
+        
+        LocalDate today = LocalDate.now();
+        List<Attendance> todayRecords = attendanceRepository.findByEmployeeIdAndWorkDate(employeeId, today);
+        
+        boolean hasCheckIn = todayRecords.stream().anyMatch(a -> a.getCheckIn() != null);
+        boolean hasCheckOut = todayRecords.stream().anyMatch(a -> a.getCheckOut() != null);
+        
+        if (!hasCheckIn) {
+            return doCheckIn(employeeId);
+        } else if (!hasCheckOut) {
+            return doCheckOut(employeeId);
+        } else {
+            throw new InvalidStateException("考勤", "今日已完成打卡", "次日再打卡");
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public Attendance checkIn(Long employeeId, InputStream image) throws Exception {
         VerificationResult result = verify(employeeId, image);
         ensureSimilarity(result);
@@ -80,13 +105,7 @@ public class FaceAttendanceService {
             throw new InvalidStateException("考勤", "已签到未签退", "已签退");
         });
         
-        Attendance attendance = new Attendance();
-        attendance.setEmployee(employeeRepository.findById(employeeId)
-            .orElseThrow(() -> new EmployeeNotFoundException(employeeId)));
-        attendance.setWorkDate(today);
-        attendance.setStatus("Normal");
-        attendance.setCheckIn(LocalTime.now());
-        return attendanceRepository.save(attendance);
+        return doCheckIn(employeeId);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -98,6 +117,31 @@ public class FaceAttendanceService {
             throw new FaceVerificationFailedException(result.similarity(), FACE_SIMILARITY_THRESHOLD);
         }
         
+        LocalDate today = LocalDate.now();
+        Attendance attendance = attendanceRepository.findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(
+            employeeId, today
+        ).orElseThrow(() -> new InvalidStateException("考勤", "无签到记录", "已签到"));
+        
+        LocalTime now = LocalTime.now();
+        if (now.isBefore(attendance.getCheckIn())) {
+            throw new InvalidStateException("考勤", "签退时间早于签到时间", "签退时间晚于签到时间");
+        }
+        
+        attendance.setCheckOut(now);
+        return attendanceRepository.save(attendance);
+    }
+
+    private Attendance doCheckIn(Long employeeId) {
+        Attendance attendance = new Attendance();
+        attendance.setEmployee(employeeRepository.findById(employeeId)
+            .orElseThrow(() -> new EmployeeNotFoundException(employeeId)));
+        attendance.setWorkDate(LocalDate.now());
+        attendance.setStatus("Normal");
+        attendance.setCheckIn(LocalTime.now());
+        return attendanceRepository.save(attendance);
+    }
+
+    private Attendance doCheckOut(Long employeeId) {
         LocalDate today = LocalDate.now();
         Attendance attendance = attendanceRepository.findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(
             employeeId, today

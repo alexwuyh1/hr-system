@@ -12,23 +12,23 @@ import com.example.hr.repository.AttendanceRepository;
 import com.example.hr.repository.EmployeeRepository;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
 public class AttendanceService {
-    private static final Set<String> ALLOWED_STATUS = Set.of("Normal", "Late", "Absent", "Leave");
-
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
+    private final AttendanceRuleEngineService attendanceRuleEngineService;
 
     public AttendanceService(
             AttendanceRepository attendanceRepository, 
-            EmployeeRepository employeeRepository) {
+            EmployeeRepository employeeRepository,
+            AttendanceRuleEngineService attendanceRuleEngineService) {
         this.attendanceRepository = attendanceRepository;
         this.employeeRepository = employeeRepository;
+        this.attendanceRuleEngineService = attendanceRuleEngineService;
     }
 
     public List<Attendance> list() {
@@ -39,7 +39,9 @@ public class AttendanceService {
     public Attendance create(AttendanceRequest request) {
         Attendance attendance = new Attendance();
         apply(attendance, request);
-        return attendanceRepository.save(attendance);
+        attendance = attendanceRepository.save(attendance);
+        attendanceRuleEngineService.computeSingle(attendance);
+        return attendance;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -47,7 +49,9 @@ public class AttendanceService {
         Attendance attendance = attendanceRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("考勤记录", id));
         apply(attendance, request);
-        return attendanceRepository.save(attendance);
+        attendance = attendanceRepository.save(attendance);
+        attendanceRuleEngineService.computeSingle(attendance);
+        return attendance;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -63,21 +67,13 @@ public class AttendanceService {
             throw new EmployeeNotActiveException(request.employeeId);
         }
         
-        validateStatus(request.status);
         validateTimes(request.checkIn, request.checkOut);
         
         attendance.setEmployee(employee);
         attendance.setWorkDate(request.workDate);
         attendance.setCheckIn(request.checkIn);
         attendance.setCheckOut(request.checkOut);
-        attendance.setStatus(request.status);
         attendance.setNote(request.note);
-    }
-
-    private void validateStatus(String status) {
-        if (!ALLOWED_STATUS.contains(status)) {
-            throw new InvalidParameterException("status", "状态必须是：Normal, Late, Absent, Leave 之一");
-        }
     }
 
     private void validateTimes(LocalTime checkIn, LocalTime checkOut) {

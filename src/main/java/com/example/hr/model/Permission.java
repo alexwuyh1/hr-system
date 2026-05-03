@@ -3,7 +3,7 @@ package com.example.hr.model;
 import jakarta.persistence.*;
 
 /**
- * Permission rule: role + HTTP method + path prefix.
+ * Permission rule: role + HTTP method + path prefix + mode (allow/deny).
  */
 @Entity
 @Table(name = "permissions")
@@ -20,6 +20,9 @@ public class Permission {
 
   @Column(name = "path_prefix", nullable = false)
   private String pathPrefix;
+
+  @Column(nullable = false)
+  private String mode = "allow";
 
   public Long getId() {
     return id;
@@ -47,5 +50,13 @@ public class Permission {
 
   public void setPathPrefix(String pathPrefix) {
     this.pathPrefix = pathPrefix;
+  }
+
+  public String getMode() {
+    return mode;
+  }
+
+  public void setMode(String mode) {
+    this.mode = mode;
   }
 }

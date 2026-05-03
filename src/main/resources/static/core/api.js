@@ -21,7 +21,7 @@ const API = {
     update: (id) => `/salaries/${id}`, delete: (id) => `/salaries/${id}`,
   },
   organizations: {
-    list: "/organizations", tree: "/organizations/tree", create: "/organizations",
+    list: "/organizations", tree: "/organizations/tree", positionTree: "/organizations/position-tree", create: "/organizations",
     update: (id) => `/organizations/${id}`, delete: (id) => `/organizations/${id}`,
   },
   permissions: { list: "/permissions", roles: "/permissions/roles", create: "/permissions", update: (id) => `/permissions/${id}`, delete: (id) => `/permissions/${id}` },

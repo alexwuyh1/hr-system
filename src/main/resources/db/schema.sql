@@ -12,17 +12,17 @@ CREATE TABLE IF NOT EXISTS employees (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   employee_no TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  department TEXT NOT NULL,
-  title TEXT NOT NULL,
   phone TEXT,
   email TEXT,
   hire_date TEXT NOT NULL,
   status TEXT NOT NULL,
   org_id INTEGER,
+  position_id INTEGER,
   manager_id INTEGER,
   avatar_path TEXT,
   face_hash TEXT,
   FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE SET NULL,
+  FOREIGN KEY (position_id) REFERENCES organizations(id) ON DELETE SET NULL,
   FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL
 );
 
@@ -33,10 +33,9 @@ CREATE TABLE IF NOT EXISTS attendance (
   work_date TEXT NOT NULL,
   check_in TEXT,
   check_out TEXT,
-  status TEXT NOT NULL,
-  note TEXT,
+  status TEXT,
   late_minutes INTEGER,
-  overtime_minutes INTEGER,
+  note TEXT,
   FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
@@ -58,8 +57,7 @@ CREATE TABLE IF NOT EXISTS attendance_rules (
   work_start_time TEXT,
   work_end_time TEXT,
   late_grace_minutes INTEGER NOT NULL,
-  absent_threshold_minutes INTEGER,
-  overtime_threshold_minutes INTEGER NOT NULL
+  absent_threshold_minutes INTEGER
 );
 
 -- Organization table (merged department/position/grade)
@@ -69,7 +67,9 @@ CREATE TABLE IF NOT EXISTS organizations (
   type TEXT NOT NULL,
   parent_id INTEGER,
   level INTEGER,
-  FOREIGN KEY (parent_id) REFERENCES organizations(id) ON DELETE SET NULL
+  grade_id INTEGER,
+  FOREIGN KEY (parent_id) REFERENCES organizations(id) ON DELETE SET NULL,
+  FOREIGN KEY (grade_id) REFERENCES organizations(id) ON DELETE SET NULL
 );
 
 -- Permission rules: which role can access which endpoint.
@@ -78,7 +78,8 @@ CREATE TABLE IF NOT EXISTS permissions (
   role TEXT NOT NULL,
   method TEXT NOT NULL,
   path_prefix TEXT NOT NULL,
-  UNIQUE(role, method, path_prefix)
+  mode TEXT DEFAULT 'allow',
+  UNIQUE(role, method, path_prefix, mode)
 );
 
 -- Indexes for query performance

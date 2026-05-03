@@ -50,10 +50,6 @@ public class Attendance {
   @Column(name = "late_minutes")
   private Integer lateMinutes;
 
-  // Minutes overtime, computed by rule engine
-  @Column(name = "overtime_minutes")
-  private Integer overtimeMinutes;
-
   public Long getId() {
     return id;
   }
@@ -112,13 +108,5 @@ public class Attendance {
 
   public void setLateMinutes(Integer lateMinutes) {
     this.lateMinutes = lateMinutes;
-  }
-
-  public Integer getOvertimeMinutes() {
-    return overtimeMinutes;
-  }
-
-  public void setOvertimeMinutes(Integer overtimeMinutes) {
-    this.overtimeMinutes = overtimeMinutes;
   }
 }

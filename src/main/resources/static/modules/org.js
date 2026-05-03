@@ -1,3 +1,5 @@
+let activeSubTab = "position";
+
 function renderTree(nodes) {
   const ul = document.createElement("ul");
   ul.className = "tree";
@@ -44,15 +46,14 @@ function renderTree(nodes) {
 async function loadOrganizations() {
   const list = await apiRequest(API.organizations.list);
   initCache.organizations = list;
-  let treeData = initCache.organizationTree;
-  if (!treeData) {
-    treeData = await apiRequest(API.organizations.tree);
-    initCache.organizationTree = treeData;
-  }
-  applyOrganizations(list, treeData);
+  const treeData = await apiRequest(API.organizations.tree);
+  initCache.organizationTree = treeData;
+  const positionTreeData = await apiRequest(API.organizations.positionTree);
+  initCache.positionTree = positionTreeData;
+  applyOrganizations(list, treeData, positionTreeData);
 }
 
-function applyOrganizations(list, treeData) {
+function applyOrganizations(list, treeData, positionTreeData) {
   if (!list) return;
   const select = $("employee-org");
   if (select) {
@@ -65,54 +66,97 @@ function applyOrganizations(list, treeData) {
     });
   }
 
-  const body = $("org-table").querySelector("tbody");
-  body.innerHTML = "";
-  list.forEach((o) => {
+  const depts = list.filter(o => o.type === "部门");
+  const deptBody = $("dept-table").querySelector("tbody");
+  deptBody.innerHTML = "";
+  depts.forEach((o) => {
     const row = buildRow(
-      [o.name, o.type, o.parent ? o.parent.name : "-", o.level || "-"],
+      [o.name, o.parent ? o.parent.name : "-"],
       async () => {
         await apiRequest(API.organizations.delete(o.id), { method: "DELETE" });
         await loadOrganizations();
       }
     );
-    body.appendChild(row);
+    deptBody.appendChild(row);
   });
 
-  const treeContainer = $("org-tree");
-  if (treeContainer && treeData) {
-    treeContainer.innerHTML = "";
-    treeContainer.appendChild(renderTree(treeData));
+  const positionTreeContainer = $("position-tree");
+  if (positionTreeContainer && positionTreeData) {
+    positionTreeContainer.innerHTML = "";
+    positionTreeContainer.appendChild(renderTree(positionTreeData));
   }
+
+  const positions = list.filter(o => o.type === "岗位");
+  const posBody = $("position-table").querySelector("tbody");
+  posBody.innerHTML = "";
+  positions.forEach((o) => {
+    const row = buildRow(
+      [o.name, o.parent ? o.parent.name : "-", o.grade ? o.grade.name : "-"],
+      async () => {
+        await apiRequest(API.organizations.delete(o.id), { method: "DELETE" });
+        await loadOrganizations();
+      }
+    );
+    posBody.appendChild(row);
+  });
+
+  const grades = list.filter(o => o.type === "职级").sort((a, b) => (a.level || 0) - (b.level || 0));
+  const gradeBody = $("grade-table").querySelector("tbody");
+  gradeBody.innerHTML = "";
+  grades.forEach((o) => {
+    const row = buildRow(
+      [o.name, o.level || "-"],
+      async () => {
+        await apiRequest(API.organizations.delete(o.id), { method: "DELETE" });
+        await loadOrganizations();
+      }
+    );
+    gradeBody.appendChild(row);
+  });
 }
 
 function initOrgConfigTab() {
-  const addBtn = $("org-add-btn");
+  const addBtn = $("dept-add-btn");
   if (addBtn) {
-    addBtn.onclick = () => openOrgModal();
+    addBtn.onclick = () => openDeptModal();
   }
+  const posAddBtn = $("position-add-btn");
+  if (posAddBtn) {
+    posAddBtn.onclick = () => openPositionModal();
+  }
+  const gradeAddBtn = $("grade-add-btn");
+  if (gradeAddBtn) {
+    gradeAddBtn.onclick = () => openGradeModal();
+  }
+
+  document.querySelectorAll("[data-subtab]").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll("[data-subtab]").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".sub-content").forEach(c => c.classList.remove("active"));
+      btn.classList.add("active");
+      $(`subtab-${btn.dataset.subtab}`).classList.add("active");
+      activeSubTab = btn.dataset.subtab;
+    };
+  });
 }
 
-function openOrgModal() {
+function openDeptModal() {
   const deptOptions = (initCache.organizations || [])
     .filter(o => o.type === "部门")
     .map(o => `<option value="${o.id}">${o.name}</option>`)
     .join('');
 
   openModal(
-    '新增组织',
+    '新增部门',
     `
-      <form id="modal-org-form">
-        <label>名称 <input id="modal-org-name" required placeholder="输入名称"></label>
-        <label>类型 <select id="modal-org-type"><option value="部门">部门</option><option value="岗位">岗位</option><option value="职级">职级</option></select></label>
-        <label>上级部门 <select id="modal-org-parent"><option value="">无</option>${deptOptions}</select></label>
-        <label>等级 <input id="modal-org-level" type="number" placeholder="职级等级"></label>
+      <form id="modal-dept-form">
+        <label>名称 <input id="modal-dept-name" required placeholder="输入部门名称"></label>
+        <label>上级部门 <select id="modal-dept-parent"><option value="">无</option>${deptOptions}</select></label>
       </form>
     `,
     async () => {
-      const name = $("modal-org-name").value.trim();
-      const type = $("modal-org-type").value;
-      const parentId = $("modal-org-parent").value;
-      const level = $("modal-org-level").value;
+      const name = $("modal-dept-name").value.trim();
+      const parentId = $("modal-dept-parent").value;
       if (!name) {
         alert("请输入名称");
         return;
@@ -121,9 +165,89 @@ function openOrgModal() {
         method: "POST",
         body: JSON.stringify({
           name,
-          type,
+          type: "部门",
           parentId: parentId ? Number(parentId) : null,
-          level: level ? Number(level) : null
+          level: null
+        }),
+      });
+      await loadOrganizations();
+    },
+    { submitText: '保存' }
+  );
+}
+
+function openPositionModal() {
+  const deptOptions = (initCache.organizations || [])
+    .filter(o => o.type === "部门")
+    .map(o => `<option value="${o.id}">${o.name}</option>`)
+    .join('');
+
+  const gradeOptions = (initCache.organizations || [])
+    .filter(o => o.type === "职级")
+    .sort((a, b) => (a.level || 0) - (b.level || 0))
+    .map(o => `<option value="${o.id}">${o.name}</option>`)
+    .join('');
+
+  openModal(
+    '新增岗位',
+    `
+      <form id="modal-position-form">
+        <label>名称 <input id="modal-position-name" required placeholder="输入岗位名称"></label>
+        <label>所属部门 <select id="modal-position-dept"><option value="">无</option>${deptOptions}</select></label>
+        <label>职级 <select id="modal-position-grade"><option value="">无</option>${gradeOptions}</select></label>
+      </form>
+    `,
+    async () => {
+      const name = $("modal-position-name").value.trim();
+      const deptId = $("modal-position-dept").value;
+      const gradeId = $("modal-position-grade").value;
+      if (!name) {
+        alert("请输入名称");
+        return;
+      }
+      await apiRequest(API.organizations.create, {
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          type: "岗位",
+          parentId: deptId ? Number(deptId) : null,
+          gradeId: gradeId ? Number(gradeId) : null,
+          level: null
+        }),
+      });
+      await loadOrganizations();
+    },
+    { submitText: '保存' }
+  );
+}
+
+function openGradeModal() {
+  openModal(
+    '新增职级',
+    `
+      <form id="modal-grade-form">
+        <label>名称 <input id="modal-grade-name" required placeholder="输入职级名称"></label>
+        <label>等级 <input id="modal-grade-level" type="number" required placeholder="职级等级数值"></label>
+      </form>
+    `,
+    async () => {
+      const name = $("modal-grade-name").value.trim();
+      const level = $("modal-grade-level").value;
+      if (!name) {
+        alert("请输入名称");
+        return;
+      }
+      if (!level) {
+        alert("请输入等级");
+        return;
+      }
+      await apiRequest(API.organizations.create, {
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          type: "职级",
+          parentId: null,
+          level: Number(level)
         }),
       });
       await loadOrganizations();
