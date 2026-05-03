@@ -20,14 +20,11 @@ const API = {
     list: "/salaries", create: "/salaries",
     update: (id) => `/salaries/${id}`, delete: (id) => `/salaries/${id}`,
   },
-  departments: {
-    list: "/departments", tree: "/departments/tree", create: "/departments",
-    update: (id) => `/departments/${id}`, delete: (id) => `/departments/${id}`,
+  organizations: {
+    list: "/organizations", tree: "/organizations/tree", create: "/organizations",
+    update: (id) => `/organizations/${id}`, delete: (id) => `/organizations/${id}`,
   },
-  positions: { list: "/positions", create: "/positions", update: (id) => `/positions/${id}`, delete: (id) => `/positions/${id}` },
-  grades: { list: "/grades", create: "/grades", update: (id) => `/grades/${id}`, delete: (id) => `/grades/${id}` },
-  permissions: { list: "/permissions", create: "/permissions", update: (id) => `/permissions/${id}`, delete: (id) => `/permissions/${id}` },
-  roles: { list: "/roles", create: "/roles" },
+  permissions: { list: "/permissions", roles: "/permissions/roles", create: "/permissions", update: (id) => `/permissions/${id}`, delete: (id) => `/permissions/${id}` },
   users: { list: "/users", me: "/users/me" },
   data: { export: (type, format) => `/data/export/${type}?format=${format}`, import: (type) => `/data/import/${type}` },
   init: "/init",

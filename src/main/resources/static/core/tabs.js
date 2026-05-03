@@ -80,14 +80,10 @@ async function ensureTabData(tabName) {
     await safeLoad("salary", loadSalary);
   }
   if (tabName === "org-config") {
-    if (initCache.departments && initCache.positions && initCache.grades) {
-      applyDepartments(initCache.departments, initCache.departmentTree || []);
-      applyPositions(initCache.positions);
-      applyGrades(initCache.grades);
+    if (initCache.organizations) {
+      applyOrganizations(initCache.organizations, initCache.organizationTree || []);
     } else {
-      await safeLoad("departments", loadDepartments);
-      await safeLoad("positions", loadPositions);
-      await safeLoad("grades", loadGrades);
+      await safeLoad("organizations", loadOrganizations);
     }
   }
   if (tabName === "permissions") {

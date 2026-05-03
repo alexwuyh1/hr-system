@@ -2,20 +2,24 @@ package com.example.hr.model;
 
 import jakarta.persistence.*;
 
-/**
- * Grade/level catalog.
- */
 @Entity
-@Table(name = "grades")
-public class Grade {
+@Table(name = "organizations")
+public class Organization {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false)
   private String name;
 
   @Column(nullable = false)
+  private String type;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "parent_id")
+  private Organization parent;
+
+  @Column
   private Integer level;
 
   public Long getId() {
@@ -28,6 +32,22 @@ public class Grade {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public Organization getParent() {
+    return parent;
+  }
+
+  public void setParent(Organization parent) {
+    this.parent = parent;
   }
 
   public Integer getLevel() {

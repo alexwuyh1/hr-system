@@ -1,10 +1,7 @@
 let initCache = {
   dashboard: null,
   attendanceRule: null,
-  departments: null,
-  departmentTree: null,
-  positions: null,
-  grades: null,
+  organizations: null,
   roles: null,
   permissions: null,
 };
@@ -17,9 +14,7 @@ async function loadInit() {
   };
   applyDashboard(init.dashboard);
   applyAttendanceRule(init.attendanceRule);
-  applyDepartments(init.departments, init.departmentTree);
-  applyPositions(init.positions);
-  applyGrades(init.grades);
+  applyOrganizations(init.organizations);
   applyRoles(init.roles);
   applyPermissions(init.permissions);
 }

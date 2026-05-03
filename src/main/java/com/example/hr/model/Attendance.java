@@ -24,9 +24,7 @@ public class Attendance {
   @JsonIgnoreProperties({
     "hibernateLazyInitializer",
     "handler",
-    "departmentRef",
-    "positionRef",
-    "gradeRef",
+    "orgRef",
     "managerRef"
   })
   private Employee employee;

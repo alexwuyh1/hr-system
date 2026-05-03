@@ -37,8 +37,6 @@ public class EmployeeRequest {
     @NotBlank(message = "员工状态不能为空")
     public String status;
     
-    public Long departmentId;
-    public Long positionId;
-    public Long gradeId;
+    public Long orgId;
     public Long managerId;
 }

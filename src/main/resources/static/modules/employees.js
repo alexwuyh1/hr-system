@@ -71,7 +71,7 @@ function applyEmployees(list) {
     deleteBtn.onclick = () => confirmDeleteEmployee(e.id);
 
     const row = document.createElement("tr");
-    [e.employeeNo, e.name, e.departmentName || e.department, e.positionName || e.title, e.status].forEach((text) => {
+    [e.employeeNo, e.name, e.orgName || e.department, e.title, e.status].forEach((text) => {
       const td = document.createElement("td");
       td.textContent = text;
       row.appendChild(td);
@@ -93,9 +93,8 @@ function renderProfile(employee) {
   avatar.alt = employee.name || "avatar";
   info.innerHTML = `
     <div><strong>${employee.name}</strong> <span>(${employee.employeeNo})</span></div>
-    <div>部门：${employee.departmentName || employee.department || "-"}</div>
-    <div>岗位：${employee.positionName || employee.title || "-"}</div>
-    <div>职级：${employee.gradeName || "-"}</div>
+    <div>部门：${employee.orgName || employee.department || "-"}</div>
+    <div>岗位：${employee.title || "-"}</div>
     <div>直属上级：${employee.managerName || "-"}</div>
     <div>邮箱：${employee.email || "-"}</div>
     <div>电话：${employee.phone || "-"}</div>
@@ -103,16 +102,8 @@ function renderProfile(employee) {
 }
 
 function getEmployeeFormHTML(data = {}) {
-  const deptOptions = (initCache.departments || []).map(d => 
-    `<option value="${d.id}" ${data.departmentId === d.id ? 'selected' : ''}>${d.name}</option>`
-  ).join('');
-  
-  const posOptions = (initCache.positions || []).map(p => 
-    `<option value="${p.id}" ${data.positionId === p.id ? 'selected' : ''}>${p.name}</option>`
-  ).join('');
-  
-  const gradeOptions = (initCache.grades || []).map(g => 
-    `<option value="${g.id}" ${data.gradeId === g.id ? 'selected' : ''}>${g.name}</option>`
+  const orgOptions = (initCache.organizations || []).filter(o => o.type === "部门").map(o => 
+    `<option value="${o.id}" ${data.orgId === o.id ? 'selected' : ''}>${o.name}</option>`
   ).join('');
   
   const managerOptions = (initCache.employees || [])
@@ -129,20 +120,16 @@ function getEmployeeFormHTML(data = {}) {
         <label>姓名 <input name="name" value="${data.name || ''}" required placeholder="员工真实姓名"></label>
       </div>
       <div class="form-grid-2">
-        <label>部门 <select name="departmentId" required title="请选择所属部门"><option value="">请选择部门</option>${deptOptions}</select></label>
-        <label>职位 <select name="positionId" required title="请选择担任职位"><option value="">请选择职位</option>${posOptions}</select></label>
-      </div>
-      <div class="form-grid-2">
-        <label>职级 <select name="gradeId" title="可选，如 P3、P4"><option value="">请选择职级</option>${gradeOptions}</select></label>
-        <label>直属上级 <select name="managerId" title="可选，默认为无"><option value="">无</option>${managerOptions}</select></label>
+        <label>部门 <select name="orgId" required title="请选择所属部门"><option value="">请选择部门</option>${orgOptions}</select></label>
+        <label>职位 <input name="title" value="${data.title || ''}" required placeholder="担任职位"></label>
       </div>
       <div class="form-grid-2">
         <label>入职日期 <input name="hireDate" type="date" value="${data.hireDate || ''}" required title="不能晚于今天"></label>
-        <label>邮箱 <input name="email" type="email" value="${data.email || ''}" placeholder="example@company.com"></label>
+        <label>直属上级 <select name="managerId" title="可选，默认为无"><option value="">无</option>${managerOptions}</select></label>
       </div>
       <div class="form-grid-2">
+        <label>邮箱 <input name="email" type="email" value="${data.email || ''}" placeholder="example@company.com"></label>
         <label>电话 <input name="phone" value="${data.phone || ''}" placeholder="11 位手机号，如 13800138000"></label>
-        <label></label>
       </div>
     </form>
   `;
@@ -153,16 +140,12 @@ function openCreateEmployeeModal() {
     '新增员工',
     getEmployeeFormHTML(),
     async (formData) => {
-      formData.departmentId = Number(formData.departmentId);
-      formData.positionId = Number(formData.positionId);
-      formData.gradeId = formData.gradeId ? Number(formData.gradeId) : null;
+      formData.orgId = Number(formData.orgId);
       formData.managerId = formData.managerId ? Number(formData.managerId) : null;
       formData.status = "在职";
       
-      const dept = (initCache.departments || []).find(d => d.id === formData.departmentId);
-      const pos = (initCache.positions || []).find(p => p.id === formData.positionId);
-      formData.department = dept ? dept.name : '';
-      formData.title = pos ? pos.name : '';
+      const org = (initCache.organizations || []).find(o => o.id === formData.orgId);
+      formData.department = org ? org.name : '';
 
       await apiRequest(API.employees.create, {
         method: "POST",
@@ -180,15 +163,11 @@ function openEditEmployeeModal(employee) {
     getEmployeeFormHTML(employee),
     async (formData) => {
       formData.id = employee.id;
-      formData.departmentId = Number(formData.departmentId);
-      formData.positionId = Number(formData.positionId);
-      formData.gradeId = formData.gradeId ? Number(formData.gradeId) : null;
+      formData.orgId = Number(formData.orgId);
       formData.managerId = formData.managerId ? Number(formData.managerId) : null;
       
-      const dept = (initCache.departments || []).find(d => d.id === formData.departmentId);
-      const pos = (initCache.positions || []).find(p => p.id === formData.positionId);
-      formData.department = dept ? dept.name : '';
-      formData.title = pos ? pos.name : '';
+      const org = (initCache.organizations || []).find(o => o.id === formData.orgId);
+      formData.department = org ? org.name : '';
 
       await apiRequest(API.employees.update(employee.id), {
         method: "PUT",
@@ -225,9 +204,8 @@ function applyEmployeesCenter(list) {
       </div>
       <div class="employee-card-info">
         <div class="employee-card-name">${e.name} <span class="employee-card-no">(${e.employeeNo})</span></div>
-        <div>部门：${e.departmentName || e.department || "-"}</div>
-        <div>岗位：${e.positionName || e.title || "-"}</div>
-        <div>职级：${e.gradeName || "-"}</div>
+        <div>部门：${e.orgName || e.department || "-"}</div>
+        <div>岗位：${e.title || "-"}</div>
         <div>邮箱：${e.email || "-"}</div>
         <div>电话：${e.phone || "-"}</div>
         <div class="employee-card-status">

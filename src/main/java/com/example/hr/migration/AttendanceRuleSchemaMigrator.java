@@ -22,11 +22,9 @@ public class AttendanceRuleSchemaMigrator implements ApplicationRunner {
     }
     addColumnIfNotExists("attendance_rules", "work_start_time", "TEXT");
     addColumnIfNotExists("attendance_rules", "work_end_time", "TEXT");
-    addColumnIfNotExists("attendance_rules", "lunch_break_start", "TEXT");
-    addColumnIfNotExists("attendance_rules", "lunch_break_end", "TEXT");
-    addColumnIfNotExists("attendance_rules", "early_leave_grace_minutes", "INTEGER");
+    addColumnIfNotExists("attendance_rules", "late_grace_minutes", "INTEGER");
     addColumnIfNotExists("attendance_rules", "absent_threshold_minutes", "INTEGER");
-    addColumnIfNotExists("attendance_rules", "require_overtime_approval", "INTEGER");
+    addColumnIfNotExists("attendance_rules", "overtime_threshold_minutes", "INTEGER");
   }
 
   private boolean attendanceRuleTableExists() {

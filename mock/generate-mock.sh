@@ -22,13 +22,9 @@ success() { echo -e "${GREEN}[✓]${NC} $1"; }
 warn()    { echo -e "${YELLOW}[!]${NC} $1"; }
 error()   { echo -e "${RED}[✗]${NC} $1"; }
 
-# 记录创建的 ID 用于验证
 record_id() { CREATED_IDS="$CREATED_IDS $1"; }
-
-# 从 JSON 响应中提取第一个 id 值
 extract_id() { echo "$1" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
-# 登录获取 token
 login() {
   info "登录获取 token..."
   local resp
@@ -45,64 +41,24 @@ login() {
 
 AUTH() { echo "Authorization: Bearer $TOKEN"; }
 
-# 创建部门
-create_departments() {
-  section "创建部门"
-  local dept_names=("${PREFIX}研发部${SUFFIX}" "${PREFIX}市场部${SUFFIX}" "${PREFIX}人事部${SUFFIX}")
-  for name in "${dept_names[@]}"; do
-    local resp
-    resp=$(curl -s -X POST "$BASE_URL/api/departments" \
-      -H "$(AUTH)" -H "Content-Type: application/json" \
-      -d "{\"name\":\"$name\"}")
-    local id
-    id=$(extract_id "$resp")
-    if [ -n "$id" ]; then
-      success "创建部门: $name (ID: $id)"
-      record_id "dept:$id"
-    else
-      error "创建部门失败: $name - $resp"
-    fi
-  done
-}
+section() { echo -e "\n${YELLOW}=== $1 ===${NC}"; }
 
-# 创建岗位
-create_positions() {
-  section "创建岗位"
-  local pos_names=("${PREFIX}工程师${SUFFIX}" "${PREFIX}经理${SUFFIX}" "${PREFIX}专员${SUFFIX}")
-  for name in "${pos_names[@]}"; do
+# 创建组织（部门）
+create_organizations() {
+  section "创建组织（部门）"
+  local org_names=("${PREFIX}研发部${SUFFIX}" "${PREFIX}市场部${SUFFIX}" "${PREFIX}人事部${SUFFIX}")
+  for name in "${org_names[@]}"; do
     local resp
-    resp=$(curl -s -X POST "$BASE_URL/api/positions" \
+    resp=$(curl -s -X POST "$BASE_URL/api/organizations" \
       -H "$(AUTH)" -H "Content-Type: application/json" \
-      -d "{\"name\":\"$name\"}")
+      -d "{\"name\":\"$name\",\"type\":\"部门\"}")
     local id
     id=$(extract_id "$resp")
     if [ -n "$id" ]; then
-      success "创建岗位: $name (ID: $id)"
-      record_id "pos:$id"
+      success "创建组织: $name (ID: $id)"
+      record_id "org:$id"
     else
-      error "创建岗位失败: $name - $resp"
-    fi
-  done
-}
-
-# 创建职级
-create_grades() {
-  section "创建职级"
-  local grades=("P5:5" "P6:6" "P7:7")
-  for grade in "${grades[@]}"; do
-    local name="${PREFIX}${grade%%:*}${SUFFIX}"
-    local level="${grade##*:}"
-    local resp
-    resp=$(curl -s -X POST "$BASE_URL/api/grades" \
-      -H "$(AUTH)" -H "Content-Type: application/json" \
-      -d "{\"name\":\"$name\",\"level\":$level}")
-    local id
-    id=$(extract_id "$resp")
-    if [ -n "$id" ]; then
-      success "创建职级: $name (ID: $id)"
-      record_id "grade:$id"
-    else
-      error "创建职级失败: $name - $resp"
+      error "创建组织失败: $name - $resp"
     fi
   done
 }
@@ -110,11 +66,8 @@ create_grades() {
 # 创建员工
 create_employees() {
   section "创建员工"
-  # 获取第一个部门、岗位、职级 ID
-  local dept_id pos_id grade_id
-  dept_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^dept:" | head -1 | cut -d: -f2)
-  pos_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^pos:" | head -1 | cut -d: -f2)
-  grade_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^grade:" | head -1 | cut -d: -f2)
+  local org_id
+  org_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^org:" | head -1 | cut -d: -f2)
 
   local employees=(
     "张三:MOCK_EMP001${SUFFIX}:zhangsan@mock.com:13800000001"
@@ -126,7 +79,7 @@ create_employees() {
     local resp
     resp=$(curl -s -X POST "$BASE_URL/api/employees" \
       -H "$(AUTH)" -H "Content-Type: application/json" \
-      -d "{\"employeeNo\":\"$emp_no\",\"name\":\"$name\",\"department\":\"${PREFIX}研发部${SUFFIX}\",\"title\":\"${PREFIX}工程师${SUFFIX}\",\"departmentId\":${dept_id:-1},\"positionId\":${pos_id:-1},\"gradeId\":${grade_id:-1},\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"$email\",\"phone\":\"$phone\"}")
+      -d "{\"employeeNo\":\"$emp_no\",\"name\":\"$name\",\"department\":\"${PREFIX}研发部${SUFFIX}\",\"title\":\"工程师\",\"hireDate\":\"2024-01-01\",\"status\":\"在职\",\"email\":\"$email\",\"phone\":\"$phone\"}")
     local id
     id=$(extract_id "$resp")
     if [ -n "$id" ]; then
@@ -138,7 +91,7 @@ create_employees() {
   done
 }
 
-# 创建考勤记录（每个员工 3 条签到签退记录）
+# 创建考勤记录（每个员工 3 天）
 create_attendance() {
   section "创建考勤记录"
   local emp_ids
@@ -163,16 +116,16 @@ create_attendance() {
       local id
       id=$(extract_id "$resp")
       if [ -n "$id" ]; then
-        success "创建考勤记录: 员工 $emp_id, 日期 $work_date (ID: $id)"
+        success "创建考勤: 员工 $emp_id, 日期 $work_date (ID: $id)"
         record_id "att:$id"
       else
-        error "创建考勤记录失败: $resp"
+        error "创建考勤失败: $resp"
       fi
     done
   done
 }
 
-# 创建薪资记录（每个员工 3 个月份）
+# 创建薪资记录（每个员工 3 个月）
 create_salary() {
   section "创建薪资记录"
   local emp_ids
@@ -197,67 +150,13 @@ create_salary() {
       local id
       id=$(extract_id "$resp")
       if [ -n "$id" ]; then
-        success "创建薪资记录: 员工 $emp_id, 月份 $month (ID: $id)"
+        success "创建薪资: 员工 $emp_id, 月份 $month (ID: $id)"
         record_id "sal:$id"
       else
-        error "创建薪资记录失败: $resp"
+        error "创建薪资失败: $resp"
       fi
     done
   done
-}
-
-# 创建请假记录
-create_leaves() {
-  section "创建请假记录"
-  local emp_id
-  emp_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^emp:" | head -1 | cut -d: -f2)
-  if [ -z "$emp_id" ]; then
-    warn "无员工 ID，跳过请假记录"
-    return
-  fi
-
-  local today tomorrow
-  today=$(date +%Y-%m-%d)
-  tomorrow=$(date -d "+1 day" +%Y-%m-%d 2>/dev/null || date -v+1d +%Y-%m-%d 2>/dev/null || echo "2024-12-31")
-
-  local resp
-  resp=$(curl -s -X POST "$BASE_URL/api/leaves" \
-    -H "$(AUTH)" -H "Content-Type: application/json" \
-    -d "{\"employeeId\":$emp_id,\"startDate\":\"$today\",\"endDate\":\"$tomorrow\",\"type\":\"年假\",\"status\":\"APPROVED\",\"note\":\"${PREFIX}测试请假\"}")
-  local id
-  id=$(extract_id "$resp")
-  if [ -n "$id" ]; then
-    success "创建请假记录 (ID: $id)"
-    record_id "leave:$id"
-  else
-    error "创建请假记录失败: $resp"
-  fi
-}
-
-# 创建加班记录
-create_overtime() {
-  section "创建加班记录"
-  local emp_id
-  emp_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^emp:" | head -1 | cut -d: -f2)
-  if [ -z "$emp_id" ]; then
-    warn "无员工 ID，跳过加班记录"
-    return
-  fi
-
-  local today
-  today=$(date +%Y-%m-%d)
-  local resp
-  resp=$(curl -s -X POST "$BASE_URL/api/overtime" \
-    -H "$(AUTH)" -H "Content-Type: application/json" \
-    -d "{\"employeeId\":$emp_id,\"workDate\":\"$today\",\"minutes\":180,\"status\":\"APPROVED\",\"note\":\"${PREFIX}测试加班\"}")
-  local id
-  id=$(extract_id "$resp")
-  if [ -n "$id" ]; then
-    success "创建加班记录 (ID: $id)"
-    record_id "ot:$id"
-  else
-    error "创建加班记录失败: $resp"
-  fi
 }
 
 # 验证数据
@@ -265,20 +164,18 @@ verify_data() {
   section "验证 Mock 数据"
   local pass=0 fail=0
 
-  # 验证部门
-  local depts
-  depts=$(curl -s "$BASE_URL/api/departments" -H "$(AUTH)")
-  local dept_count
-  dept_count=$(echo "$depts" | grep -o '"name":"MOCK_[^"]*"' | wc -l)
-  if [ "$dept_count" -ge 3 ]; then
-    success "部门数据: $dept_count 条"
+  local orgs
+  orgs=$(curl -s "$BASE_URL/api/organizations" -H "$(AUTH)")
+  local org_count
+  org_count=$(echo "$orgs" | grep -o '"name":"MOCK_[^"]*"' | wc -l)
+  if [ "$org_count" -ge 3 ]; then
+    success "组织数据: $org_count 条"
     pass=$((pass + 1))
   else
-    error "部门数据不足: $dept_count 条"
+    error "组织数据不足: $org_count 条"
     fail=$((fail + 1))
   fi
 
-  # 验证员工
   local emps
   emps=$(curl -s "$BASE_URL/api/employees" -H "$(AUTH)")
   local emp_count
@@ -291,7 +188,6 @@ verify_data() {
     fail=$((fail + 1))
   fi
 
-  # 验证考勤（每个员工至少 3 条）
   local atts
   atts=$(curl -s "$BASE_URL/api/attendance" -H "$(AUTH)")
   local att_count
@@ -305,7 +201,6 @@ verify_data() {
     fail=$((fail + 1))
   fi
 
-  # 验证薪资（每个员工至少 3 个月）
   local sals
   sals=$(curl -s "$BASE_URL/api/salaries" -H "$(AUTH)")
   local sal_count
@@ -324,8 +219,6 @@ verify_data() {
   return $fail
 }
 
-section() { echo -e "\n${YELLOW}=== $1 ===${NC}"; }
-
 # ==================== 主流程 ====================
 main() {
   echo -e "${BLUE}========================================${NC}"
@@ -334,14 +227,10 @@ main() {
   echo -e "${BLUE}========================================${NC}"
 
   login
-  create_departments
-  create_positions
-  create_grades
+  create_organizations
   create_employees
   create_attendance
   create_salary
-  create_leaves
-  create_overtime
   verify_data
 
   echo ""

@@ -1,5 +1,5 @@
 async function loadRoles() {
-  const roles = await apiRequest(API.roles.list);
+  const roles = await apiRequest(API.permissions.roles);
   initCache.roles = roles;
   applyRoles(roles);
 }
@@ -11,8 +11,8 @@ function applyRoles(roles) {
   select.innerHTML = "";
   roles.forEach((r) => {
     const option = document.createElement("option");
-    option.value = r.name;
-    option.textContent = r.name;
+    option.value = r;
+    option.textContent = r;
     select.appendChild(option);
   });
 
@@ -23,13 +23,13 @@ function applyRoles(roles) {
     roles.forEach((r) => {
       const tr = document.createElement("tr");
       const td1 = document.createElement("td");
-      td1.textContent = r.name;
+      td1.textContent = r;
       tr.appendChild(td1);
       const td2 = document.createElement("td");
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "删除";
       deleteBtn.className = "ghost";
-      deleteBtn.onclick = () => confirmDeleteRole(r.id, r.name);
+      deleteBtn.onclick = () => confirmDeleteRole(r);
       td2.appendChild(deleteBtn);
       tr.appendChild(td2);
       body.appendChild(tr);
@@ -37,10 +37,15 @@ function applyRoles(roles) {
   }
 }
 
-function confirmDeleteRole(id, name) {
-  showConfirm(`确定要删除角色"${name}"吗？`, async () => {
-    await apiRequest(`/roles/${id}`, { method: "DELETE" });
+function confirmDeleteRole(name) {
+  showConfirm(`确定要删除角色"${name}"吗？这将同时删除该角色的所有权限规则。`, async () => {
+    const perms = initCache.permissions || [];
+    const toDelete = perms.filter(p => p.role === name);
+    for (const p of toDelete) {
+      await apiRequest(API.permissions.delete(p.id), { method: "DELETE" });
+    }
     await safeLoad("roles", loadRoles);
+    await safeLoad("permissions", loadPermissions);
   });
 }
 
@@ -70,11 +75,17 @@ function openRoleModal() {
         alert("请输入角色名称");
         return;
       }
-      await apiRequest(API.roles.create, {
+      const roles = initCache.roles || [];
+      if (roles.includes(name)) {
+        alert("角色名称已存在");
+        return;
+      }
+      await apiRequest(API.permissions.create, {
         method: "POST",
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ role: name, method: "GET", pathPrefix: "/api/dashboard" }),
       });
       await loadRoles();
+      await safeLoad("permissions", loadPermissions);
     },
     { submitText: '保存' }
   );
@@ -101,7 +112,7 @@ function applyPermissions(list) {
 
 function openPermissionModal() {
   const roleOptions = (initCache.roles || [])
-    .map(r => `<option value="${r.name}">${r.name}</option>`)
+    .map(r => `<option value="${r}">${r}</option>`)
     .join('');
 
   openModal(

@@ -24,7 +24,6 @@ AUTH() { echo "Authorization: Bearer $TOKEN"; }
 
 section() { echo -e "\n${YELLOW}=== $1 ===${NC}"; }
 
-# 登录
 login() {
   info "登录获取 token..."
   local resp
@@ -39,14 +38,12 @@ login() {
   success "登录成功"
 }
 
-# 删除员工（需要先删除关联的考勤、薪资、请假、加班）
 delete_employees() {
   section "清理员工及关联数据"
 
   local emp_resp
   emp_resp=$(curl -s "$BASE_URL/api/employees" -H "$(AUTH)")
 
-  # 提取 MOCK 员工
   local mock_emp_nos
   mock_emp_nos=$(echo "$emp_resp" | grep -o '"employeeNo":"MOCK_[^"]*"' | cut -d'"' -f4 || true)
 
@@ -55,9 +52,8 @@ delete_employees() {
     return
   fi
 
-  # 先删除所有关联数据（考勤、薪资、请假、加班）
   info "清理关联数据..."
-  for endpoint in attendance salaries leaves overtime; do
+  for endpoint in attendance salaries; do
     local list_resp
     list_resp=$(curl -s "$BASE_URL/api/$endpoint" -H "$(AUTH)")
     local ids
@@ -68,7 +64,6 @@ delete_employees() {
   done
   success "关联数据已清理"
 
-  # 删除 Mock 员工
   while IFS= read -r emp_no; do
     [ -z "$emp_no" ] && continue
     local emp_id
@@ -83,13 +78,11 @@ delete_employees() {
   done <<< "$mock_emp_nos"
 }
 
-# 清理部门/岗位/职级（仅 MOCK_ 前缀）
 cleanup_by_prefix() {
   local endpoint=$1
   local resp
   resp=$(curl -s "$BASE_URL$endpoint" -H "$(AUTH)")
 
-  # 提取包含 MOCK_ 的名称
   local names
   names=$(echo "$resp" | grep -o '"name":"MOCK_[^"]*"' | cut -d'"' -f4 || true)
 
@@ -100,7 +93,6 @@ cleanup_by_prefix() {
   local count=0
   while IFS= read -r name; do
     [ -z "$name" ] && continue
-    # 获取该名称对应的 ID
     local item_id
     item_id=$(echo "$resp" | grep -o "\"id\":[0-9]*,\"name\":\"$name\"" | grep -o '"id":[0-9]*' | cut -d: -f2)
     if [ -n "$item_id" ]; then
@@ -124,14 +116,10 @@ main() {
 
   login
 
-  # 先清理员工及关联数据（考勤、薪资、请假、加班）
   delete_employees
 
-  # 清理部门、岗位、职级（仅 MOCK_ 前缀）
   section "清理组织数据"
-  cleanup_by_prefix "/api/departments"
-  cleanup_by_prefix "/api/positions"
-  cleanup_by_prefix "/api/grades"
+  cleanup_by_prefix "/api/organizations"
 
   echo ""
   info "清理完成，共删除 $DELETED_COUNT 条 Mock 数据"

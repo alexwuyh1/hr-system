@@ -6,13 +6,9 @@ import com.example.hr.exception.EmployeeNotFoundException;
 import com.example.hr.exception.InvalidStateException;
 import com.example.hr.exception.ResourceNotFoundException;
 import com.example.hr.model.Employee;
-import com.example.hr.model.Department;
-import com.example.hr.model.Position;
-import com.example.hr.model.Grade;
+import com.example.hr.model.Organization;
 import com.example.hr.repository.EmployeeRepository;
-import com.example.hr.repository.DepartmentRepository;
-import com.example.hr.repository.PositionRepository;
-import com.example.hr.repository.GradeRepository;
+import com.example.hr.repository.OrganizationRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,19 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class EmployeeService {
     private final EmployeeRepository employeeRepository;
-    private final DepartmentRepository departmentRepository;
-    private final PositionRepository positionRepository;
-    private final GradeRepository gradeRepository;
+    private final OrganizationRepository organizationRepository;
 
     public EmployeeService(
             EmployeeRepository employeeRepository,
-            DepartmentRepository departmentRepository,
-            PositionRepository positionRepository,
-            GradeRepository gradeRepository) {
+            OrganizationRepository organizationRepository) {
         this.employeeRepository = employeeRepository;
-        this.departmentRepository = departmentRepository;
-        this.positionRepository = positionRepository;
-        this.gradeRepository = gradeRepository;
+        this.organizationRepository = organizationRepository;
     }
 
     public List<Employee> list() {
@@ -62,7 +52,6 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
             .orElseThrow(() -> new EmployeeNotFoundException(id));
         
-        // 检查工号是否被其他员工占用
         employeeRepository.findByEmployeeNo(request.employeeNo)
             .ifPresent(existing -> {
                 if (!existing.getId().equals(id)) {
@@ -115,24 +104,13 @@ public class EmployeeService {
         employee.setHireDate(request.hireDate);
         employee.setStatus(request.status);
 
-        if (request.departmentId != null) {
-            Department department = departmentRepository.findById(request.departmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("部门", request.departmentId));
-            employee.setDepartmentRef(department);
-            employee.setDepartment(department.getName());
-        }
-
-        if (request.positionId != null) {
-            Position position = positionRepository.findById(request.positionId)
-                .orElseThrow(() -> new ResourceNotFoundException("岗位", request.positionId));
-            employee.setPositionRef(position);
-            employee.setTitle(position.getName());
-        }
-
-        if (request.gradeId != null) {
-            Grade grade = gradeRepository.findById(request.gradeId)
-                .orElseThrow(() -> new ResourceNotFoundException("职级", request.gradeId));
-            employee.setGradeRef(grade);
+        if (request.orgId != null) {
+            Organization org = organizationRepository.findById(request.orgId)
+                .orElseThrow(() -> new ResourceNotFoundException("组织", request.orgId));
+            employee.setOrgRef(org);
+            if ("部门".equals(org.getType())) {
+                employee.setDepartment(org.getName());
+            }
         }
 
         if (request.managerId != null) {

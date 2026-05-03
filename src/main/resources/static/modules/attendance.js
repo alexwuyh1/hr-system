@@ -53,7 +53,6 @@ function getAttendanceFormHTML(data = {}) {
         <option value="Normal" ${data.status === 'Normal' ? 'selected' : ''}>正常</option>
         <option value="Late" ${data.status === 'Late' ? 'selected' : ''}>迟到</option>
         <option value="Absent" ${data.status === 'Absent' ? 'selected' : ''}>缺勤</option>
-        <option value="Leave" ${data.status === 'Leave' ? 'selected' : ''}>请假</option>
       </select></label>
       <label>备注 <input name="note" value="${data.note || ''}" placeholder="备注（可选）"></label>
     </form>
@@ -148,20 +147,12 @@ function openAttendanceRulesModal() {
           <label>上班时间 <input id="modal-rule-start-time" type="time" value="${rule.workStartTime || '09:00'}"></label>
           <label>下班时间 <input id="modal-rule-end-time" type="time" value="${rule.workEndTime || '18:00'}"></label>
         </div>
-        <div class="form-grid-2">
-          <label>午休开始 <input id="modal-rule-lunch-start" type="time" value="${rule.lunchBreakStart || '12:00'}"></label>
-          <label>午休结束 <input id="modal-rule-lunch-end" type="time" value="${rule.lunchBreakEnd || '13:00'}"></label>
-        </div>
         <h4>考勤规则设置</h4>
         <div class="form-grid-2">
           <label>迟到宽限(分钟) <input id="modal-rule-late" type="number" value="${rule.lateGraceMinutes ?? 10}"></label>
-          <label>早退宽限(分钟) <input id="modal-rule-early-leave" type="number" value="${rule.earlyLeaveGraceMinutes ?? 10}"></label>
-        </div>
-        <div class="form-grid-2">
           <label>旷工阈值(分钟) <input id="modal-rule-absent" type="number" value="${rule.absentThresholdMinutes ?? 240}"></label>
-          <label>加班阈值(分钟) <input id="modal-rule-overtime" type="number" value="${rule.overtimeThresholdMinutes ?? 60}"></label>
         </div>
-        <label>加班需审批 <input id="modal-rule-ot-approval" type="checkbox" ${rule.requireOvertimeApproval ? 'checked' : ''}></label>
+        <label>加班起算(分钟) <input id="modal-rule-overtime" type="number" value="${rule.overtimeThresholdMinutes ?? 60}"></label>
         <h4>计算功能</h4>
         <div class="form-grid-2">
           <label>单日计算日期 <input id="modal-rule-date" type="date"></label>
@@ -174,13 +165,9 @@ function openAttendanceRulesModal() {
       const body = {
         workStartTime: $("modal-rule-start-time").value || "09:00",
         workEndTime: $("modal-rule-end-time").value || "18:00",
-        lunchBreakStart: $("modal-rule-lunch-start").value || "12:00",
-        lunchBreakEnd: $("modal-rule-lunch-end").value || "13:00",
         lateGraceMinutes: Number($("modal-rule-late").value) || 10,
-        earlyLeaveGraceMinutes: Number($("modal-rule-early-leave").value) || 10,
         absentThresholdMinutes: Number($("modal-rule-absent").value) || 240,
         overtimeThresholdMinutes: Number($("modal-rule-overtime").value) || 60,
-        requireOvertimeApproval: $("modal-rule-ot-approval").checked,
       };
       await apiRequest(API.attendanceRules.update, {
         method: "PUT",
@@ -305,19 +292,15 @@ function initAttendanceRules() {
       const body = {
         workStartTime: $("rule-start-time").value || "09:00",
         workEndTime: $("rule-end-time").value || "18:00",
-        lunchBreakStart: $("rule-lunch-start").value || "12:00",
-        lunchBreakEnd: $("rule-lunch-end").value || "13:00",
         lateGraceMinutes: late,
-        earlyLeaveGraceMinutes: Number($("rule-early-leave").value) || 10,
         absentThresholdMinutes: Number($("rule-absent").value) || 240,
         overtimeThresholdMinutes: overtime,
-        requireOvertimeApproval: $("rule-ot-approval").checked,
       };
       const result = await apiRequest(API.attendanceRules.update, {
         method: "PUT",
         body: JSON.stringify(body),
       });
-      $("rule-result").textContent = `规则已保存：上班 ${result.workStartTime}-${result.workEndTime}，迟到宽限 ${result.lateGraceMinutes} 分钟，早退宽限 ${result.earlyLeaveGraceMinutes} 分钟，加班起算 ${result.overtimeThresholdMinutes} 分钟`;
+      $("rule-result").textContent = `规则已保存：上班 ${result.workStartTime}-${result.workEndTime}，迟到宽限 ${result.lateGraceMinutes} 分钟，加班起算 ${result.overtimeThresholdMinutes} 分钟`;
     });
   }
 
@@ -365,12 +348,7 @@ function applyAttendanceRule(rule) {
   const setVal = (id, val) => { const el = $(id); if (el) el.value = val ?? ""; };
   setVal("rule-start-time", rule.workStartTime);
   setVal("rule-end-time", rule.workEndTime);
-  setVal("rule-lunch-start", rule.lunchBreakStart);
-  setVal("rule-lunch-end", rule.lunchBreakEnd);
   setVal("rule-late", rule.lateGraceMinutes);
-  setVal("rule-early-leave", rule.earlyLeaveGraceMinutes);
   setVal("rule-absent", rule.absentThresholdMinutes);
   setVal("rule-overtime", rule.overtimeThresholdMinutes);
-  const approval = $("rule-ot-approval");
-  if (approval) approval.checked = rule.requireOvertimeApproval === true;
 }

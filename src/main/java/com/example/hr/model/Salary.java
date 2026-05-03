@@ -20,9 +20,7 @@ public class Salary {
   @JsonIgnoreProperties({
     "hibernateLazyInitializer",
     "handler",
-    "departmentRef",
-    "positionRef",
-    "gradeRef",
+    "orgRef",
     "managerRef"
   })
   private Employee employee;

@@ -7,10 +7,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * Migrate reference data labels from English to Chinese.
- * Keeps existing records but updates role/department/position/status names.
- */
 @Component
 @Order(0)
 public class ReferenceDataMigrator implements ApplicationRunner {
@@ -23,8 +19,6 @@ public class ReferenceDataMigrator implements ApplicationRunner {
   @Override
   public void run(ApplicationArguments args) {
     migrateRoles();
-    migrateDepartments();
-    migratePositions();
     migrateEmployeeStatus();
   }
 
@@ -38,36 +32,8 @@ public class ReferenceDataMigrator implements ApplicationRunner {
             "USER", "员工");
     map.forEach(
         (from, to) -> {
-          jdbcTemplate.update("UPDATE roles SET name=? WHERE name=?", to, from);
           jdbcTemplate.update("UPDATE users SET role=? WHERE role=?", to, from);
           jdbcTemplate.update("UPDATE permissions SET role=? WHERE role=?", to, from);
-        });
-  }
-
-  private void migrateDepartments() {
-    Map<String, String> map =
-        Map.of(
-            "Headquarters", "总部",
-            "HR", "人力资源部",
-            "Engineering", "研发部",
-            "Finance", "财务部");
-    map.forEach(
-        (from, to) -> {
-          jdbcTemplate.update("UPDATE departments SET name=? WHERE name=?", to, from);
-          jdbcTemplate.update("UPDATE employees SET department=? WHERE department=?", to, from);
-        });
-  }
-
-  private void migratePositions() {
-    Map<String, String> map =
-        Map.of(
-            "HR Manager", "人力资源经理",
-            "Software Engineer", "软件工程师",
-            "Analyst", "分析师");
-    map.forEach(
-        (from, to) -> {
-          jdbcTemplate.update("UPDATE positions SET name=? WHERE name=?", to, from);
-          jdbcTemplate.update("UPDATE employees SET title=? WHERE title=?", to, from);
         });
   }
 

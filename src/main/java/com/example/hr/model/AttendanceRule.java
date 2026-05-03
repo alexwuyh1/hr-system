@@ -15,26 +15,14 @@ public class AttendanceRule {
   @Column(name = "work_end_time")
   private String workEndTime;
 
-  @Column(name = "lunch_break_start")
-  private String lunchBreakStart;
-
-  @Column(name = "lunch_break_end")
-  private String lunchBreakEnd;
-
   @Column(name = "late_grace_minutes", nullable = false)
   private Integer lateGraceMinutes;
-
-  @Column(name = "early_leave_grace_minutes")
-  private Integer earlyLeaveGraceMinutes;
 
   @Column(name = "absent_threshold_minutes")
   private Integer absentThresholdMinutes;
 
   @Column(name = "overtime_threshold_minutes", nullable = false)
   private Integer overtimeThresholdMinutes;
-
-  @Column(name = "require_overtime_approval")
-  private Boolean requireOvertimeApproval;
 
   public Long getId() {
     return id;
@@ -56,36 +44,12 @@ public class AttendanceRule {
     this.workEndTime = workEndTime;
   }
 
-  public String getLunchBreakStart() {
-    return lunchBreakStart;
-  }
-
-  public void setLunchBreakStart(String lunchBreakStart) {
-    this.lunchBreakStart = lunchBreakStart;
-  }
-
-  public String getLunchBreakEnd() {
-    return lunchBreakEnd;
-  }
-
-  public void setLunchBreakEnd(String lunchBreakEnd) {
-    this.lunchBreakEnd = lunchBreakEnd;
-  }
-
   public Integer getLateGraceMinutes() {
     return lateGraceMinutes;
   }
 
   public void setLateGraceMinutes(Integer lateGraceMinutes) {
     this.lateGraceMinutes = lateGraceMinutes;
-  }
-
-  public Integer getEarlyLeaveGraceMinutes() {
-    return earlyLeaveGraceMinutes;
-  }
-
-  public void setEarlyLeaveGraceMinutes(Integer earlyLeaveGraceMinutes) {
-    this.earlyLeaveGraceMinutes = earlyLeaveGraceMinutes;
   }
 
   public Integer getAbsentThresholdMinutes() {
@@ -102,13 +66,5 @@ public class AttendanceRule {
 
   public void setOvertimeThresholdMinutes(Integer overtimeThresholdMinutes) {
     this.overtimeThresholdMinutes = overtimeThresholdMinutes;
-  }
-
-  public Boolean getRequireOvertimeApproval() {
-    return requireOvertimeApproval;
-  }
-
-  public void setRequireOvertimeApproval(Boolean requireOvertimeApproval) {
-    this.requireOvertimeApproval = requireOvertimeApproval;
   }
 }

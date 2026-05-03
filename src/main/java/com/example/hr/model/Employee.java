@@ -4,10 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
-/**
- * Employee master data.
- * This table is the core reference for attendance and salary records.
- */
 @Entity
 @Table(name = "employees")
 public class Employee {
@@ -15,7 +11,6 @@ public class Employee {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  // Unique employee number used by HR
   @Column(name = "employee_no", nullable = false, unique = true)
   private String employeeNo;
 
@@ -34,37 +29,22 @@ public class Employee {
   @Column(name = "hire_date", nullable = false)
   private LocalDate hireDate;
 
-  // 在职 / 离职等状态
   @Column(nullable = false)
   private String status;
 
-  // Department tree reference (optional for legacy data)
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "department_id")
+  @JoinColumn(name = "org_id")
   @JsonIgnoreProperties({"parent"})
-  private Department departmentRef;
+  private Organization orgRef;
 
-  // Position catalog reference
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "position_id")
-  private Position positionRef;
-
-  // Grade/level reference
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "grade_id")
-  private Grade gradeRef;
-
-  // Direct manager (self-reference)
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "manager_id")
-  @JsonIgnoreProperties({"managerRef", "departmentRef", "positionRef", "gradeRef"})
+  @JsonIgnoreProperties({"managerRef", "orgRef"})
   private Employee managerRef;
 
-  // Avatar file path on server
   @Column(name = "avatar_path")
   private String avatarPath;
 
-  // Face hash (simple aHash for MVP)
   @Column(name = "face_hash")
   private String faceHash;
 
@@ -136,28 +116,12 @@ public class Employee {
     this.status = status;
   }
 
-  public Department getDepartmentRef() {
-    return departmentRef;
+  public Organization getOrgRef() {
+    return orgRef;
   }
 
-  public void setDepartmentRef(Department departmentRef) {
-    this.departmentRef = departmentRef;
-  }
-
-  public Position getPositionRef() {
-    return positionRef;
-  }
-
-  public void setPositionRef(Position positionRef) {
-    this.positionRef = positionRef;
-  }
-
-  public Grade getGradeRef() {
-    return gradeRef;
-  }
-
-  public void setGradeRef(Grade gradeRef) {
-    this.gradeRef = gradeRef;
+  public void setOrgRef(Organization orgRef) {
+    this.orgRef = orgRef;
   }
 
   public Employee getManagerRef() {
