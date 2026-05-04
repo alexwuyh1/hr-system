@@ -28,14 +28,18 @@ public class AttendanceService {
     }
 
     public List<Attendance> list() {
-        return attendanceRepository.findAll();
+        List<Attendance> list = attendanceRepository.findAll();
+        list.forEach(a -> initEmployee(a.getEmployee()));
+        return list;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public Attendance create(AttendanceRequest request) {
         Attendance attendance = new Attendance();
         apply(attendance, request);
-        return attendanceRepository.save(attendance);
+        attendance = attendanceRepository.save(attendance);
+        initEmployee(attendance.getEmployee());
+        return attendance;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -43,7 +47,16 @@ public class AttendanceService {
         Attendance attendance = attendanceRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("考勤记录", id));
         apply(attendance, request);
-        return attendanceRepository.save(attendance);
+        attendance = attendanceRepository.save(attendance);
+        initEmployee(attendance.getEmployee());
+        return attendance;
+    }
+
+    private void initEmployee(Employee employee) {
+        if (employee == null) return;
+        employee.getName();
+        if (employee.getOrgRef() != null) employee.getOrgRef().getName();
+        if (employee.getPositionRef() != null) employee.getPositionRef().getName();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -66,6 +79,7 @@ public class AttendanceService {
         attendance.setWorkDate(today);
         attendance.setCheckIn(now);
         attendance.setCheckOut(null);
+        attendance.setStatus("Normal");
         attendance.setNote(request.note);
     }
 }

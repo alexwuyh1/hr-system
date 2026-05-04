@@ -16,11 +16,11 @@ public class Organization {
   @Column(nullable = false)
   private String type;
 
-  @ManyToOne(fetch = FetchType.EAGER)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_id")
   private Organization parent;
 
-  @ManyToOne(fetch = FetchType.EAGER)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "grade_id")
   private Organization grade;
 

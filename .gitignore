@@ -2,5 +2,8 @@
 /logs
 /target
 /data/hr.db
+/data/hr.mv.db
+/data/hr.trace.db
 /data/avatars/
+/node_modules/
 src/main/resources/application.yml

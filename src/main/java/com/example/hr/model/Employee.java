@@ -27,17 +27,17 @@ public class Employee {
   @Column(nullable = false)
   private String status;
 
-  @ManyToOne(fetch = FetchType.EAGER)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "org_id")
   @JsonIgnoreProperties({"parent"})
   private Organization orgRef;
 
-  @ManyToOne(fetch = FetchType.EAGER)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "position_id")
   @JsonIgnoreProperties({"parent", "grade"})
   private Organization positionRef;
 
-  @ManyToOne(fetch = FetchType.EAGER)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "manager_id")
   @JsonIgnoreProperties({"managerRef", "orgRef"})
   private Employee managerRef;

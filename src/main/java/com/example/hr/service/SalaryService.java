@@ -26,14 +26,18 @@ public class SalaryService {
     }
 
     public List<Salary> list() {
-        return salaryRepository.findAll();
+        List<Salary> salaries = salaryRepository.findAll();
+        salaries.forEach(s -> initEmployeeForSerialization(s.getEmployee()));
+        return salaries;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public Salary create(SalaryRequest request) {
         Salary salary = new Salary();
         apply(salary, request);
-        return salaryRepository.save(salary);
+        salary = salaryRepository.save(salary);
+        initEmployeeForSerialization(salary.getEmployee());
+        return salary;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -41,7 +45,15 @@ public class SalaryService {
         Salary salary = salaryRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("薪资记录", id));
         apply(salary, request);
-        return salaryRepository.save(salary);
+        salary = salaryRepository.save(salary);
+        initEmployeeForSerialization(salary.getEmployee());
+        return salary;
+    }
+
+    private void initEmployeeForSerialization(Employee employee) {
+        if (employee == null) return;
+        employee.getName();
+        if (employee.getOrgRef() != null) employee.getOrgRef().getName();
     }
 
     @Transactional(rollbackFor = Exception.class)

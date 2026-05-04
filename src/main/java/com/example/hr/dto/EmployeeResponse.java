@@ -6,8 +6,6 @@ public class EmployeeResponse {
   public Long id;
   public String employeeNo;
   public String name;
-  public String department;
-  public String title;
   public String phone;
   public String email;
   public String hireDate;
@@ -32,12 +30,10 @@ public class EmployeeResponse {
     if (employee.getOrgRef() != null) {
       r.orgId = employee.getOrgRef().getId();
       r.orgName = employee.getOrgRef().getName();
-      r.department = employee.getOrgRef().getName();
     }
     if (employee.getPositionRef() != null) {
       r.positionId = employee.getPositionRef().getId();
       r.positionName = employee.getPositionRef().getName();
-      r.title = employee.getPositionRef().getName();
     }
     if (employee.getManagerRef() != null) {
       r.managerId = employee.getManagerRef().getId();

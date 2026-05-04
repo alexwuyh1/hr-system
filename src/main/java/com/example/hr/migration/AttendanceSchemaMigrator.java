@@ -31,10 +31,14 @@ public class AttendanceSchemaMigrator implements ApplicationRunner {
   }
 
   private boolean attendanceTableExists() {
-    List<Map<String, Object>> rows =
-        jdbcTemplate.queryForList(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='attendance'");
-    return !rows.isEmpty();
+    try {
+      List<Map<String, Object>> rows =
+          jdbcTemplate.queryForList(
+              "SELECT name FROM sqlite_master WHERE type='table' AND name='attendance'");
+      return !rows.isEmpty();
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   private boolean hasUniqueEmployeeDateIndex() {

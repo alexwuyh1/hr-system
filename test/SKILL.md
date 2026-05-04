@@ -1,82 +1,91 @@
-***
+# test-api.sh 调试指南
 
-name: "auto-test"
-description: "HR 系统自动测试修复工作流，完整的编译、测试、修复、报告流程。"
------------------------------------------------------------------------------------
+测试脚本 `test/test-api.sh` 的自包含集成测试：创建数据 → 验证 API → 自动清理。
 
-# HR 自动测试修复
-
-HR 系统新功能实现后的自测试修复流程。
-
-## 何时触发
-
-- Agent 实现了新功能，需要验证
-- 测试失败，需要自动定位并修复
-- 用户要求运行测试
-
-## 工作流程
-
-```
-实现功能 → 编译 → 重启 → 运行测试 → 通过 → Agent 生成测试报告 ✓
-                                  → 失败 → 分析错误 → 修复 → 重测 (最多3轮)
-```
-
-## 快速执行
+## 快速诊断
 
 ```bash
-# 运行测试
+# 运行完整测试
 bash test/test-api.sh
 
-# 查看日志
-tail -f logs/hr-system.log
+# 查看失败的 API 具体返回了什么
+bash test/test-api.sh 2>&1 | grep "✗ FAIL"
+
+# 查看测试期间的后端日志
+grep "$(date +%Y-%m-%d)" logs/hr-system.log | grep "ERROR\|Unhandled"
 ```
 
-## 测试脚本
+## 单接口手动测试
 
-| 脚本            | 用途                     |
-| ------------- | ---------------------- |
-| `test-api.sh` | API 集成测试（自包含测试数据，自动清理） |
+测试失败时，先拿到 token 再逐一手动测试失败的接口：
 
-## 测试数据策略
+```bash
+TOKEN=$(curl -s -X POST http://localhost:18080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}' \
+  | python3 -c "import sys,json;print(json.load(sys.stdin)['token'])")
 
-`test-api.sh` 采用**自包含测试**模式：创建测试数据 → 执行测试 → 自动清理。无需预先生成 Mock 数据。
+# 替换为实际失败的接口
+curl -s http://localhost:18080/api/attendance -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+```
 
-## 错误类型与修复方向
+## 常见失败模式与修复
 
-| 错误类型         | 含义    | 修复方向                             |
-| ------------ | ----- | -------------------------------- |
-| HTTP 401/403 | 认证/权限 | JWT、SecurityConfig、@PreAuthorize |
-| HTTP 400     | 数据验证  | DTO 注解、验证器、请求格式                  |
-| HTTP 404     | 接口不存在 | Controller @RequestMapping       |
-| HTTP 500     | 服务器内部 | Service 逻辑、Repository、空指针        |
+| 错误关键字 | 根因 | 修复位置 |
+|-----------|------|---------|
+| `NULL not allowed for column "STATUS"` | 实体 NOT NULL 字段未设值 | Service 的 `apply()` 方法 |
+| `ByteBuddyInterceptor` / `could not initialize proxy` | Jackson 无法序列化 Hibernate 代理 | 检查 `JacksonConfig` + `jackson-datatype-hibernate5-jakarta` 依赖 + `open-in-view` |
+| `Referential integrity constraint violation` | 删除被其他表引用的行 | 调整删除顺序（先删子表再删父表），或设 `ON DELETE CASCADE` |
+| `Numeric value out of range` | 数值类型精度不匹配（如 epoch millis 超出 INT） | 修改实体 `columnDefinition` |
+| `DUPLICATE_RESOURCE` | 上一次测试的脏数据未清理 | 手动删 `data/hr.mv.db` 重跑 |
+| `Table "xxx" not found` | Schema 变更后旧数据库文件与新实体不匹配 | 删 `data/hr.mv.db` 让 JPA 重建 |
 
-## 自动修复规则
+## 数据库重置
 
-### 编译失败
+当测试数据污染导致无法通过时：
 
-1. 读取错误信息 → 2. 定位文件行号 → 3. 修复语法/导入 → 4. 重新编译 → 最多重试 3 次
+```bash
+rm -f data/hr.mv.db data/hr.trace.db
+bash start.sh   # 自动重建并注入种子数据
+```
 
-### 测试失败
+## 日志分析
 
-1. 读取 `test-api.sh` 输出中的 FAIL 项 → 2. 查看 `logs/hr-system.log` → 3. 分类错误类型 → 4. 修复代码 → 5. 重启应用 → 6. 重新测试 → 最多重试 3 次
+```bash
+# 查看应用启动期间的所有错误
+grep "ERROR" logs/hr-system.log | tail -20
 
-### 测试通过
+# 查看特定时间段的 Unhandled error 及其堆栈
+grep -A 5 "Unhandled error" logs/hr-system.log | tail -40
 
-Agent 自行生成测试报告，保存到 `test/` 目录。
+# 查看 LazyInitialization 相关错误
+grep -B2 "could not initialize proxy" logs/hr-system.log
+```
 
-## 测试报告规范
+## 测试覆盖的接口
 
-- **保存路径**: `test/` 目录下
-- **命名格式**: `report-YYYY-MM-DD-HHMMSS.md`
-- **内容**: 测试时间、通过/失败统计、测试详情、验收状态
+| 序号 | 接口 | 验证方式 |
+|------|------|---------|
+| 首页 | `GET /` | HTTP 200 |
+| 认证 | `POST /api/auth/login` | 返回 token |
+| 仪表盘 | `GET /api/dashboard/summary` | HTTP 200 |
+| 组织 | `POST/GET /api/organizations`, `GET /api/organizations/position-tree` | CRUD + 树结构 |
+| 员工 | `POST/GET/PUT /api/employees`, `POST /api/employees/resign`, `POST /api/employees/rehire` | CRUD + 状态变更 |
+| 考勤 | `POST/GET /api/attendance`, `GET /api/attendance-rules` | CRUD |
+| 薪资 | `POST/GET /api/salaries` | CRUD |
+| 权限 | `GET /api/permissions`, `GET /api/permissions/roles` | 列表查询 |
+| 验证 | 工号重复、邮箱格式、手机号格式 | 400/业务错误 |
+| 清理 | `DELETE /api/employees/:id` | 级联删除关联数据 |
 
-## 验收标准
+## 后台进程管理
 
-| 指标     | 要求       |
-| ------ | -------- |
-| 编译     | 无错误      |
-| API 测试 | 100% 通过  |
-| 前端访问   | HTTP 200 |
-| 日志     | 无 ERROR  |
-| 测试报告   | 已生成      |
+```bash
+# 检查应用是否运行
+curl -s -o /dev/null -w "%{http_code}" http://localhost:18080/
 
+# 查看日志最近输出
+tail -20 logs/hr-system.log
+
+# 手动停止
+pkill -f "hr-system"
+```

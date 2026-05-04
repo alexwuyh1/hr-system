@@ -1,6 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" style="font-family: 'Inter', 'Noto Sans SC', '微软雅黑', sans-serif !important;">
-
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,88 +11,9 @@
   <link rel="stylesheet" href="styles/layout.css?v=10" />
   <link rel="stylesheet" href="styles/components.css?v=10" />
   <link rel="stylesheet" href="styles/modal.css?v=10" />
-  <style>
-    html,
-    body,
-    .app,
-    * {
-      font-family: "Inter", "Noto Sans SC", "微软雅黑", "PingFang SC", sans-serif !important;
-      -webkit-font-smoothing: antialiased !important;
-      -moz-osx-font-smoothing: grayscale !important;
-    }
-  </style>
 </head>
-
 <body>
-  <div class="app">
-    <header class="hero">
-      <div>
-        <p class="kicker">HR SUITE</p>
-        <h1>人事管理系统</h1>
-        <p class="subtitle">员工、考勤、薪资与报表在一个清爽的工作台完成。</p>
-      </div>
-    </header>
-
-    <section class="panel" id="auth-panel">
-      <div class="panel-header">
-        <h2>登录</h2>
-        <p>默认管理员：admin / admin123</p>
-      </div>
-      <form id="login-form" class="grid-2 form-fields">
-        <div class="stat">
-          <label for="login-username">用户名</label>
-          <input id="login-username" name="username" placeholder="输入用户名" required />
-        </div>
-        <div class="stat">
-          <label for="login-password">密码</label>
-          <input id="login-password" name="password" type="password" placeholder="输入密码" required />
-        </div>
-      </form>
-      <form id="login-actions" class="form-actions">
-        <button type="submit" form="login-form">登录</button>
-        <button type="button" id="register-btn" class="ghost">注册新用户</button>
-      </form>
-    </section>
-
-    <section class="workspace hidden" id="workspace">
-      <nav class="tabs">
-        <button data-tab="dashboard" class="active">仪表盘</button>
-        <button data-tab="employees">员工管理</button>
-        <button data-tab="attendance">考勤管理</button>
-        <button data-tab="salary">薪资管理</button>
-        <button data-tab="org-config">组织配置</button>
-        <button data-tab="import-export">导入导出</button>
-        <button data-tab="permissions">权限管理</button>
-        <span id="role-badge" class="role-badge"></span>
-        <button id="logout" class="ghost">登出</button>
-      </nav>
-
-      <div class="tab-content active" id="tab-dashboard"></div>
-      <div class="tab-content" id="tab-employees"></div>
-      <div class="tab-content" id="tab-attendance"></div>
-      <div class="tab-content" id="tab-salary"></div>
-      <div class="tab-content" id="tab-org-config"></div>
-      <div class="tab-content" id="tab-import-export"></div>
-      <div class="tab-content" id="tab-permissions"></div>
-    </section>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="core/api.js?v=10"></script>
-  <script src="core/utils.js?v=10"></script>
-  <script src="core/modal.js?v=10"></script>
-  <script src="core/auth.js?v=10"></script>
-  <script src="core/tabs.js?v=10"></script>
-  <script src="modules/dashboard.js?v=10"></script>
-  <script src="modules/employees.js?v=10"></script>
-  <script src="modules/attendance.js?v=10"></script>
-  <script src="modules/salary.js?v=10"></script>
-  <script src="modules/org.js?v=11"></script>
-  <script src="modules/permissions.js?v=11"></script>
-  <script src="modules/import-export.js?v=10"></script>
-  <script src="app.js?v=11"></script>
-  <!-- DevTools LiveReload: 静态资源修改后自动刷新浏览器 -->
-  <script src="http://localhost:35729/livereload.js"></script>
+  <div id="app"></div>
+  <script type="module" src="dist/assets/index-DnivHDRZ.js"></script>
 </body>
-
 </html>

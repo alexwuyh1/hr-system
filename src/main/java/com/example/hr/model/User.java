@@ -27,7 +27,7 @@ public class User {
   private String role;
 
   // Record creation timestamp (epoch millis for SQLite compatibility)
-  @Column(name = "created_at", nullable = false, columnDefinition = "INTEGER")
+  @Column(name = "created_at", nullable = false)
   private Long createdAt;
 
   public Long getId() {

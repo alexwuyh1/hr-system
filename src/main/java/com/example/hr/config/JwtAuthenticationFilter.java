@@ -72,10 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/".equals(path) ||
             "/index.html".equals(path) ||
             path.startsWith("/styles") ||
-            path.startsWith("/core/") ||
-            path.startsWith("/modules/") ||
-            path.startsWith("/tabs/") ||
-            "/app.js".equals(path)) {
+            path.startsWith("/dist/")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -114,6 +111,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             
+            // 将 userId 注入到 request 中供 Controller 使用
+            request.setAttribute("userId", userId);
+
             // 创建 Spring Security 认证对象
             UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(String.valueOf(userId))

@@ -1,14 +1,17 @@
 package com.example.hr.service;
 
 import com.example.hr.dto.EmployeeRequest;
+import com.example.hr.dto.EmployeeResponse;
 import com.example.hr.exception.DuplicateResourceException;
 import com.example.hr.exception.EmployeeNotFoundException;
 import com.example.hr.exception.InvalidStateException;
 import com.example.hr.exception.ResourceNotFoundException;
 import com.example.hr.model.Employee;
 import com.example.hr.model.Organization;
+import com.example.hr.repository.AttendanceRepository;
 import com.example.hr.repository.EmployeeRepository;
 import com.example.hr.repository.OrganizationRepository;
+import com.example.hr.repository.SalaryRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,20 +21,28 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final OrganizationRepository organizationRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final SalaryRepository salaryRepository;
 
     public EmployeeService(
             EmployeeRepository employeeRepository,
-            OrganizationRepository organizationRepository) {
+            OrganizationRepository organizationRepository,
+            AttendanceRepository attendanceRepository,
+            SalaryRepository salaryRepository) {
         this.employeeRepository = employeeRepository;
         this.organizationRepository = organizationRepository;
+        this.attendanceRepository = attendanceRepository;
+        this.salaryRepository = salaryRepository;
     }
 
-    public List<Employee> list() {
-        return employeeRepository.findAll();
+    public List<EmployeeResponse> listResponses() {
+        return employeeRepository.findAll().stream()
+            .map(EmployeeResponse::from)
+            .toList();
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Employee create(EmployeeRequest request) {
+    public EmployeeResponse create(EmployeeRequest request) {
         employeeRepository.findByEmployeeNo(request.employeeNo)
             .ifPresent(existing -> {
                 if ("在职".equals(existing.getStatus())) {
@@ -44,11 +55,11 @@ public class EmployeeService {
         
         apply(employee, request);
         employee.setStatus("在职");
-        return employeeRepository.save(employee);
+        return EmployeeResponse.from(employeeRepository.save(employee));
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Employee update(Long id, EmployeeRequest request) {
+    public EmployeeResponse update(Long id, EmployeeRequest request) {
         Employee employee = employeeRepository.findById(id)
             .orElseThrow(() -> new EmployeeNotFoundException(id));
         
@@ -60,11 +71,11 @@ public class EmployeeService {
             });
         
         apply(employee, request);
-        return employeeRepository.save(employee);
+        return EmployeeResponse.from(employeeRepository.save(employee));
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Employee resign(String employeeNo) {
+    public EmployeeResponse resign(String employeeNo) {
         Employee employee = employeeRepository.findByEmployeeNo(employeeNo)
             .orElseThrow(() -> new EmployeeNotFoundException(employeeNo));
         
@@ -73,11 +84,11 @@ public class EmployeeService {
         }
         
         employee.setStatus("离职");
-        return employeeRepository.save(employee);
+        return EmployeeResponse.from(employeeRepository.save(employee));
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Employee rehire(String employeeNo) {
+    public EmployeeResponse rehire(String employeeNo) {
         Employee employee = employeeRepository.findByEmployeeNo(employeeNo)
             .orElseThrow(() -> new EmployeeNotFoundException(employeeNo));
         
@@ -86,12 +97,16 @@ public class EmployeeService {
         }
         
         employee.setStatus("在职");
-        return employeeRepository.save(employee);
+        return EmployeeResponse.from(employeeRepository.save(employee));
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
-        employeeRepository.deleteById(id);
+        Employee employee = employeeRepository.findById(id)
+            .orElseThrow(() -> new EmployeeNotFoundException(id));
+        attendanceRepository.deleteByEmployee(employee);
+        salaryRepository.deleteByEmployee(employee);
+        employeeRepository.delete(employee);
     }
 
     private void apply(Employee employee, EmployeeRequest request) {

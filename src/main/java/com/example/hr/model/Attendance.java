@@ -20,7 +20,7 @@ public class Attendance {
 
   // Link to employee
   // EAGER fetch to avoid lazy proxy serialization errors in simple demo.
-  @ManyToOne(fetch = FetchType.EAGER)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "employee_id", nullable = false)
   @JsonIgnoreProperties({
     "hibernateLazyInitializer",

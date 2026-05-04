@@ -28,10 +28,14 @@ public class AttendanceRuleSchemaMigrator implements ApplicationRunner {
   }
 
   private boolean attendanceRuleTableExists() {
-    List<Map<String, Object>> rows =
-        jdbcTemplate.queryForList(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='attendance_rules'");
-    return !rows.isEmpty();
+    try {
+      List<Map<String, Object>> rows =
+          jdbcTemplate.queryForList(
+              "SELECT name FROM sqlite_master WHERE type='table' AND name='attendance_rules'");
+      return !rows.isEmpty();
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   private void addColumnIfNotExists(String table, String column, String type) {

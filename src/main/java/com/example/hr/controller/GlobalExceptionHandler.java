@@ -2,13 +2,6 @@ package com.example.hr.controller;
 
 import com.example.hr.dto.ErrorResponse;
 import com.example.hr.exception.BusinessException;
-import com.example.hr.exception.DuplicateResourceException;
-import com.example.hr.exception.EmployeeNotActiveException;
-import com.example.hr.exception.EmployeeNotFoundException;
-import com.example.hr.exception.FaceVerificationFailedException;
-import com.example.hr.exception.InvalidParameterException;
-import com.example.hr.exception.InvalidStateException;
-import com.example.hr.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -24,108 +17,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * 全局异常处理器 - 所有错误响应的唯一入口
- * 
- * 架构约束：
- * - 不要在其他地方直接写入错误响应到 response
- * - 所有错误统一使用 ErrorResponse 格式
- * - 认证和授权错误也通过此类处理
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-    @ExceptionHandler(EmployeeNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEmployeeNotFound(
-            EmployeeNotFoundException ex, HttpServletRequest request) {
-        log.warn("Employee not found: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse(
-            ex.getCode(),
-            ex.getMessage(),
-            LocalDateTime.now(),
-            request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, ex.getStatus());
-    }
-
-    @ExceptionHandler(EmployeeNotActiveException.class)
-    public ResponseEntity<ErrorResponse> handleEmployeeNotActive(
-            EmployeeNotActiveException ex, HttpServletRequest request) {
-        log.warn("Employee not active: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse(
-            ex.getCode(),
-            ex.getMessage(),
-            LocalDateTime.now(),
-            request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, ex.getStatus());
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(
-            ResourceNotFoundException ex, HttpServletRequest request) {
-        log.warn("Resource not found: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse(
-            ex.getCode(),
-            ex.getMessage(),
-            LocalDateTime.now(),
-            request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, ex.getStatus());
-    }
-
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateResource(
-            DuplicateResourceException ex, HttpServletRequest request) {
-        log.warn("Duplicate resource: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse(
-            ex.getCode(),
-            ex.getMessage(),
-            LocalDateTime.now(),
-            request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, ex.getStatus());
-    }
-
-    @ExceptionHandler(InvalidStateException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidState(
-            InvalidStateException ex, HttpServletRequest request) {
-        log.warn("Invalid state: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse(
-            ex.getCode(),
-            ex.getMessage(),
-            LocalDateTime.now(),
-            request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, ex.getStatus());
-    }
-
-    @ExceptionHandler(FaceVerificationFailedException.class)
-    public ResponseEntity<ErrorResponse> handleFaceVerificationFailed(
-            FaceVerificationFailedException ex, HttpServletRequest request) {
-        log.warn("Face verification failed: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse(
-            ex.getCode(),
-            ex.getMessage(),
-            LocalDateTime.now(),
-            request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, ex.getStatus());
-    }
-
-    @ExceptionHandler(InvalidParameterException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidParameter(
-            InvalidParameterException ex, HttpServletRequest request) {
-        log.warn("Invalid parameter: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse(
-            ex.getCode(),
-            ex.getMessage(),
-            LocalDateTime.now(),
-            request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, ex.getStatus());
-    }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(
@@ -179,7 +73,7 @@ public class GlobalExceptionHandler {
         log.error("Unhandled error", ex);
         ErrorResponse error = new ErrorResponse(
             "INTERNAL_ERROR",
-            "系统内部错误：" + ex.getClass().getSimpleName(),
+            "系统内部错误",
             LocalDateTime.now(),
             request.getRequestURI()
         );
