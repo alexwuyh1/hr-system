@@ -130,18 +130,6 @@ public class DataInitializer {
         fin.setLevel(2);
         organizationRepository.save(fin);
 
-        Organization p1 = new Organization();
-        p1.setName("人力资源经理");
-        p1.setType("岗位");
-        p1.setLevel(1);
-        organizationRepository.save(p1);
-
-        Organization p2 = new Organization();
-        p2.setName("软件工程师");
-        p2.setType("岗位");
-        p2.setLevel(1);
-        organizationRepository.save(p2);
-
         Organization g1 = new Organization();
         g1.setName("P3");
         g1.setType("职级");
@@ -153,6 +141,20 @@ public class DataInitializer {
         g2.setType("职级");
         g2.setLevel(4);
         organizationRepository.save(g2);
+
+        Organization p1 = new Organization();
+        p1.setName("人力资源经理");
+        p1.setType("岗位");
+        p1.setParent(hr);
+        p1.setGrade(g1);
+        organizationRepository.save(p1);
+
+        Organization p2 = new Organization();
+        p2.setName("软件工程师");
+        p2.setType("岗位");
+        p2.setParent(eng);
+        p2.setGrade(g2);
+        organizationRepository.save(p2);
       }
 
       if (employeeRepository.count() == 0) {
@@ -206,6 +208,7 @@ public class DataInitializer {
         permission.setMethod(method);
         permission.setPathPrefix(pathPrefix);
         permission.setMode(mode);
+        permission.setRoleMode("whitelist");
         permissionRepository.save(permission);
       }
     }
@@ -280,12 +283,17 @@ public class DataInitializer {
         Statement stmt = conn.createStatement()) {
       ResultSet rs = stmt.executeQuery("PRAGMA table_info(permissions)");
       boolean hasMode = false;
+      boolean hasRoleMode = false;
       while (rs.next()) {
         String name = rs.getString("name");
         if ("mode".equals(name)) hasMode = true;
+        if ("role_mode".equals(name)) hasRoleMode = true;
       }
       if (!hasMode) {
         stmt.execute("ALTER TABLE permissions ADD COLUMN mode TEXT DEFAULT 'allow'");
+      }
+      if (!hasRoleMode) {
+        stmt.execute("ALTER TABLE permissions ADD COLUMN role_mode TEXT DEFAULT 'whitelist'");
       }
     } catch (Exception ex) {
       ex.printStackTrace();

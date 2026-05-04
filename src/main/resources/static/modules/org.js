@@ -1,4 +1,16 @@
-let activeSubTab = "position";
+let activeOrgType = "position";
+
+const ORG_TYPE_CONFIG = {
+  position: { title: "岗位管理", type: "岗位", showTree: true },
+  dept: { title: "部门管理", type: "部门", showTree: false },
+  grade: { title: "职级管理", type: "职级", showTree: false },
+};
+
+const ORG_TABLE_HEADS = {
+  position: ["名称", "部门", "职级"],
+  dept: ["名称", "上级"],
+  grade: ["名称", "等级"],
+};
 
 function renderTree(nodes) {
   const ul = document.createElement("ul");
@@ -55,6 +67,7 @@ async function loadOrganizations() {
 
 function applyOrganizations(list, treeData, positionTreeData) {
   if (!list) return;
+
   const select = $("employee-org");
   if (select) {
     select.innerHTML = "";
@@ -66,78 +79,75 @@ function applyOrganizations(list, treeData, positionTreeData) {
     });
   }
 
-  const depts = list.filter(o => o.type === "部门");
-  const deptBody = $("dept-table").querySelector("tbody");
-  deptBody.innerHTML = "";
-  depts.forEach((o) => {
-    const row = buildRow(
-      [o.name, o.parent ? o.parent.name : "-"],
-      async () => {
-        await apiRequest(API.organizations.delete(o.id), { method: "DELETE" });
-        await loadOrganizations();
-      }
-    );
-    deptBody.appendChild(row);
-  });
+  const config = ORG_TYPE_CONFIG[activeOrgType];
+  const items = list.filter(o => o.type === config.type);
 
-  const positionTreeContainer = $("position-tree");
-  if (positionTreeContainer && positionTreeData) {
-    positionTreeContainer.innerHTML = "";
-    positionTreeContainer.appendChild(renderTree(positionTreeData));
+  const treeContainer = $("org-tree-container");
+  if (treeContainer) {
+    treeContainer.innerHTML = "";
+    if (config.showTree && positionTreeData) {
+      treeContainer.appendChild(renderTree(positionTreeData));
+    }
   }
 
-  const positions = list.filter(o => o.type === "岗位");
-  const posBody = $("position-table").querySelector("tbody");
-  posBody.innerHTML = "";
-  positions.forEach((o) => {
-    const row = buildRow(
-      [o.name, o.parent ? o.parent.name : "-", o.grade ? o.grade.name : "-"],
-      async () => {
-        await apiRequest(API.organizations.delete(o.id), { method: "DELETE" });
-        await loadOrganizations();
-      }
-    );
-    posBody.appendChild(row);
-  });
+  const head = $("org-table-head");
+  if (head) {
+    const ths = ORG_TABLE_HEADS[activeOrgType].map(h => `<th>${h}</th>`).join("") + "<th>操作</th>";
+    head.innerHTML = `<tr>${ths}</tr>`;
+  }
 
-  const grades = list.filter(o => o.type === "职级").sort((a, b) => (a.level || 0) - (b.level || 0));
-  const gradeBody = $("grade-table").querySelector("tbody");
-  gradeBody.innerHTML = "";
-  grades.forEach((o) => {
-    const row = buildRow(
-      [o.name, o.level || "-"],
-      async () => {
-        await apiRequest(API.organizations.delete(o.id), { method: "DELETE" });
-        await loadOrganizations();
-      }
-    );
-    gradeBody.appendChild(row);
+  const body = $("org-table").querySelector("tbody");
+  body.innerHTML = "";
+  items.forEach((o) => {
+    const cells = [];
+    cells.push(o.name);
+    if (activeOrgType === "position") {
+      cells.push(o.parent ? o.parent.name : "-");
+      cells.push(o.grade ? o.grade.name : "-");
+    } else if (activeOrgType === "dept") {
+      cells.push(o.parent ? o.parent.name : "-");
+    } else if (activeOrgType === "grade") {
+      cells.push(o.level || "-");
+    }
+
+    const row = buildRow(cells, async () => {
+      await apiRequest(API.organizations.delete(o.id), { method: "DELETE" });
+      await loadOrganizations();
+    });
+    body.appendChild(row);
   });
 }
 
+function switchOrgType(type) {
+  activeOrgType = type;
+  const config = ORG_TYPE_CONFIG[type];
+  $("org-type-title").textContent = config.title;
+
+  document.querySelectorAll("#org-type-list li").forEach(li => {
+    li.className = li.dataset.type === type ? "active" : "";
+  });
+
+  const list = initCache.organizations || [];
+  const treeData = initCache.organizationTree || [];
+  const positionTreeData = initCache.positionTree || [];
+  applyOrganizations(list, treeData, positionTreeData);
+}
+
 function initOrgConfigTab() {
-  const addBtn = $("dept-add-btn");
+  const addBtn = $("org-add-btn");
   if (addBtn) {
-    addBtn.onclick = () => openDeptModal();
-  }
-  const posAddBtn = $("position-add-btn");
-  if (posAddBtn) {
-    posAddBtn.onclick = () => openPositionModal();
-  }
-  const gradeAddBtn = $("grade-add-btn");
-  if (gradeAddBtn) {
-    gradeAddBtn.onclick = () => openGradeModal();
+    addBtn.onclick = () => {
+      if (activeOrgType === "position") openPositionModal();
+      else if (activeOrgType === "dept") openDeptModal();
+      else openGradeModal();
+    };
   }
 
-  document.querySelectorAll("[data-subtab]").forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll("[data-subtab]").forEach(b => b.classList.remove("active"));
-      document.querySelectorAll(".sub-content").forEach(c => c.classList.remove("active"));
-      btn.classList.add("active");
-      $(`subtab-${btn.dataset.subtab}`).classList.add("active");
-      activeSubTab = btn.dataset.subtab;
-    };
+  document.querySelectorAll("#org-type-list li").forEach(li => {
+    li.onclick = () => switchOrgType(li.dataset.type);
   });
+
+  switchOrgType("position");
 }
 
 function openDeptModal() {
@@ -193,8 +203,8 @@ function openPositionModal() {
     `
       <form id="modal-position-form">
         <label>名称 <input id="modal-position-name" required placeholder="输入岗位名称"></label>
-        <label>所属部门 <select id="modal-position-dept"><option value="">无</option>${deptOptions}</select></label>
-        <label>职级 <select id="modal-position-grade"><option value="">无</option>${gradeOptions}</select></label>
+        <label>所属部门 <select id="modal-position-dept" required>${deptOptions}</select></label>
+        <label>职级 <select id="modal-position-grade" required>${gradeOptions}</select></label>
       </form>
     `,
     async () => {
@@ -205,13 +215,21 @@ function openPositionModal() {
         alert("请输入名称");
         return;
       }
+      if (!deptId) {
+        alert("请选择所属部门");
+        return;
+      }
+      if (!gradeId) {
+        alert("请选择职级");
+        return;
+      }
       await apiRequest(API.organizations.create, {
         method: "POST",
         body: JSON.stringify({
           name,
           type: "岗位",
-          parentId: deptId ? Number(deptId) : null,
-          gradeId: gradeId ? Number(gradeId) : null,
+          parentId: Number(deptId),
+          gradeId: Number(gradeId),
           level: null
         }),
       });

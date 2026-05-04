@@ -13,8 +13,6 @@ const API = {
   },
   attendanceRules: {
     get: "/attendance-rules", update: "/attendance-rules",
-    calculate: (date) => `/attendance-rules/calculate?date=${date}`,
-    calculateRange: (start, end) => `/attendance-rules/calculate-range?start=${start}&end=${end}`,
   },
   salaries: {
     list: "/salaries", create: "/salaries",
@@ -24,7 +22,7 @@ const API = {
     list: "/organizations", tree: "/organizations/tree", positionTree: "/organizations/position-tree", create: "/organizations",
     update: (id) => `/organizations/${id}`, delete: (id) => `/organizations/${id}`,
   },
-  permissions: { list: "/permissions", roles: "/permissions/roles", create: "/permissions", update: (id) => `/permissions/${id}`, delete: (id) => `/permissions/${id}` },
+  permissions: { list: "/permissions", roles: "/permissions/roles", create: "/permissions", createRole: "/permissions/role", update: (id) => `/permissions/${id}`, delete: (id) => `/permissions/${id}` },
   users: { list: "/users", me: "/users/me" },
   data: { export: (type, format) => `/data/export/${type}?format=${format}`, import: (type) => `/data/import/${type}` },
   init: "/init",

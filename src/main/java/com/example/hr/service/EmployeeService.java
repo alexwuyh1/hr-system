@@ -102,16 +102,13 @@ public class EmployeeService {
         employee.setHireDate(request.hireDate);
         employee.setStatus(request.status);
 
-        if (request.orgId != null) {
-            Organization org = organizationRepository.findById(request.orgId)
-                .orElseThrow(() -> new ResourceNotFoundException("组织", request.orgId));
-            employee.setOrgRef(org);
-        }
-
         if (request.positionId != null) {
             Organization position = organizationRepository.findById(request.positionId)
                 .orElseThrow(() -> new ResourceNotFoundException("岗位", request.positionId));
             employee.setPositionRef(position);
+            if (position.getParent() != null) {
+                employee.setOrgRef(position.getParent());
+            }
         } else {
             employee.setPositionRef(null);
         }

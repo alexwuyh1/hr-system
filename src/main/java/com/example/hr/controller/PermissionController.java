@@ -9,10 +9,6 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Permission management endpoints.
- * Only 管理员 can access these endpoints (enforced by AuthInterceptor).
- */
 @RestController
 @RequestMapping("/api/permissions")
 public class PermissionController {
@@ -30,17 +26,19 @@ public class PermissionController {
   }
 
   @GetMapping("/roles")
-  public List<String> listRoles() {
-    return permissionRepository.findDistinctRoles();
+  public List<Map<String, String>> listRoles() {
+    return permissionService.listRolesWithMode();
   }
 
   @PostMapping
   public Permission create(@Valid @RequestBody PermissionRequest request) {
-    Permission permission = new Permission();
-    permission.setRole(request.role);
-    permission.setMethod(request.method);
-    permission.setPathPrefix(request.pathPrefix);
-    return permissionService.create(permission);
+    return permissionService.createPermission(request.role, request.method, request.pathPrefix);
+  }
+
+  @PostMapping("/role")
+  public Map<String, Object> createRole(@Valid @RequestBody RoleRequest request) {
+    permissionService.createRoleWithMode(request.role, request.roleMode);
+    return Map.of("message", "Role created", "role", request.role, "roleMode", request.roleMode);
   }
 
   @PutMapping("/{id}")
@@ -62,5 +60,10 @@ public class PermissionController {
     @NotBlank public String role;
     @NotBlank public String method;
     @NotBlank public String pathPrefix;
+  }
+
+  public static class RoleRequest {
+    @NotBlank public String role;
+    @NotBlank public String roleMode;
   }
 }

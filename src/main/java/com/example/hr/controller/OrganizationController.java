@@ -96,26 +96,24 @@ public class OrganizationController {
       org.setGrade(null);
     } else if ("岗位".equals(request.type)) {
       org.setLevel(null);
-      if (request.parentId != null) {
-        Organization dept = organizationRepository.findById(request.parentId)
-            .orElseThrow(() -> new IllegalArgumentException("部门不存在"));
-        if (!"部门".equals(dept.getType())) {
-          throw new IllegalArgumentException("岗位所属的必须是部门类型");
-        }
-        org.setParent(dept);
-      } else {
-        org.setParent(null);
+      if (request.parentId == null) {
+        throw new IllegalArgumentException("岗位必须关联部门");
       }
-      if (request.gradeId != null) {
-        Organization grade = organizationRepository.findById(request.gradeId)
-            .orElseThrow(() -> new IllegalArgumentException("职级不存在"));
-        if (!"职级".equals(grade.getType())) {
-          throw new IllegalArgumentException("关联的必须是职级类型");
-        }
-        org.setGrade(grade);
-      } else {
-        org.setGrade(null);
+      Organization dept = organizationRepository.findById(request.parentId)
+          .orElseThrow(() -> new IllegalArgumentException("部门不存在"));
+      if (!"部门".equals(dept.getType())) {
+        throw new IllegalArgumentException("岗位所属的必须是部门类型");
       }
+      org.setParent(dept);
+      if (request.gradeId == null) {
+        throw new IllegalArgumentException("岗位必须关联职级");
+      }
+      Organization grade = organizationRepository.findById(request.gradeId)
+          .orElseThrow(() -> new IllegalArgumentException("职级不存在"));
+      if (!"职级".equals(grade.getType())) {
+        throw new IllegalArgumentException("关联的必须是职级类型");
+      }
+      org.setGrade(grade);
     } else if ("职级".equals(request.type)) {
       org.setParent(null);
       org.setGrade(null);

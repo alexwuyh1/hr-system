@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS permissions (
   method TEXT NOT NULL,
   path_prefix TEXT NOT NULL,
   mode TEXT DEFAULT 'allow',
+  role_mode TEXT,
   UNIQUE(role, method, path_prefix, mode)
 );
 

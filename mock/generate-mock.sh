@@ -43,9 +43,9 @@ AUTH() { echo "Authorization: Bearer $TOKEN"; }
 
 section() { echo -e "\n${YELLOW}=== $1 ===${NC}"; }
 
-# 创建组织（部门+岗位）
+# 创建组织（部门+职级+岗位）
 create_organizations() {
-  section "创建组织（部门+岗位）"
+  section "创建组织（部门+职级+岗位）"
   local dept_names=("${PREFIX}研发部${SUFFIX}" "${PREFIX}市场部${SUFFIX}" "${PREFIX}人事部${SUFFIX}")
   for name in "${dept_names[@]}"; do
     local resp
@@ -62,14 +62,32 @@ create_organizations() {
     fi
   done
 
+  local grade_names=("${PREFIX}P3${SUFFIX}" "${PREFIX}P4${SUFFIX}")
+  for name in "${grade_names[@]}"; do
+    local resp
+    resp=$(curl -s -X POST "$BASE_URL/api/organizations" \
+      -H "$(AUTH)" -H "Content-Type: application/json" \
+      -d "{\"name\":\"$name\",\"type\":\"职级\"}")
+    local id
+    id=$(extract_id "$resp")
+    if [ -n "$id" ]; then
+      success "创建职级: $name (ID: $id)"
+      record_id "grade:$id"
+    else
+      error "创建职级失败: $name - $resp"
+    fi
+  done
+
   local dept_id
   dept_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^dept:" | head -1 | cut -d: -f2)
+  local grade_id
+  grade_id=$(echo "$CREATED_IDS" | tr ' ' '\n' | grep "^grade:" | head -1 | cut -d: -f2)
   local pos_names=("${PREFIX}工程师${SUFFIX}" "${PREFIX}经理${SUFFIX}")
   for name in "${pos_names[@]}"; do
     local resp
     resp=$(curl -s -X POST "$BASE_URL/api/organizations" \
       -H "$(AUTH)" -H "Content-Type: application/json" \
-      -d "{\"name\":\"$name\",\"type\":\"岗位\",\"parentId\":$dept_id}")
+      -d "{\"name\":\"$name\",\"type\":\"岗位\",\"parentId\":$dept_id,\"gradeId\":$grade_id}")
     local id
     id=$(extract_id "$resp")
     if [ -n "$id" ]; then

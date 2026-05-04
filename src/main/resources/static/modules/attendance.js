@@ -44,11 +44,6 @@ function getAttendanceFormHTML(data = {}) {
     <form id="modal-attendance-form">
       <input type="hidden" name="id" value="${data.id || ''}">
       <label>员工 <select name="employeeId" required><option value="">请选择在职员工</option>${employeeOptions}</select></label>
-      <label>日期 <input name="workDate" type="date" value="${data.workDate || ''}" required></label>
-      <div class="form-grid-2">
-        <label>签到时间 <input name="checkIn" type="time" value="${data.checkIn || ''}"></label>
-        <label>签退时间 <input name="checkOut" type="time" value="${data.checkOut || ''}"></label>
-      </div>
       <label>备注 <input name="note" value="${data.note || ''}" placeholder="备注（可选）"></label>
     </form>
   `;
@@ -56,25 +51,18 @@ function getAttendanceFormHTML(data = {}) {
 
 function openCreateAttendanceModal() {
   openModal(
-    '新增考勤记录',
+    '手动打卡',
     getAttendanceFormHTML(),
     async (formData) => {
       formData.employeeId = Number(formData.employeeId);
-      formData.checkIn = normalizeEmptyToNull(formData.checkIn);
-      formData.checkOut = normalizeEmptyToNull(formData.checkOut);
       formData.note = normalizeEmptyToNull(formData.note);
-      const error = validateAttendancePayload(formData);
-      if (error) {
-        alert(error);
-        return;
-      }
       await apiRequest(API.attendance.create, {
         method: "POST",
         body: JSON.stringify(formData),
       });
       await loadAttendance();
     },
-    { submitText: '保存' }
+    { submitText: '打卡' }
   );
 }
 
@@ -84,14 +72,7 @@ function openEditAttendanceModal(record) {
     getAttendanceFormHTML(record),
     async (formData) => {
       formData.employeeId = Number(formData.employeeId);
-      formData.checkIn = normalizeEmptyToNull(formData.checkIn);
-      formData.checkOut = normalizeEmptyToNull(formData.checkOut);
       formData.note = normalizeEmptyToNull(formData.note);
-      const error = validateAttendancePayload(formData);
-      if (error) {
-        alert(error);
-        return;
-      }
       await apiRequest(API.attendance.update(record.id), {
         method: "PUT",
         body: JSON.stringify(formData),
@@ -147,12 +128,6 @@ function openAttendanceRulesModal() {
           <label>迟到宽限(分钟) <input id="modal-rule-late" type="number" value="${rule.lateGraceMinutes ?? 10}"></label>
           <label>旷工阈值(分钟) <input id="modal-rule-absent" type="number" value="${rule.absentThresholdMinutes ?? 240}"></label>
         </div>
-        <h4>计算功能</h4>
-        <div class="form-grid-2">
-          <label>单日计算日期 <input id="modal-rule-date" type="date"></label>
-          <label>区间计算开始 <input id="modal-rule-range-start" type="date"></label>
-        </div>
-        <label>区间计算结束 <input id="modal-rule-range-end" type="date"></label>
       </form>
     `,
     async () => {
@@ -166,18 +141,6 @@ function openAttendanceRulesModal() {
         method: "PUT",
         body: JSON.stringify(body),
       });
-
-      const date = $("modal-rule-date").value;
-      if (date) {
-        await apiRequest(API.attendanceRules.calculate(date), { method: "POST" });
-      }
-
-      const start = $("modal-rule-range-start").value;
-      const end = $("modal-rule-range-end").value;
-      if (start && end) {
-        await apiRequest(API.attendanceRules.calculateRange(start, end), { method: "POST" });
-      }
-
       await loadAttendance();
     },
     { submitText: '保存' }
@@ -261,62 +224,6 @@ function openFaceVerifyModal() {
     },
     { submitText: '验证' }
   );
-}
-
-function initAttendanceRules() {
-  const ruleSaveBtn = $("rule-save");
-  if (ruleSaveBtn) {
-    ruleSaveBtn.addEventListener("click", async () => {
-      const late = Number($("rule-late").value);
-      if (Number.isNaN(late)) {
-        alert("请输入有效数字");
-        return;
-      }
-      const body = {
-        workStartTime: $("rule-start-time").value || "09:00",
-        workEndTime: $("rule-end-time").value || "18:00",
-        lateGraceMinutes: late,
-        absentThresholdMinutes: Number($("rule-absent").value) || 240,
-      };
-      const result = await apiRequest(API.attendanceRules.update, {
-        method: "PUT",
-        body: JSON.stringify(body),
-      });
-      $("rule-result").textContent = `规则已保存：上班 ${result.workStartTime}-${result.workEndTime}，迟到宽限 ${result.lateGraceMinutes} 分钟`;
-    });
-  }
-
-  const ruleCalcBtn = $("rule-calc");
-  if (ruleCalcBtn) {
-    ruleCalcBtn.addEventListener("click", async () => {
-      const date = $("rule-date").value;
-      if (!date) {
-        alert("请选择日期");
-        return;
-      }
-      const result = await apiRequest(API.attendanceRules.calculate(date), { method: "POST" });
-      $("rule-result").textContent = `已计算 ${date}，更新 ${result.updated} 条记录`;
-      await loadAttendance();
-    });
-  }
-
-  const ruleCalcRangeBtn = $("rule-calc-range");
-  if (ruleCalcRangeBtn) {
-    ruleCalcRangeBtn.addEventListener("click", async () => {
-      const start = $("rule-start").value;
-      const end = $("rule-end").value;
-      if (!start || !end) {
-        alert("请选择起止日期");
-        return;
-      }
-      const result = await apiRequest(
-        API.attendanceRules.calculateRange(start, end),
-        { method: "POST" }
-      );
-      $("rule-result").textContent = `已计算 ${start} 到 ${end}，更新 ${result.updated} 条记录`;
-      await loadAttendance();
-    });
-  }
 }
 
 async function loadAttendanceRule() {

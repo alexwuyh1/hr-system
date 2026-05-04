@@ -3,13 +3,12 @@ package com.example.hr.service;
 import com.example.hr.dto.AttendanceRequest;
 import com.example.hr.exception.EmployeeNotActiveException;
 import com.example.hr.exception.EmployeeNotFoundException;
-import com.example.hr.exception.InvalidParameterException;
-import com.example.hr.exception.InvalidStateException;
 import com.example.hr.exception.ResourceNotFoundException;
 import com.example.hr.model.Attendance;
 import com.example.hr.model.Employee;
 import com.example.hr.repository.AttendanceRepository;
 import com.example.hr.repository.EmployeeRepository;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -20,15 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
-    private final AttendanceRuleEngineService attendanceRuleEngineService;
 
     public AttendanceService(
             AttendanceRepository attendanceRepository, 
-            EmployeeRepository employeeRepository,
-            AttendanceRuleEngineService attendanceRuleEngineService) {
+            EmployeeRepository employeeRepository) {
         this.attendanceRepository = attendanceRepository;
         this.employeeRepository = employeeRepository;
-        this.attendanceRuleEngineService = attendanceRuleEngineService;
     }
 
     public List<Attendance> list() {
@@ -39,9 +35,7 @@ public class AttendanceService {
     public Attendance create(AttendanceRequest request) {
         Attendance attendance = new Attendance();
         apply(attendance, request);
-        attendance = attendanceRepository.save(attendance);
-        attendanceRuleEngineService.computeSingle(attendance);
-        return attendance;
+        return attendanceRepository.save(attendance);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -49,9 +43,7 @@ public class AttendanceService {
         Attendance attendance = attendanceRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("考勤记录", id));
         apply(attendance, request);
-        attendance = attendanceRepository.save(attendance);
-        attendanceRuleEngineService.computeSingle(attendance);
-        return attendance;
+        return attendanceRepository.save(attendance);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -67,21 +59,13 @@ public class AttendanceService {
             throw new EmployeeNotActiveException(request.employeeId);
         }
         
-        validateTimes(request.checkIn, request.checkOut);
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
         
         attendance.setEmployee(employee);
-        attendance.setWorkDate(request.workDate);
-        attendance.setCheckIn(request.checkIn);
-        attendance.setCheckOut(request.checkOut);
+        attendance.setWorkDate(today);
+        attendance.setCheckIn(now);
+        attendance.setCheckOut(null);
         attendance.setNote(request.note);
-    }
-
-    private void validateTimes(LocalTime checkIn, LocalTime checkOut) {
-        if (checkOut != null && checkIn == null) {
-            throw new InvalidParameterException("checkIn", "签退需要先填写签到时间");
-        }
-        if (checkIn != null && checkOut != null && checkOut.isBefore(checkIn)) {
-            throw new InvalidParameterException("checkOut", "签退时间不能早于签到时间");
-        }
     }
 }

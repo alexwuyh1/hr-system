@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 /**
  * Permission rule: role + HTTP method + path prefix + mode (allow/deny).
+ * roleMode: blacklist (default deny, entries are deny rules) or whitelist (default allow, entries are allow rules).
  */
 @Entity
 @Table(name = "permissions")
@@ -23,6 +24,9 @@ public class Permission {
 
   @Column(nullable = false)
   private String mode = "allow";
+
+  @Column(name = "role_mode")
+  private String roleMode;
 
   public Long getId() {
     return id;
@@ -58,5 +62,13 @@ public class Permission {
 
   public void setMode(String mode) {
     this.mode = mode;
+  }
+
+  public String getRoleMode() {
+    return roleMode;
+  }
+
+  public void setRoleMode(String roleMode) {
+    this.roleMode = roleMode;
   }
 }

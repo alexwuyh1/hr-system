@@ -16,7 +16,6 @@ async function loadInit() {
   applyAttendanceRule(init.attendanceRule);
   applyOrganizations(init.organizations);
   applyRoles(init.roles);
-  applyPermissions(init.permissions);
 }
 
 window.addEventListener("DOMContentLoaded", async () => {

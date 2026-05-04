@@ -1,8 +1,6 @@
 package com.example.hr.dto;
 
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 /**
  * Request payload for attendance records.
@@ -10,9 +8,5 @@ import java.time.LocalTime;
 public class AttendanceRequest {
   @NotNull
   public Long employeeId;
-  @NotNull
-  public LocalDate workDate;
-  public LocalTime checkIn;
-  public LocalTime checkOut;
   public String note;
 }

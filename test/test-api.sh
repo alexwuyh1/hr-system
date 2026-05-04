@@ -71,9 +71,14 @@ else
   fail "创建组织" "$ORG_RESP"
 fi
 
+GRADE_RESP=$(curl -s -X POST "$BASE_URL/api/organizations" \
+  -H "$AUTH_HEADER" -H "Content-Type: application/json" \
+  -d '{"name":"测试P3","type":"职级","level":3}')
+GRADE_ID=$(echo "$GRADE_RESP" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
+
 POS_RESP=$(curl -s -X POST "$BASE_URL/api/organizations" \
   -H "$AUTH_HEADER" -H "Content-Type: application/json" \
-  -d "{\"name\":\"测试岗位\",\"type\":\"岗位\",\"parentId\":${ORG_ID:-null}}")
+  -d "{\"name\":\"测试岗位\",\"type\":\"岗位\",\"parentId\":${ORG_ID:-null},\"gradeId\":${GRADE_ID:-null}}")
 POS_ID=$(echo "$POS_RESP" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
 if [ -n "$POS_ID" ]; then
   pass "创建岗位成功 (ID: $POS_ID)"
@@ -228,6 +233,16 @@ fi
 if [ -n "$ORG_ID" ]; then
   curl -s -X DELETE "$BASE_URL/api/organizations/$ORG_ID" -H "$AUTH_HEADER" > /dev/null
   pass "删除测试组织"
+fi
+
+if [ -n "$GRADE_ID" ]; then
+  curl -s -X DELETE "$BASE_URL/api/organizations/$GRADE_ID" -H "$AUTH_HEADER" > /dev/null
+  pass "删除测试职级"
+fi
+
+if [ -n "$POS_ID" ]; then
+  curl -s -X DELETE "$BASE_URL/api/organizations/$POS_ID" -H "$AUTH_HEADER" > /dev/null
+  pass "删除测试岗位"
 fi
 
 # ==================== 汇总 ====================

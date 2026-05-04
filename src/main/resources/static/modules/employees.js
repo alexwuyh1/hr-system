@@ -112,12 +112,6 @@ function getEmployeeFormHTML(data = {}) {
       `<option value="${e.id}" ${data.managerId === e.id ? 'selected' : ''}>${e.employeeNo} - ${e.name}</option>`
     ).join('');
 
-  const dept = data.orgId ? (initCache.organizations || []).find(o => o.id === data.orgId)?.name || '' : '';
-  const grade = data.positionId ? (() => {
-    const pos = (initCache.organizations || []).find(o => o.id === data.positionId);
-    return pos?.grade?.name || '';
-  })() : '';
-
   return `
     <form id="modal-employee-form">
       <input type="hidden" name="id" value="${data.id || ''}">
@@ -127,10 +121,6 @@ function getEmployeeFormHTML(data = {}) {
       </div>
       <div class="form-grid-2">
         <label>岗位 <select name="positionId" required><option value="">请选择岗位</option>${positionOptions}</select></label>
-        <label>部门 <input name="departmentName" value="${dept}" readonly></label>
-      </div>
-      <div class="form-grid-2">
-        <label>职级 <input name="gradeName" value="${grade}" readonly></label>
         <label>入职日期 <input name="hireDate" type="date" value="${data.hireDate || ''}" required></label>
       </div>
       <div class="form-grid-2">
@@ -150,12 +140,6 @@ function openCreateEmployeeModal() {
       formData.positionId = Number(formData.positionId);
       formData.managerId = formData.managerId ? Number(formData.managerId) : null;
       formData.status = "在职";
-      
-      const pos = (initCache.organizations || []).find(o => o.id === formData.positionId);
-      if (pos && pos.parent) {
-        formData.orgId = pos.parent.id;
-      }
-
       await apiRequest(API.employees.create, {
         method: "POST",
         body: JSON.stringify(formData),
@@ -174,12 +158,6 @@ function openEditEmployeeModal(employee) {
       formData.id = employee.id;
       formData.positionId = Number(formData.positionId);
       formData.managerId = formData.managerId ? Number(formData.managerId) : null;
-      
-      const pos = (initCache.organizations || []).find(o => o.id === formData.positionId);
-      if (pos && pos.parent) {
-        formData.orgId = pos.parent.id;
-      }
-
       await apiRequest(API.employees.update(employee.id), {
         method: "PUT",
         body: JSON.stringify(formData),
