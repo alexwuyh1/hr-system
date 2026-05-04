@@ -11,6 +11,7 @@ import jakarta.persistence.*;
 public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(columnDefinition = "INTEGER")
   private Long id;
 
   // Unique login name
@@ -26,7 +27,7 @@ public class User {
   private String role;
 
   // Record creation timestamp (epoch millis for SQLite compatibility)
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, columnDefinition = "INTEGER")
   private Long createdAt;
 
   public Long getId() {

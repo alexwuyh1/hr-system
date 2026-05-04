@@ -15,6 +15,7 @@ import java.time.LocalTime;
 public class Attendance {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(columnDefinition = "INTEGER")
   private Long id;
 
   // Link to employee

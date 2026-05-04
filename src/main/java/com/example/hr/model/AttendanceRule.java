@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 public class AttendanceRule {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(columnDefinition = "INTEGER")
   private Long id;
 
   @Column(name = "work_start_time")

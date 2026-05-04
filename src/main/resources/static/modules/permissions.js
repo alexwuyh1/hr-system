@@ -36,9 +36,14 @@ function selectRole(role, roleMode) {
   renderPermissions(perms);
 }
 
+function getModeLabel(roleMode) {
+  return roleMode === "blacklist" ? "禁止" : "允许";
+}
+
 function renderPermissions(perms) {
   const body = $("perm-table").querySelector("tbody");
   body.innerHTML = "";
+  const modeLabel = getModeLabel(selectedRoleMode);
   perms.forEach((p) => {
     const row = document.createElement("tr");
     const td1 = document.createElement("td");
@@ -48,9 +53,8 @@ function renderPermissions(perms) {
     td2.textContent = p.pathPrefix;
     row.appendChild(td2);
     const td3 = document.createElement("td");
-    const modeClass = p.mode === 'deny' ? 'mode-deny' : 'mode-allow';
-    const modeText = p.mode === 'deny' ? '禁止' : '允许';
-    td3.innerHTML = `<span class="${modeClass}">${modeText}</span>`;
+    const modeClass = selectedRoleMode === "blacklist" ? "mode-deny" : "mode-allow";
+    td3.innerHTML = `<span class="${modeClass}">${modeLabel}</span>`;
     row.appendChild(td3);
     const td4 = document.createElement("td");
     const deleteBtn = document.createElement("button");
@@ -68,11 +72,7 @@ function renderPermissions(perms) {
 
 function confirmDeleteRole(name) {
   showConfirm(`确定要删除角色"${name}"吗？这将同时删除该角色的所有权限规则。`, async () => {
-    const perms = initCache.permissions || [];
-    const toDelete = perms.filter(p => p.role === name);
-    for (const p of toDelete) {
-      await apiRequest(API.permissions.delete(p.id), { method: "DELETE" });
-    }
+    await apiRequest(`/permissions/role/${encodeURIComponent(name)}`, { method: "DELETE" });
     selectedRole = null;
     selectedRoleMode = null;
     $("selected-role-name").textContent = "请选择角色";
@@ -141,7 +141,7 @@ async function loadPermissions() {
 }
 
 function openPermissionModal() {
-  const modeLabel = selectedRoleMode === "blacklist" ? "禁止" : "允许";
+  const modeLabel = getModeLabel(selectedRoleMode);
   openModal(
     '新增权限',
     `

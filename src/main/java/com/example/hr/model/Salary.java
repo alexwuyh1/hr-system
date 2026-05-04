@@ -12,6 +12,7 @@ import jakarta.persistence.*;
 public class Salary {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(columnDefinition = "INTEGER")
   private Long id;
 
   // EAGER fetch to avoid lazy proxy serialization errors in simple demo.

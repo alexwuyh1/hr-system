@@ -1,7 +1,9 @@
 package com.example.hr.service;
 
 import com.example.hr.model.Permission;
+import com.example.hr.model.RoleConfig;
 import com.example.hr.repository.PermissionRepository;
+import com.example.hr.repository.RoleConfigRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -10,9 +12,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class PermissionService {
   private final PermissionRepository permissionRepository;
+  private final RoleConfigRepository roleConfigRepository;
 
-  public PermissionService(PermissionRepository permissionRepository) {
+  public PermissionService(
+      PermissionRepository permissionRepository,
+      RoleConfigRepository roleConfigRepository) {
     this.permissionRepository = permissionRepository;
+    this.roleConfigRepository = roleConfigRepository;
   }
 
   public List<Permission> list() {
@@ -20,55 +26,54 @@ public class PermissionService {
   }
 
   public List<Map<String, String>> listRolesWithMode() {
-    List<Permission> all = permissionRepository.findAll();
-    return all.stream()
-        .collect(Collectors.groupingBy(
-            Permission::getRole,
-            Collectors.mapping(Permission::getRoleMode, Collectors.toList())
-        ))
-        .entrySet().stream()
-        .filter(e -> !e.getKey().equals("管理员"))
-        .map(e -> Map.of(
-            "name", e.getKey(),
-            "role", e.getKey(),
-            "roleMode", e.getValue().stream().filter(m -> m != null).findFirst().orElse("whitelist")
+    return roleConfigRepository.findAll().stream()
+        .filter(rc -> !"管理员".equals(rc.getRole()))
+        .map(rc -> Map.of(
+            "name", rc.getRole(),
+            "role", rc.getRole(),
+            "roleMode", rc.getRoleMode()
         ))
         .collect(Collectors.toList());
   }
 
   public void createRoleWithMode(String role, String roleMode) {
-    String mode = "blacklist".equals(roleMode) ? "deny" : "allow";
-    Permission permission = new Permission();
-    permission.setRole(role);
-    permission.setMethod("GET");
-    permission.setPathPrefix("/api/dashboard");
-    permission.setMode(mode);
-    permission.setRoleMode(roleMode);
-    permissionRepository.save(permission);
+    if (!"whitelist".equals(roleMode) && !"blacklist".equals(roleMode)) {
+      throw new IllegalArgumentException("权限模式必须是 whitelist 或 blacklist");
+    }
+    if (roleConfigRepository.existsByRole(role)) {
+      throw new IllegalArgumentException("角色已存在");
+    }
+    RoleConfig rc = new RoleConfig();
+    rc.setRole(role);
+    rc.setRoleMode(roleMode);
+    roleConfigRepository.save(rc);
   }
 
   public Permission createPermission(String role, String method, String pathPrefix) {
-    String roleMode = getRoleMode(role);
-    String mode = "blacklist".equals(roleMode) ? "deny" : "allow";
+    RoleConfig rc = roleConfigRepository.findByRole(role)
+        .orElseThrow(() -> new IllegalArgumentException("角色不存在，请先创建角色"));
+
+    if (permissionRepository.existsByRoleAndMethodAndPathPrefix(role, method, pathPrefix)) {
+      throw new IllegalArgumentException("权限规则已存在");
+    }
 
     Permission permission = new Permission();
     permission.setRole(role);
     permission.setMethod(method);
     permission.setPathPrefix(pathPrefix);
-    permission.setMode(mode);
-    permission.setRoleMode(roleMode);
     return permissionRepository.save(permission);
   }
 
-  public Permission update(Long id, Permission permission) {
+  public Permission update(Long id, String role, String method, String pathPrefix) {
     Permission existing = permissionRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Permission not found"));
-    existing.setRole(permission.getRole());
-    existing.setMethod(permission.getMethod());
-    existing.setPathPrefix(permission.getPathPrefix());
-    String roleMode = getRoleMode(permission.getRole());
-    existing.setMode("blacklist".equals(roleMode) ? "deny" : "allow");
-    existing.setRoleMode(roleMode);
+        .orElseThrow(() -> new IllegalArgumentException("权限规则不存在"));
+
+    RoleConfig rc = roleConfigRepository.findByRole(role)
+        .orElseThrow(() -> new IllegalArgumentException("角色不存在"));
+
+    existing.setRole(role);
+    existing.setMethod(method);
+    existing.setPathPrefix(pathPrefix);
     return permissionRepository.save(existing);
   }
 
@@ -76,11 +81,16 @@ public class PermissionService {
     permissionRepository.deleteById(id);
   }
 
-  private String getRoleMode(String role) {
+  public void deleteRole(String role) {
     List<Permission> perms = permissionRepository.findByRole(role);
-    if (perms.isEmpty()) return "whitelist";
-    String mode = perms.get(0).getRoleMode();
-    return mode != null ? mode : "whitelist";
+    permissionRepository.deleteAll(perms);
+    roleConfigRepository.findByRole(role).ifPresent(roleConfigRepository::delete);
+  }
+
+  public String getRoleMode(String role) {
+    return roleConfigRepository.findByRole(role)
+        .map(RoleConfig::getRoleMode)
+        .orElse("whitelist");
   }
 
   public boolean isAllowed(String role, String method, String path) {
@@ -89,15 +99,15 @@ public class PermissionService {
     String roleMode = getRoleMode(role);
 
     if ("blacklist".equals(roleMode)) {
-      List<Permission> denyRules = permissionRepository.findByRoleAndMethodAndMode(role, method, "deny");
-      for (Permission p : denyRules) {
+      List<Permission> rules = permissionRepository.findByRoleAndMethod(role, method);
+      for (Permission p : rules) {
         if (path.startsWith(p.getPathPrefix())) return false;
       }
       return true;
     }
 
-    List<Permission> allowRules = permissionRepository.findByRoleAndMethodAndMode(role, method, "allow");
-    for (Permission p : allowRules) {
+    List<Permission> rules = permissionRepository.findByRoleAndMethod(role, method);
+    for (Permission p : rules) {
       if (path.startsWith(p.getPathPrefix())) return true;
     }
 

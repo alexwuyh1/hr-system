@@ -9,6 +9,7 @@ import java.time.LocalDate;
 public class Employee {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(columnDefinition = "INTEGER")
   private Long id;
 
   @Column(name = "employee_no", nullable = false, unique = true)

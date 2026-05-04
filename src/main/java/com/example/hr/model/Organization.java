@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 public class Organization {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(columnDefinition = "INTEGER")
   private Long id;
 
   @Column(nullable = false)

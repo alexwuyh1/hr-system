@@ -1,4 +1,6 @@
--- Users table: store login credentials and role.
+-- V1__init.sql
+-- 初始表结构
+
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE,
@@ -7,7 +9,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at INTEGER NOT NULL
 );
 
--- Employee master data.
 CREATE TABLE IF NOT EXISTS employees (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   employee_no TEXT NOT NULL UNIQUE,
@@ -26,7 +27,6 @@ CREATE TABLE IF NOT EXISTS employees (
   FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL
 );
 
--- Attendance records per employee and date.
 CREATE TABLE IF NOT EXISTS attendance (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   employee_id INTEGER NOT NULL,
@@ -39,7 +39,6 @@ CREATE TABLE IF NOT EXISTS attendance (
   FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
--- Salary records per employee and month.
 CREATE TABLE IF NOT EXISTS salaries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   employee_id INTEGER NOT NULL,
@@ -51,7 +50,6 @@ CREATE TABLE IF NOT EXISTS salaries (
   FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
--- Attendance rule config (single row)
 CREATE TABLE IF NOT EXISTS attendance_rules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   work_start_time TEXT,
@@ -60,7 +58,6 @@ CREATE TABLE IF NOT EXISTS attendance_rules (
   absent_threshold_minutes INTEGER
 );
 
--- Organization table (merged department/position/grade)
 CREATE TABLE IF NOT EXISTS organizations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
@@ -72,7 +69,6 @@ CREATE TABLE IF NOT EXISTS organizations (
   FOREIGN KEY (grade_id) REFERENCES organizations(id) ON DELETE SET NULL
 );
 
--- Permission rules: which role can access which endpoint.
 CREATE TABLE IF NOT EXISTS permissions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   role TEXT NOT NULL,
@@ -82,13 +78,3 @@ CREATE TABLE IF NOT EXISTS permissions (
   role_mode TEXT,
   UNIQUE(role, method, path_prefix, mode)
 );
-
--- Indexes for query performance
-CREATE INDEX IF NOT EXISTS idx_employees_status ON employees(status);
-CREATE INDEX IF NOT EXISTS idx_employees_org ON employees(org_id);
-CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance(work_date);
-CREATE INDEX IF NOT EXISTS idx_attendance_status ON attendance(status);
-CREATE INDEX IF NOT EXISTS idx_salaries_month ON salaries(salary_month);
-CREATE INDEX IF NOT EXISTS idx_organizations_type ON organizations(type);
-CREATE INDEX IF NOT EXISTS idx_organizations_parent ON organizations(parent_id);
-CREATE INDEX IF NOT EXISTS idx_permissions_role ON permissions(role);

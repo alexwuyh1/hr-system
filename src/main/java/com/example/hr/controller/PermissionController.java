@@ -1,7 +1,6 @@
 package com.example.hr.controller;
 
 import com.example.hr.model.Permission;
-import com.example.hr.repository.PermissionRepository;
 import com.example.hr.service.PermissionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -13,11 +12,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/permissions")
 public class PermissionController {
   private final PermissionService permissionService;
-  private final PermissionRepository permissionRepository;
 
-  public PermissionController(PermissionService permissionService, PermissionRepository permissionRepository) {
+  public PermissionController(PermissionService permissionService) {
     this.permissionService = permissionService;
-    this.permissionRepository = permissionRepository;
   }
 
   @GetMapping
@@ -38,22 +35,24 @@ public class PermissionController {
   @PostMapping("/role")
   public Map<String, Object> createRole(@Valid @RequestBody RoleRequest request) {
     permissionService.createRoleWithMode(request.role, request.roleMode);
-    return Map.of("message", "Role created", "role", request.role, "roleMode", request.roleMode);
+    return Map.of("message", "角色创建成功", "role", request.role, "roleMode", request.roleMode);
   }
 
   @PutMapping("/{id}")
   public Permission update(@PathVariable("id") Long id, @Valid @RequestBody PermissionRequest request) {
-    Permission permission = new Permission();
-    permission.setRole(request.role);
-    permission.setMethod(request.method);
-    permission.setPathPrefix(request.pathPrefix);
-    return permissionService.update(id, permission);
+    return permissionService.update(id, request.role, request.method, request.pathPrefix);
   }
 
   @DeleteMapping("/{id}")
   public Map<String, String> delete(@PathVariable("id") Long id) {
     permissionService.delete(id);
-    return Map.of("message", "Permission deleted");
+    return Map.of("message", "权限已删除");
+  }
+
+  @DeleteMapping("/role/{role}")
+  public Map<String, String> deleteRole(@PathVariable("role") String role) {
+    permissionService.deleteRole(role);
+    return Map.of("message", "角色已删除");
   }
 
   public static class PermissionRequest {
