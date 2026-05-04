@@ -89,6 +89,7 @@ async function ensureTabData(tabName) {
   if (tabName === "permissions") {
     if (initCache.roles) {
       applyRoles(initCache.roles);
+      autoSelectFirst(initCache.roles);
     } else {
       await safeLoad("roles", loadRoles);
     }

@@ -5,6 +5,13 @@ async function loadRoles() {
   const roles = await apiRequest(API.permissions.roles);
   initCache.roles = roles;
   applyRoles(roles);
+  autoSelectFirst(roles);
+}
+
+function autoSelectFirst(roles) {
+  if (!selectedRole && roles && roles.length > 0) {
+    selectRole(roles[0].role, roles[0].roleMode);
+  }
 }
 
 function applyRoles(roles) {
@@ -14,11 +21,26 @@ function applyRoles(roles) {
   list.innerHTML = "";
   roles.forEach((r) => {
     const li = document.createElement("li");
-    const modeLabel = r.roleMode === "blacklist" ? "黑" : "白";
-    const modeClass = r.roleMode === "blacklist" ? "mode-blacklist" : "mode-whitelist";
-    li.innerHTML = `${r.name} <span class="${modeClass}">${modeLabel}</span>`;
     li.className = selectedRole === r.role ? "active" : "";
-    li.onclick = () => selectRole(r.role, r.roleMode);
+
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "role-name";
+    nameSpan.textContent = r.name;
+    nameSpan.onclick = () => selectRole(r.role, r.roleMode);
+
+    const modeSpan = document.createElement("span");
+    modeSpan.className = r.roleMode === "blacklist" ? "mode-badge mode-blacklist" : "mode-badge mode-whitelist";
+    modeSpan.textContent = r.roleMode === "blacklist" ? "黑" : "白";
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "role-del-btn";
+    delBtn.textContent = "×";
+    delBtn.title = "删除角色";
+    delBtn.onclick = (e) => { e.stopPropagation(); confirmDeleteRole(r.role); };
+
+    li.appendChild(nameSpan);
+    li.appendChild(modeSpan);
+    li.appendChild(delBtn);
     list.appendChild(li);
   });
 }

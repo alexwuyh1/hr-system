@@ -399,10 +399,14 @@ td {
 }
 
 .perm-sidebar li {
-  padding: var(--space-1) var(--space-2);
-  cursor: pointer;
-  border-radius: var(--radius-1);
+  padding: 8px 10px;
+  border-radius: 6px;
   margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease;
 }
 
 .perm-sidebar li:hover {
@@ -412,6 +416,71 @@ td {
 .perm-sidebar li.active {
   background: var(--accent);
   color: white;
+}
+
+.perm-sidebar li.active .mode-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  border-color: transparent;
+}
+
+.perm-sidebar li.active .role-del-btn {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.perm-sidebar li.active .role-del-btn:hover {
+  color: #fff;
+}
+
+.role-name {
+  cursor: pointer;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mode-badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.mode-badge.mode-blacklist {
+  background: #fff1f0;
+  color: #ff4d4f;
+  border: 1px solid #ffa39e;
+}
+
+.mode-badge.mode-whitelist {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.role-del-btn {
+  background: transparent;
+  color: #bbb;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 2px;
+  min-width: auto;
+  height: auto;
+  max-width: none;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.role-del-btn:hover {
+  color: #ff4d4f;
+  background: transparent;
+  transform: none;
 }
 
 .perm-sidebar button {
@@ -446,18 +515,6 @@ td {
 .mode-deny {
   color: #ff4d4f;
   font-weight: 600;
-}
-
-.mode-blacklist {
-  color: #ff4d4f;
-  font-size: 12px;
-  margin-left: 6px;
-}
-
-.mode-whitelist {
-  color: #52c41a;
-  font-size: 12px;
-  margin-left: 6px;
 }
 
 .role-mode-tag {
