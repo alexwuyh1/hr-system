@@ -1,17 +1,12 @@
 package com.example.hr.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-/**
- * DTOs for authentication endpoints.
- * Grouped in one file to keep the example concise.
- */
 public class AuthRequests {
   public static class RegisterRequest {
-    @NotBlank
-    public String username;
-    @NotBlank
-    public String password;
+    @NotNull
+    public Long employeeId;
     @NotBlank
     public String role;
   }

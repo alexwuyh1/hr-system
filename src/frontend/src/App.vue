@@ -48,6 +48,7 @@
         <OrganizationView v-if="currentTab === 'org-config'" />
         <ImportExportView v-if="currentTab === 'import-export'" />
         <PermissionsView v-if="currentTab === 'permissions'" />
+        <RegisterView v-if="currentTab === 'register'" />
       </section>
     </template>
   </div>
@@ -63,6 +64,7 @@ import SalaryView from '@/views/Salary.vue'
 import OrganizationView from '@/views/Organization.vue'
 import ImportExportView from '@/views/ImportExport.vue'
 import PermissionsView from '@/views/Permissions.vue'
+import RegisterView from '@/views/Register.vue'
 
 const authStore = useAuthStore()
 const currentTab = ref('dashboard')
@@ -74,6 +76,7 @@ const tabs = [
   { key: 'attendance', label: '考勤管理' },
   { key: 'salary', label: '薪资管理' },
   { key: 'org-config', label: '组织配置' },
+  { key: 'register', label: '注册账号' },
   { key: 'permissions', label: '权限管理' },
   { key: 'import-export', label: '导入导出' }
 ]

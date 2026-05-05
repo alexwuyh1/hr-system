@@ -21,8 +21,7 @@ public class AuthController {
 
   @PostMapping("/register")
   public Map<String, String> register(@Valid @RequestBody RegisterRequest request) {
-    authService.register(request);
-    return Map.of("message", "Registration successful");
+    return authService.register(request);
   }
 
   @PostMapping("/login")
