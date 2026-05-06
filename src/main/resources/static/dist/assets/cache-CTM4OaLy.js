@@ -1,0 +1,1 @@
+const a=new Map;function r(e,t,n=3e4){a.set(e,{data:t,expire:Date.now()+n})}function c(e){const t=a.get(e);return t?Date.now()>t.expire?(a.delete(e),null):t.data:null}function u(e){e?a.delete(e):a.clear()}function i(e,t){return e}export{i as a,u as c,c as g,r};

@@ -55,16 +55,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, defineAsyncComponent } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import DashboardView from '@/views/Dashboard.vue'
-import EmployeesView from '@/views/Employees.vue'
-import AttendanceView from '@/views/Attendance.vue'
-import SalaryView from '@/views/Salary.vue'
-import OrganizationView from '@/views/Organization.vue'
-import ImportExportView from '@/views/ImportExport.vue'
-import PermissionsView from '@/views/Permissions.vue'
-import RegisterView from '@/views/Register.vue'
+const DashboardView = defineAsyncComponent(() => import('@/views/Dashboard.vue'))
+const EmployeesView = defineAsyncComponent(() => import('@/views/Employees.vue'))
+const AttendanceView = defineAsyncComponent(() => import('@/views/Attendance.vue'))
+const SalaryView = defineAsyncComponent(() => import('@/views/Salary.vue'))
+const OrganizationView = defineAsyncComponent(() => import('@/views/Organization.vue'))
+const ImportExportView = defineAsyncComponent(() => import('@/views/ImportExport.vue'))
+const PermissionsView = defineAsyncComponent(() => import('@/views/Permissions.vue'))
+const RegisterView = defineAsyncComponent(() => import('@/views/Register.vue'))
 
 const authStore = useAuthStore()
 const currentTab = ref('dashboard')

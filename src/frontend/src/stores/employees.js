@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia'
 import { employeesApi } from '@/api/employees'
+import { getCache, requestCache, clearCache, generateCacheKey } from '@/utils/cache'
+
+const CACHE_TTL = 30000
 
 export const useEmployeeStore = defineStore('employees', {
   state: () => ({
@@ -12,10 +15,20 @@ export const useEmployeeStore = defineStore('employees', {
   },
 
   actions: {
-    async fetchList() {
+    async fetchList(useCache = true) {
+      const cacheKey = generateCacheKey('employees/list')
+      if (useCache) {
+        const cached = getCache(cacheKey)
+        if (cached) {
+          this.list = cached
+          return
+        }
+      }
+
       this.loading = true
       try {
         this.list = await employeesApi.list()
+        requestCache(cacheKey, this.list, CACHE_TTL)
       } finally {
         this.loading = false
       }
@@ -23,23 +36,27 @@ export const useEmployeeStore = defineStore('employees', {
 
     async create(data) {
       await employeesApi.create(data)
-      await this.fetchList()
+      clearCache('employees/list')
+      await this.fetchList(false)
     },
 
     async update(id, data) {
       await employeesApi.update(id, data)
-      await this.fetchList()
+      clearCache('employees/list')
+      await this.fetchList(false)
     },
 
     async delete(id) {
       await employeesApi.delete(id)
-      await this.fetchList()
+      clearCache('employees/list')
+      await this.fetchList(false)
     },
 
     async toggleStatus(employeeNo, isActive) {
       const api = isActive ? employeesApi.resign : employeesApi.rehire
       await api({ employeeNo })
-      await this.fetchList()
+      clearCache('employees/list')
+      await this.fetchList(false)
     },
 
     async uploadAvatar(id, file) {
@@ -48,6 +65,7 @@ export const useEmployeeStore = defineStore('employees', {
       if (index !== -1) {
         this.list[index] = updated
       }
+      clearCache('employees/list')
     }
   }
 })

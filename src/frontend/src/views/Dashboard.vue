@@ -15,19 +15,20 @@
     <div class="dashboard-grid">
       <div v-for="chart in chartDefs" :key="chart.id" class="panel chart-panel">
         <h3>{{ chart.title }}</h3>
-        <canvas :id="chart.id"></canvas>
+        <canvas :ref="el => chartRefs[chart.id] = el" :id="chart.id"></canvas>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
-import Chart from 'chart.js/auto'
+import { useChart } from '@/composables/useChart'
 
 const store = useDashboardStore()
-const chartInstances = {}
+const { render, destroy } = useChart()
+const chartRefs = reactive({})
 
 const dashboardStats = computed(() => {
   if (!store.data) return []
@@ -48,64 +49,53 @@ const chartDefs = [
 
 const CHART_COLORS = ['#f48c06', '#ffb703', '#8ecae6', '#219ebc', '#023047', '#b5838d']
 
-function $(id) { return document.getElementById(id) }
-
-function renderChart(id, labels, datasets, type, extra) {
-  const canvas = $(id)
-  if (!canvas) return
-  if (!chartInstances[id]) {
-    const config = { type, data: { labels, datasets }, options: { responsive: true, maintainAspectRatio: false, ...extra } }
-    chartInstances[id] = new Chart(canvas.getContext('2d'), config)
-  } else {
-    const chart = chartInstances[id]
-    chart.data.labels = labels
-    chart.data.datasets = datasets
-    chart.update()
-  }
-}
-
 function renderCharts() {
   if (!store.data) return
 
-  const sd = store.data.statusDistribution
-  const statusColors = { '在职': '#16a34a', '离职': '#dc2626' }
-  renderChart('chart-status', sd.map(i => i.name),
-    [{ data: sd.map(i => i.value), backgroundColor: sd.map(i => statusColors[i.name] || '#6d6255') }],
-    'doughnut', {
-      plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} 人` } } }
-    })
+  const canvasStatus = chartRefs['chart-status']
+  if (canvasStatus) {
+    const sd = store.data.statusDistribution
+    const statusColors = { '在职': '#16a34a', '离职': '#dc2626' }
+    render(canvasStatus,
+      { labels: sd.map(i => i.name), datasets: [{ data: sd.map(i => i.value), backgroundColor: sd.map(i => statusColors[i.name] || '#6d6255') }] },
+      { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} 人` } } } },
+      'doughnut'
+    )
+  }
 
-  const dd = store.data.departmentDistribution
-  renderChart('chart-dept', dd.map(i => i.name),
-    [{ data: dd.map(i => i.value), backgroundColor: CHART_COLORS }],
-    'doughnut', {
-      plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} 人` } } }
-    })
+  const canvasDept = chartRefs['chart-dept']
+  if (canvasDept) {
+    const dd = store.data.departmentDistribution
+    render(canvasDept,
+      { labels: dd.map(i => i.name), datasets: [{ data: dd.map(i => i.value), backgroundColor: CHART_COLORS }] },
+      { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} 人` } } } },
+      'doughnut'
+    )
+  }
 
-  const ai = store.data.attendanceIssues
-  renderChart('chart-attendance', ai.map(i => i.name),
-    [{ label: '异常次数', data: ai.map(i => i.value), backgroundColor: '#c76b00' }],
-    'bar', {
-      indexAxis: 'y',
-      scales: { x: { beginAtZero: true, title: { display: true, text: '异常次数' }, ticks: { stepSize: 1 } } },
-      plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} 次` } } }
-    })
+  const canvasAttendance = chartRefs['chart-attendance']
+  if (canvasAttendance) {
+    const ai = store.data.attendanceIssues
+    render(canvasAttendance,
+      { labels: ai.map(i => i.name), datasets: [{ label: '异常次数', data: ai.map(i => i.value), backgroundColor: '#c76b00' }] },
+      { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, title: { display: true, text: '异常次数' }, ticks: { stepSize: 1 } } }, plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} 次` } } } },
+      'bar'
+    )
+  }
 
-  const pd = store.data.payrollByDepartment
-  renderChart('chart-payroll', pd.map(i => i.name),
-    [{ label: '薪资成本', data: pd.map(i => i.value), backgroundColor: '#8ecae6' }],
-    'bar', {
-      scales: { y: { beginAtZero: true, title: { display: true, text: '金额（元）' }, ticks: { callback: v => '¥' + v.toLocaleString() } } },
-      plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ¥${ctx.parsed.y.toLocaleString()}` } } }
-    })
+  const canvasPayroll = chartRefs['chart-payroll']
+  if (canvasPayroll) {
+    const pd = store.data.payrollByDepartment
+    render(canvasPayroll,
+      { labels: pd.map(i => i.name), datasets: [{ label: '薪资成本', data: pd.map(i => i.value), backgroundColor: '#8ecae6' }] },
+      { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: '金额（元）' }, ticks: { callback: v => '¥' + v.toLocaleString() } } }, plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ¥${ctx.parsed.y.toLocaleString()}` } } } },
+      'bar'
+    )
+  }
 }
 
 onMounted(async () => {
   await store.fetchSummary()
   renderCharts()
-})
-
-onUnmounted(() => {
-  Object.values(chartInstances).forEach(c => c.destroy())
 })
 </script>

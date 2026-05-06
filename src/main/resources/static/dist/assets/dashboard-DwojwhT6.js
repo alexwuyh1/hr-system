@@ -1,0 +1,1 @@
+import{q as o}from"./index-BbI0Y9Me.js";const e={summary:()=>o.get("/dashboard/summary")},m={export:(t,a)=>o.get(`/data/export/${t}?format=${a}`,{responseType:"blob"}),import:(t,a)=>{const r=new FormData;return r.append("file",a),o.post(`/data/import/${t}`,r,{headers:{"Content-Type":"multipart/form-data"}})}};export{e as d,m as i};
