@@ -27,7 +27,7 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { useChart } from '@/composables/useChart'
 
 const store = useDashboardStore()
-const { render, destroy } = useChart()
+const { render } = useChart()
 const chartRefs = reactive({})
 
 const dashboardStats = computed(() => {
@@ -47,7 +47,7 @@ const chartDefs = [
   { id: 'chart-payroll', title: '部门人力成本' }
 ]
 
-const CHART_COLORS = ['#f48c06', '#ffb703', '#8ecae6', '#219ebc', '#023047', '#b5838d']
+const CHART_COLORS = ['#e63946', '#f4a261', '#2a9d8f', '#264653', '#e9c46a', '#9b59b6']
 
 function renderCharts() {
   if (!store.data) return
@@ -55,10 +55,33 @@ function renderCharts() {
   const canvasStatus = chartRefs['chart-status']
   if (canvasStatus) {
     const sd = store.data.statusDistribution
-    const statusColors = { '在职': '#16a34a', '离职': '#dc2626' }
+    const total = sd.reduce((sum, i) => sum + i.value, 0)
+    const statusColors = { '在职': '#10b981', '离职': '#ef4444' }
     render(canvasStatus,
-      { labels: sd.map(i => i.name), datasets: [{ data: sd.map(i => i.value), backgroundColor: sd.map(i => statusColors[i.name] || '#6d6255') }] },
-      { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} 人` } } } },
+      {
+        labels: sd.map(i => i.name),
+        datasets: [{
+          data: sd.map(i => i.value),
+          backgroundColor: sd.map(i => statusColors[i.name] || '#6d6255'),
+          borderWidth: 0
+        }]
+      },
+      {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { animateRotate: true, animateScale: true },
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0
+                return ` ${ctx.label}: ${ctx.parsed} 人 (${pct}%)`
+              }
+            }
+          }
+        }
+      },
       'doughnut'
     )
   }
@@ -66,9 +89,32 @@ function renderCharts() {
   const canvasDept = chartRefs['chart-dept']
   if (canvasDept) {
     const dd = store.data.departmentDistribution
+    const total = dd.reduce((sum, i) => sum + i.value, 0)
     render(canvasDept,
-      { labels: dd.map(i => i.name), datasets: [{ data: dd.map(i => i.value), backgroundColor: CHART_COLORS }] },
-      { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} 人` } } } },
+      {
+        labels: dd.map(i => i.name),
+        datasets: [{
+          data: dd.map(i => i.value),
+          backgroundColor: CHART_COLORS.slice(0, dd.length),
+          borderWidth: 0
+        }]
+      },
+      {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { animateRotate: true, animateScale: true },
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0
+                return ` ${ctx.label}: ${ctx.parsed} 人 (${pct}%)`
+              }
+            }
+          }
+        }
+      },
       'doughnut'
     )
   }
@@ -77,8 +123,37 @@ function renderCharts() {
   if (canvasAttendance) {
     const ai = store.data.attendanceIssues
     render(canvasAttendance,
-      { labels: ai.map(i => i.name), datasets: [{ label: '异常次数', data: ai.map(i => i.value), backgroundColor: '#c76b00' }] },
-      { responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, title: { display: true, text: '异常次数' }, ticks: { stepSize: 1 } } }, plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} 次` } } } },
+      {
+        labels: ai.map(i => i.name),
+        datasets: [{
+          label: '异常次数',
+          data: ai.map(i => i.value),
+          backgroundColor: '#f97316',
+          borderRadius: 4
+        }]
+      },
+      {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        animation: { duration: 800 },
+        scales: {
+          x: {
+            beginAtZero: true,
+            title: { display: true, text: '异常次数', color: '#666' },
+            ticks: { stepSize: 1, color: '#666' },
+            grid: { color: '#f0f0f0' }
+          },
+          y: {
+            ticks: { color: '#333', font: { size: 11 } },
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} 次` } }
+        }
+      },
       'bar'
     )
   }
@@ -87,8 +162,39 @@ function renderCharts() {
   if (canvasPayroll) {
     const pd = store.data.payrollByDepartment
     render(canvasPayroll,
-      { labels: pd.map(i => i.name), datasets: [{ label: '薪资成本', data: pd.map(i => i.value), backgroundColor: '#8ecae6' }] },
-      { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: '金额（元）' }, ticks: { callback: v => '¥' + v.toLocaleString() } } }, plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ¥${ctx.parsed.y.toLocaleString()}` } } } },
+      {
+        labels: pd.map(i => i.name),
+        datasets: [{
+          label: '薪资成本',
+          data: pd.map(i => i.value),
+          backgroundColor: '#3b82f6',
+          borderRadius: 4
+        }]
+      },
+      {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 800 },
+        scales: {
+          x: {
+            title: { display: true, text: '部门', color: '#666' },
+            ticks: { color: '#333', font: { size: 11 } },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: '金额（元）', color: '#666' },
+            ticks: { callback: v => '¥' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v), color: '#666' },
+            grid: { color: '#f0f0f0' }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: ctx => ` ${ctx.dataset.label}: ¥${ctx.parsed.y.toLocaleString()}` }
+          }
+        }
+      },
       'bar'
     )
   }

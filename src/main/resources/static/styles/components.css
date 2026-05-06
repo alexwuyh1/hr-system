@@ -44,18 +44,21 @@
 }
 
 .chart-panel {
-  height: 320px;
+  height: 340px;
+  display: flex;
+  flex-direction: column;
 }
 
 .chart-panel h3 {
   margin: 0 0 8px;
   font-size: 16px;
+  flex-shrink: 0;
 }
 
 .chart-panel canvas {
   display: block;
-  width: 100%;
-  height: 260px;
+  flex: 1;
+  min-height: 0;
 }
 
 form {
