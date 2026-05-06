@@ -22,6 +22,9 @@ public class AttendanceRule {
   @Column(name = "absent_threshold_minutes")
   private Integer absentThresholdMinutes;
 
+  @Column(name = "early_leave_grace_minutes")
+  private Integer earlyLeaveGraceMinutes;
+
   public Long getId() {
     return id;
   }
@@ -56,5 +59,13 @@ public class AttendanceRule {
 
   public void setAbsentThresholdMinutes(Integer absentThresholdMinutes) {
     this.absentThresholdMinutes = absentThresholdMinutes;
+  }
+
+  public Integer getEarlyLeaveGraceMinutes() {
+    return earlyLeaveGraceMinutes;
+  }
+
+  public void setEarlyLeaveGraceMinutes(Integer earlyLeaveGraceMinutes) {
+    this.earlyLeaveGraceMinutes = earlyLeaveGraceMinutes;
   }
 }

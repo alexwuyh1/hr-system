@@ -8,4 +8,5 @@ public class AttendanceRuleRequest {
 
   @NotNull public Integer lateGraceMinutes;
   public Integer absentThresholdMinutes;
+  public Integer earlyLeaveGraceMinutes;
 }

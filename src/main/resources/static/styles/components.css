@@ -89,7 +89,7 @@ button {
   padding: 0 var(--space-3);
   border-radius: var(--radius-1);
   border: 1px solid var(--line);
-  font-size: 13px;
+  font-size: 14px;
   height: var(--input-height);
   max-width: 100%;
   align-self: center;
@@ -606,6 +606,38 @@ td {
 }
 
 .org-tree {
-  margin-bottom: var(--space-3);
+  margin-top: var(--space-3);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  padding: var(--space-2);
 }
+
+.org-table {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  padding: var(--space-2);
+}
+
+.status-normal {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.status-warning {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.status-absent {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.sort-none { opacity: 0.4; cursor: pointer; }
+.sort-asc::after { content: ' ↑'; color: #10b981; }
+.sort-desc::after { content: ' ↓'; color: #ef4444; }
+th.sort-none, th.sort-asc, th.sort-desc { cursor: pointer; user-select: none; }
+th.sort-none:hover, th.sort-asc:hover, th.sort-desc:hover { opacity: 1; }
 

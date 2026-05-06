@@ -6,26 +6,36 @@
         <p>角色管理与权限规则配置</p>
       </div>
     </div>
-    <div class="perm-layout">
-      <div class="perm-sidebar">
+
+    <MasterDetailLayout>
+      <template #sidebar-top>
         <h3>角色列表</h3>
-        <ul>
-          <li v-for="role in store.roles" :key="role.role"
-            :class="{ active: store.selectedRole === role.role }"
-            @click="store.selectRole(role.role, role.roleMode)">{{ role.role }}</li>
-        </ul>
+      </template>
+      <template #sidebar-list>
+        <li v-for="role in store.roles" :key="role.role"
+          :class="{ active: store.selectedRole === role.role }"
+          @click="store.selectRole(role.role, role.roleMode)">
+          <span class="role-name">{{ role.role }}</span>
+          <span v-if="store.selectedRole === role.role" class="mode-badge"
+            :class="role.roleMode === 'blacklist' ? 'mode-badge-blacklist' : 'mode-badge-whitelist'">
+            {{ role.roleMode === 'blacklist' ? '黑' : '白' }}
+          </span>
+        </li>
+      </template>
+      <template #sidebar-actions>
         <button @click="showRoleModal = true">新增角色</button>
         <button v-if="store.selectedRole" class="ghost" @click="confirmDeleteRole(store.selectedRole)">删除角色</button>
-      </div>
-      <div class="perm-main">
-        <div class="perm-header">
-          <h3>{{ store.selectedRole || '请选择角色' }}</h3>
-          <span v-if="store.selectedRoleMode" class="role-mode-tag"
-            :class="store.selectedRoleMode === 'blacklist' ? 'tag-blacklist' : 'tag-whitelist'">
-            {{ store.selectedRoleMode === 'blacklist' ? '黑名单模式' : '白名单模式' }}
-          </span>
-          <button v-if="store.selectedRole" @click="showPermModal = true">新增权限</button>
-        </div>
+      </template>
+
+      <template #header>
+        <h3>{{ store.selectedRole || '请选择角色' }}</h3>
+        <span v-if="store.selectedRoleMode" class="role-mode-tag"
+          :class="store.selectedRoleMode === 'blacklist' ? 'tag-blacklist' : 'tag-whitelist'">
+          {{ store.selectedRoleMode === 'blacklist' ? '黑名单模式' : '白名单模式' }}
+        </span>
+        <button v-if="store.selectedRole" @click="showPermModal = true">新增权限</button>
+      </template>
+      <template #content>
         <table v-if="store.selectedRole">
           <thead>
             <tr>
@@ -50,8 +60,9 @@
             </tr>
           </tbody>
         </table>
-      </div>
-    </div>
+        <div v-else style="color:var(--muted);text-align:center;padding:40px">请选择一个角色</div>
+      </template>
+    </MasterDetailLayout>
 
     <ModalDialog v-if="showRoleModal" title="新增角色" @submit="handleCreateRole" @close="showRoleModal = false">
       <form @submit.prevent>
@@ -90,6 +101,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { usePermissionStore } from '@/stores/permissions'
 import ModalDialog from '@/components/ModalDialog.vue'
+import MasterDetailLayout from '@/layouts/MasterDetail.vue'
 
 const store = usePermissionStore()
 const showRoleModal = ref(false)
@@ -129,3 +141,59 @@ function confirmDeleteRole(name) {
   }
 }
 </script>
+
+<style scoped>
+.role-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mode-badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.mode-badge-whitelist {
+  background: #e6f4ea;
+  color: #1e7e34;
+}
+
+.mode-badge-blacklist {
+  background: #fce8e6;
+  color: #c5221f;
+}
+
+.role-mode-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.tag-whitelist {
+  background: #e6f4ea;
+  color: #1e7e34;
+}
+
+.tag-blacklist {
+  background: #fce8e6;
+  color: #c5221f;
+}
+
+.perm-mode-hint {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.perm-mode-hint strong {
+  color: #333;
+}
+</style>

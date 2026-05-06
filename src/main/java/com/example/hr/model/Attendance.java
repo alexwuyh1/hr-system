@@ -47,9 +47,14 @@ public class Attendance {
 
   private String note;
 
-  // Minutes late, computed by rule engine
   @Column(name = "late_minutes")
   private Integer lateMinutes;
+
+  @Column(name = "absent_minutes")
+  private Integer absentMinutes;
+
+  @Column(name = "early_leave_minutes")
+  private Integer earlyLeaveMinutes;
 
   public Long getId() {
     return id;
@@ -109,5 +114,21 @@ public class Attendance {
 
   public void setLateMinutes(Integer lateMinutes) {
     this.lateMinutes = lateMinutes;
+  }
+
+  public Integer getAbsentMinutes() {
+    return absentMinutes;
+  }
+
+  public void setAbsentMinutes(Integer absentMinutes) {
+    this.absentMinutes = absentMinutes;
+  }
+
+  public Integer getEarlyLeaveMinutes() {
+    return earlyLeaveMinutes;
+  }
+
+  public void setEarlyLeaveMinutes(Integer earlyLeaveMinutes) {
+    this.earlyLeaveMinutes = earlyLeaveMinutes;
   }
 }

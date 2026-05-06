@@ -76,8 +76,8 @@ const tabs = [
   { key: 'attendance', label: '考勤管理' },
   { key: 'salary', label: '薪资管理' },
   { key: 'org-config', label: '组织配置' },
-  { key: 'register', label: '注册账号' },
   { key: 'permissions', label: '权限管理' },
+  { key: 'register', label: '注册账号' },
   { key: 'import-export', label: '导入导出' }
 ]
 

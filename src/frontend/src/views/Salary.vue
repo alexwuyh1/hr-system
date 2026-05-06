@@ -13,18 +13,18 @@
       <table>
         <thead>
           <tr>
-            <th>员工</th>
-            <th>月份</th>
-            <th>基本</th>
-            <th>奖金</th>
-            <th>扣款</th>
+            <th :class="getClass('employee')" @click="toggle('employee')">员工</th>
+            <th :class="getClass('salaryMonth')" @click="toggle('salaryMonth')">月份</th>
+            <th :class="getClass('baseSalary')" @click="toggle('baseSalary')">基本</th>
+            <th :class="getClass('bonus')" @click="toggle('bonus')">奖金</th>
+            <th :class="getClass('deduction')" @click="toggle('deduction')">扣款</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="store.loading"><td colspan="6" style="text-align:center;color:var(--muted)">加载中...</td></tr>
           <template v-else>
-          <tr v-for="row in store.list" :key="row.id">
+          <tr v-for="row in sorted" :key="row.id">
             <td>{{ row.employee?.name || row.employee?.employeeNo || '-' }}</td>
             <td>{{ row.salaryMonth }}</td>
             <td>{{ row.baseSalary }}</td>
@@ -63,9 +63,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useSalaryStore } from '@/stores/salary'
 import { useEmployeeStore } from '@/stores/employees'
+import { useSortable } from '@/composables/useSortable'
 import ModalDialog from '@/components/ModalDialog.vue'
 
 const store = useSalaryStore()
@@ -74,6 +75,9 @@ const showForm = ref(false)
 const editingRecord = ref(null)
 
 const formData = reactive({ employeeId: '', salaryMonth: '', baseSalary: '', bonus: '', deduction: '' })
+
+const listRef = computed(() => store.list)
+const { sorted, toggle, getClass } = useSortable(listRef, 'employee.name', 'desc')
 
 function editRecord(row) {
   editingRecord.value = row

@@ -15,23 +15,25 @@
       <table>
         <thead>
           <tr>
-            <th>员工</th>
-            <th>日期</th>
-            <th>签到</th>
-            <th>签退</th>
-            <th>状态</th>
+            <th :class="getClass('employee')" @click="toggle('employee')">员工</th>
+            <th :class="getClass('workDate')" @click="toggle('workDate')">日期</th>
+            <th :class="getClass('checkIn')" @click="toggle('checkIn')">签到</th>
+            <th :class="getClass('checkOut')" @click="toggle('checkOut')">签退</th>
+            <th :class="getClass('status')" @click="toggle('status')">状态</th>
+            <th>详情</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="store.loading"><td colspan="6" style="text-align:center;color:var(--muted)">加载中...</td></tr>
+          <tr v-if="store.loading"><td colspan="7" style="text-align:center;color:var(--muted)">加载中...</td></tr>
           <template v-else>
-          <tr v-for="row in store.list" :key="row.id">
+          <tr v-for="row in sorted" :key="row.id">
             <td>{{ row.employee?.name || row.employee?.employeeNo || '-' }}</td>
             <td>{{ row.workDate }}</td>
             <td>{{ row.checkIn || '-' }}</td>
             <td>{{ row.checkOut || '-' }}</td>
-            <td>{{ row.status }}</td>
+            <td><span :class="getStatusClass(row.status)">{{ row.status }}</span></td>
+            <td>{{ getStatusDetail(row) }}</td>
             <td>
               <button class="ghost" @click="editRecord(row)">编辑</button>
               <button class="ghost" @click="confirmDelete(row.id)">删除</button>
@@ -69,6 +71,9 @@
           <label>迟到宽限(分钟) <input v-model.number="ruleForm.lateGraceMinutes" type="number"></label>
           <label>旷工阈值(分钟) <input v-model.number="ruleForm.absentThresholdMinutes" type="number"></label>
         </div>
+        <div class="grid-2">
+          <label>早退宽限(分钟) <input v-model.number="ruleForm.earlyLeaveGraceMinutes" type="number"></label>
+        </div>
       </form>
     </ModalDialog>
 
@@ -90,9 +95,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useAttendanceStore } from '@/stores/attendance'
 import { useEmployeeStore } from '@/stores/employees'
+import { useSortable } from '@/composables/useSortable'
 import ModalDialog from '@/components/ModalDialog.vue'
 
 const store = useAttendanceStore()
@@ -104,8 +110,26 @@ const showFaceModal = ref(false)
 const faceFileInput = ref(null)
 
 const manualForm = reactive({ employeeId: '', note: '' })
-const ruleForm = reactive({ workStartTime: '09:00', workEndTime: '18:00', lateGraceMinutes: 10, absentThresholdMinutes: 240 })
+const ruleForm = reactive({ workStartTime: '09:00', workEndTime: '18:00', lateGraceMinutes: 10, absentThresholdMinutes: 240, earlyLeaveGraceMinutes: 10 })
 const faceForm = reactive({ employeeId: '' })
+
+const listRef = computed(() => store.list)
+const { sorted, toggle, getClass } = useSortable(listRef, 'employee.name', 'desc')
+
+function getStatusClass(status) {
+  if (!status) return ''
+  if (status.includes('旷工')) return 'status-absent'
+  if (status.includes('迟到') || status.includes('早退')) return 'status-warning'
+  return 'status-normal'
+}
+
+function getStatusDetail(row) {
+  const parts = []
+  if (row.lateMinutes) parts.push(`迟到${row.lateMinutes}分钟`)
+  if (row.absentMinutes) parts.push(`旷工${row.absentMinutes}分钟`)
+  if (row.earlyLeaveMinutes) parts.push(`早退${row.earlyLeaveMinutes}分钟`)
+  return parts.length > 0 ? parts.join(', ') : '-'
+}
 
 function editRecord(row) {
   manualForm.employeeId = row.employee?.id
@@ -120,14 +144,19 @@ function confirmDelete(id) {
 }
 
 async function handleManualCheckin() {
-  const data = {
-    employeeId: Number(manualForm.employeeId),
-    note: manualForm.note || null
+  try {
+    const data = {
+      employeeId: Number(manualForm.employeeId),
+      note: manualForm.note || null
+    }
+    await store.create(data)
+    alert('打卡成功')
+    showManualForm.value = false
+    manualForm.employeeId = ''
+    manualForm.note = ''
+  } catch (e) {
+    alert('打卡失败：' + (e.message || '未知错误'))
   }
-  await store.create(data)
-  showManualForm.value = false
-  manualForm.employeeId = ''
-  manualForm.note = ''
 }
 
 async function handleSaveRules() {

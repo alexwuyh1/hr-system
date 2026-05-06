@@ -5,49 +5,58 @@
         <h2>组织配置</h2>
         <p>维护岗位、部门与职级</p>
       </div>
-    </div>
-    <div class="org-layout">
-      <div class="org-sidebar">
-        <h3>类型</h3>
-        <ul>
-          <li v-for="t in orgTypes" :key="t.key" :class="{ active: store.activeType === t.key }"
-            @click="store.setActiveType(t.key)">{{ t.label }}</li>
+      <div class="org-tree">
+        <ul class="tree">
+          <OrganizationTreeNode v-for="node in store.positionTree" :key="node.id" :node="node" />
         </ul>
-        <button @click="showForm = true">新增</button>
-      </div>
-      <div class="org-main">
-        <div class="org-header">
-          <h3>{{ currentConfig.title }}</h3>
-        </div>
-        <div v-if="currentConfig.showTree" class="org-tree">
-          <ul class="tree">
-            <OrganizationTreeNode v-for="node in store.positionTree" :key="node.id" :node="node" />
-          </ul>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th v-for="col in currentColumns" :key="col.key">{{ col.label }}</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="store.loading"><td :colspan="currentColumns.length + 1" style="text-align:center;color:var(--muted)">加载中...</td></tr>
-            <template v-else>
-            <tr v-for="item in store.filteredItems" :key="item.id">
-              <td v-for="col in currentColumns" :key="col.key">
-                <template v-if="col.render">{{ col.render(null, item) }}</template>
-                <template v-else>{{ item[col.key] }}</template>
-              </td>
-              <td>
-                <button class="ghost" @click="deleteItem(item)">删除</button>
-              </td>
-            </tr>
-            </template>
-          </tbody>
-        </table>
       </div>
     </div>
+
+    <MasterDetailLayout>
+      <template #sidebar-top>
+        <h3>类型</h3>
+      </template>
+      <template #sidebar-list>
+        <li v-for="t in orgTypes" :key="t.key"
+          :class="{ active: store.activeType === t.key }"
+          @click="store.setActiveType(t.key)">
+          {{ t.label }}
+        </li>
+      </template>
+      <template #sidebar-actions>
+        <button @click="showForm = true">新增</button>
+      </template>
+
+      <template #header>
+        <h3>{{ currentConfig.title }}</h3>
+      </template>
+      <template #content>
+        <table>
+            <thead>
+              <tr>
+                <th v-for="col in currentColumns" :key="col.key">{{ col.label }}</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="store.loading">
+                <td :colspan="currentColumns.length + 1" style="text-align:center;color:var(--muted)">加载中...</td>
+              </tr>
+              <template v-else>
+                <tr v-for="item in store.filteredItems" :key="item.id">
+                  <td v-for="col in currentColumns" :key="col.key">
+                    <template v-if="col.render">{{ col.render(null, item) }}</template>
+                    <template v-else>{{ item[col.key] }}</template>
+                  </td>
+                  <td>
+                    <button class="ghost" @click="deleteItem(item)">删除</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+      </template>
+    </MasterDetailLayout>
 
     <ModalDialog v-if="showForm" :title="'新增' + currentConfig.type" @submit="handleCreate" @close="showForm = false">
       <form @submit.prevent>
@@ -62,100 +71,88 @@
         </template>
         <template v-else-if="store.activeType === 'position'">
           <label>名称 <input v-model="formData.name" required placeholder="输入岗位名称"></label>
-          <label>所属部门
-            <select v-model="formData.parentId" required>
-              <option value="">请选择</option>
+          <label>部门
+            <select v-model="formData.departmentId" required>
+              <option value="">选择部门</option>
               <option v-for="dept in store.deptOptions" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
             </select>
           </label>
           <label>职级
-            <select v-model="formData.gradeId" required>
-              <option value="">请选择</option>
-              <option v-for="grade in store.gradeOptions" :key="grade.id" :value="grade.id">{{ grade.name }}</option>
+            <select v-model="formData.gradeId">
+              <option value="">无</option>
+              <option v-for="g in store.gradeOptions" :key="g.id" :value="g.id">{{ g.name }}</option>
             </select>
           </label>
         </template>
         <template v-else>
           <label>名称 <input v-model="formData.name" required placeholder="输入职级名称"></label>
-          <label>等级 <input v-model.number="formData.level" type="number" required placeholder="职级等级数值"></label>
         </template>
+        <div class="form-actions">
+          <button type="submit">保存</button>
+        </div>
       </form>
     </ModalDialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, defineAsyncComponent } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useOrganizationStore } from '@/stores/organization'
+import MasterDetailLayout from '@/layouts/MasterDetail.vue'
+import OrganizationTreeNode from '@/components/OrganizationTreeNode.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
-
-const OrganizationTreeNode = defineAsyncComponent(() => import('@/components/OrganizationTreeNode.vue'))
 
 const store = useOrganizationStore()
 const showForm = ref(false)
-const formData = reactive({ name: '', parentId: '', gradeId: '', level: '' })
+const formData = reactive({ name: '', parentId: '', departmentId: '', gradeId: '' })
 
 const orgTypes = [
-  { key: 'position', label: '岗位' },
   { key: 'dept', label: '部门' },
+  { key: 'position', label: '岗位' },
   { key: 'grade', label: '职级' }
 ]
 
 const currentConfig = computed(() => {
-  const config = {
-    position: { title: '岗位管理', type: '岗位', showTree: true },
-    dept: { title: '部门管理', type: '部门', showTree: false },
-    grade: { title: '职级管理', type: '职级', showTree: false }
+  switch (store.activeType) {
+    case 'dept': return { title: '部门管理', type: '部门', showTree: true }
+    case 'position': return { title: '岗位管理', type: '岗位', showTree: true }
+    case 'grade': return { title: '职级管理', type: '职级', showTree: false }
+    default: return { title: '', type: '', showTree: false }
   }
-  return config[store.activeType]
 })
 
 const currentColumns = computed(() => {
-  const heads = {
-    position: [
-      { key: 'name', label: '名称' },
-      { key: 'parentName', label: '部门', render: (_, row) => row.parent ? row.parent.name : '-' },
-      { key: 'gradeName', label: '职级', render: (_, row) => row.grade ? row.grade.name : '-' }
-    ],
-    dept: [
-      { key: 'name', label: '名称' },
-      { key: 'parentName', label: '上级', render: (_, row) => row.parent ? row.parent.name : '-' }
-    ],
-    grade: [
-      { key: 'name', label: '名称' },
-      { key: 'level', label: '等级' }
-    ]
+  switch (store.activeType) {
+    case 'dept': return [{ key: 'name', label: '名称' }, { key: 'parentName', label: '上级部门' }]
+    case 'position': return [{ key: 'name', label: '名称' }, { key: 'departmentName', label: '部门' }, { key: 'gradeName', label: '职级' }]
+    case 'grade': return [{ key: 'name', label: '名称' }]
+    default: return []
   }
-  return heads[store.activeType]
 })
 
-function deleteItem(item) {
-  if (confirm(`确定要删除${currentConfig.value.type}"${item.name}"吗？`)) {
-    store.delete(item.id)
-  }
+function resetForm() {
+  Object.assign(formData, { name: '', parentId: '', departmentId: '', gradeId: '' })
 }
 
 async function handleCreate() {
-  if (!formData.name.trim()) {
-    alert('请输入名称')
-    return
+  const data = { name: formData.name }
+  if (store.activeType === 'dept' && formData.parentId) data.parentId = formData.parentId
+  if (store.activeType === 'position') {
+    data.departmentId = formData.departmentId
+    if (formData.gradeId) data.gradeId = formData.gradeId
   }
-  const data = { name: formData.name.trim(), type: currentConfig.value.type }
-  if (store.activeType === 'dept') {
-    data.parentId = formData.parentId ? Number(formData.parentId) : null
-    data.level = null
-  } else if (store.activeType === 'position') {
-    data.parentId = Number(formData.parentId)
-    data.gradeId = Number(formData.gradeId)
-    data.level = null
-  } else {
-    data.parentId = null
-    data.level = Number(formData.level)
-  }
-  await store.create(data)
+  await store.createItem(data)
   showForm.value = false
-  Object.assign(formData, { name: '', parentId: '', gradeId: '', level: '' })
+  resetForm()
 }
 
-onMounted(() => store.init())
+async function deleteItem(item) {
+  if (confirm(`确认删除 "${item.name}"？`)) {
+    await store.deleteItem(item.id)
+  }
+}
+
+onMounted(() => {
+  store.init()
+})
 </script>
