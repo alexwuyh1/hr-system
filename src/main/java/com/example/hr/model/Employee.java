@@ -45,9 +45,6 @@ public class Employee {
   @Column(name = "avatar_path")
   private String avatarPath;
 
-  @Column(name = "face_hash")
-  private String faceHash;
-
   public Long getId() {
     return id;
   }
@@ -130,13 +127,5 @@ public class Employee {
 
   public void setAvatarPath(String avatarPath) {
     this.avatarPath = avatarPath;
-  }
-
-  public String getFaceHash() {
-    return faceHash;
-  }
-
-  public void setFaceHash(String faceHash) {
-    this.faceHash = faceHash;
   }
 }

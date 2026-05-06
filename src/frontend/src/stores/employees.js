@@ -43,8 +43,11 @@ export const useEmployeeStore = defineStore('employees', {
     },
 
     async uploadAvatar(id, file) {
-      await employeesApi.uploadAvatar(id, file)
-      await this.fetchList()
+      const updated = await employeesApi.uploadAvatar(id, file)
+      const index = this.list.findIndex(e => e.id === id)
+      if (index !== -1) {
+        this.list[index] = updated
+      }
     }
   }
 })

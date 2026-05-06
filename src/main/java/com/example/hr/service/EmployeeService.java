@@ -2,16 +2,20 @@ package com.example.hr.service;
 
 import com.example.hr.dto.EmployeeRequest;
 import com.example.hr.dto.EmployeeResponse;
-import com.example.hr.exception.DuplicateResourceException;
-import com.example.hr.exception.EmployeeNotFoundException;
-import com.example.hr.exception.InvalidStateException;
-import com.example.hr.exception.ResourceNotFoundException;
+import com.example.hr.exception.ConflictException;
+import com.example.hr.exception.NotFoundException;
+import com.example.hr.exception.BadRequestException;
 import com.example.hr.model.Employee;
 import com.example.hr.model.Organization;
 import com.example.hr.repository.AttendanceRepository;
 import com.example.hr.repository.EmployeeRepository;
 import com.example.hr.repository.OrganizationRepository;
 import com.example.hr.repository.SalaryRepository;
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +50,7 @@ public class EmployeeService {
         employeeRepository.findByEmployeeNo(request.employeeNo)
             .ifPresent(existing -> {
                 if ("在职".equals(existing.getStatus())) {
-                    throw new DuplicateResourceException("员工", request.employeeNo);
+                    throw new ConflictException("员工", request.employeeNo);
                 }
             });
 
@@ -61,12 +65,12 @@ public class EmployeeService {
     @Transactional(rollbackFor = Exception.class)
     public EmployeeResponse update(Long id, EmployeeRequest request) {
         Employee employee = employeeRepository.findById(id)
-            .orElseThrow(() -> new EmployeeNotFoundException(id));
+            .orElseThrow(() -> new NotFoundException("员工", id));
         
         employeeRepository.findByEmployeeNo(request.employeeNo)
             .ifPresent(existing -> {
                 if (!existing.getId().equals(id)) {
-                    throw new DuplicateResourceException("员工工号", request.employeeNo);
+                    throw new ConflictException("员工工号", request.employeeNo);
                 }
             });
         
@@ -77,10 +81,10 @@ public class EmployeeService {
     @Transactional(rollbackFor = Exception.class)
     public EmployeeResponse resign(String employeeNo) {
         Employee employee = employeeRepository.findByEmployeeNo(employeeNo)
-            .orElseThrow(() -> new EmployeeNotFoundException(employeeNo));
+            .orElseThrow(() -> new NotFoundException("员工", employeeNo));
         
         if (!"在职".equals(employee.getStatus())) {
-            throw new InvalidStateException("员工", employee.getStatus(), "在职");
+            throw new BadRequestException("员工", employee.getStatus(), "在职");
         }
         
         employee.setStatus("离职");
@@ -90,10 +94,10 @@ public class EmployeeService {
     @Transactional(rollbackFor = Exception.class)
     public EmployeeResponse rehire(String employeeNo) {
         Employee employee = employeeRepository.findByEmployeeNo(employeeNo)
-            .orElseThrow(() -> new EmployeeNotFoundException(employeeNo));
+            .orElseThrow(() -> new NotFoundException("员工", employeeNo));
         
         if (!"离职".equals(employee.getStatus())) {
-            throw new InvalidStateException("员工", employee.getStatus(), "离职");
+            throw new BadRequestException("员工", employee.getStatus(), "离职");
         }
         
         employee.setStatus("在职");
@@ -103,10 +107,46 @@ public class EmployeeService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         Employee employee = employeeRepository.findById(id)
-            .orElseThrow(() -> new EmployeeNotFoundException(id));
+            .orElseThrow(() -> new NotFoundException("员工", id));
         attendanceRepository.deleteByEmployee(employee);
         salaryRepository.deleteByEmployee(employee);
         employeeRepository.delete(employee);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public EmployeeResponse uploadAvatar(Long id, byte[] fileBytes, String originalFilename) {
+        Employee employee = employeeRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("员工", id));
+        if (fileBytes.length == 0) {
+            throw new BadRequestException("文件为空");
+        }
+        try {
+            Path dir = Paths.get("data", "avatars");
+            Files.createDirectories(dir);
+            Path target = dir.resolve("emp_" + id + ".jpg");
+            Files.write(target, fileBytes);
+            employee.setAvatarPath(target.toString());
+            return EmployeeResponse.from(employeeRepository.save(employee));
+        } catch (Exception e) {
+            throw new RuntimeException("头像上传失败", e);
+        }
+    }
+
+    public byte[] getAvatarBytes(Long id) {
+        Employee employee = employeeRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("员工", id));
+        if (employee.getAvatarPath() == null) {
+            return null;
+        }
+        File file = new File(employee.getAvatarPath());
+        if (!file.exists()) {
+            return null;
+        }
+        try (FileInputStream in = new FileInputStream(file)) {
+            return in.readAllBytes();
+        } catch (Exception e) {
+            throw new RuntimeException("读取头像失败", e);
+        }
     }
 
     private void apply(Employee employee, EmployeeRequest request) {
@@ -119,7 +159,7 @@ public class EmployeeService {
 
         if (request.positionId != null) {
             Organization position = organizationRepository.findById(request.positionId)
-                .orElseThrow(() -> new ResourceNotFoundException("岗位", request.positionId));
+                .orElseThrow(() -> new NotFoundException("岗位", request.positionId));
             employee.setPositionRef(position);
             if (position.getParent() != null) {
                 employee.setOrgRef(position.getParent());
@@ -130,7 +170,7 @@ public class EmployeeService {
 
         if (request.managerId != null) {
             Employee manager = employeeRepository.findById(request.managerId)
-                .orElseThrow(() -> new EmployeeNotFoundException(request.managerId));
+                .orElseThrow(() -> new NotFoundException("员工", request.managerId));
             employee.setManagerRef(manager);
         } else {
             employee.setManagerRef(null);

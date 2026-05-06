@@ -1,9 +1,7 @@
 package com.example.hr.service;
 
-import com.example.hr.exception.EmployeeNotActiveException;
-import com.example.hr.exception.EmployeeNotFoundException;
-import com.example.hr.exception.FaceVerificationFailedException;
-import com.example.hr.exception.InvalidStateException;
+import com.example.hr.exception.BadRequestException;
+import com.example.hr.exception.NotFoundException;
 import com.example.hr.model.Attendance;
 import com.example.hr.model.Employee;
 import com.example.hr.repository.AttendanceRepository;
@@ -38,14 +36,14 @@ public class FaceAttendanceService {
 
     public VerificationResult verify(Long employeeId, InputStream image) throws Exception {
         Employee employee = employeeRepository.findById(employeeId)
-            .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
+            .orElseThrow(() -> new NotFoundException("员工", employeeId));
         
         if (!"在职".equals(employee.getStatus())) {
-            throw new EmployeeNotActiveException(employeeId);
+            throw new BadRequestException("员工未在职，ID: " + employeeId);
         }
         
         if (employee.getAvatarPath() == null) {
-            throw new InvalidStateException("员工", "无头像", "有头像");
+            throw new BadRequestException("员工", "无头像", "有头像");
         }
         
         byte[] probeImage = image.readAllBytes();
@@ -71,7 +69,8 @@ public class FaceAttendanceService {
         ensureSimilarity(result);
         
         if (!result.matched()) {
-            throw new FaceVerificationFailedException(result.similarity(), FACE_SIMILARITY_THRESHOLD);
+            throw new BadRequestException(
+                String.format("人脸相似度 %.1f%% 低于阈值 %.0f%%", result.similarity(), FACE_SIMILARITY_THRESHOLD));
         }
         
         LocalDate today = LocalDate.now();
@@ -85,7 +84,7 @@ public class FaceAttendanceService {
         } else if (!hasCheckOut) {
             return doCheckOut(employeeId);
         } else {
-            throw new InvalidStateException("考勤", "今日已完成打卡", "次日再打卡");
+            throw new BadRequestException("考勤", "今日已完成打卡", "次日再打卡");
         }
     }
 
@@ -95,14 +94,15 @@ public class FaceAttendanceService {
         ensureSimilarity(result);
         
         if (!result.matched()) {
-            throw new FaceVerificationFailedException(result.similarity(), FACE_SIMILARITY_THRESHOLD);
+            throw new BadRequestException(
+                String.format("人脸相似度 %.1f%% 低于阈值 %.0f%%", result.similarity(), FACE_SIMILARITY_THRESHOLD));
         }
         
         LocalDate today = LocalDate.now();
         attendanceRepository.findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(
             employeeId, today
         ).ifPresent(open -> {
-            throw new InvalidStateException("考勤", "已签到未签退", "已签退");
+            throw new BadRequestException("考勤", "已签到未签退", "已签退");
         });
         
         return doCheckIn(employeeId);
@@ -114,17 +114,18 @@ public class FaceAttendanceService {
         ensureSimilarity(result);
         
         if (!result.matched()) {
-            throw new FaceVerificationFailedException(result.similarity(), FACE_SIMILARITY_THRESHOLD);
+            throw new BadRequestException(
+                String.format("人脸相似度 %.1f%% 低于阈值 %.0f%%", result.similarity(), FACE_SIMILARITY_THRESHOLD));
         }
         
         LocalDate today = LocalDate.now();
         Attendance attendance = attendanceRepository.findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(
             employeeId, today
-        ).orElseThrow(() -> new InvalidStateException("考勤", "无签到记录", "已签到"));
+        ).orElseThrow(() -> new BadRequestException("考勤", "无签到记录", "已签到"));
         
         LocalTime now = LocalTime.now();
         if (now.isBefore(attendance.getCheckIn())) {
-            throw new InvalidStateException("考勤", "签退时间早于签到时间", "签退时间晚于签到时间");
+            throw new BadRequestException("考勤", "签退时间早于签到时间", "签退时间晚于签到时间");
         }
         
         attendance.setCheckOut(now);
@@ -134,7 +135,7 @@ public class FaceAttendanceService {
     private Attendance doCheckIn(Long employeeId) {
         Attendance attendance = new Attendance();
         attendance.setEmployee(employeeRepository.findById(employeeId)
-            .orElseThrow(() -> new EmployeeNotFoundException(employeeId)));
+            .orElseThrow(() -> new NotFoundException("员工", employeeId)));
         attendance.setWorkDate(LocalDate.now());
         attendance.setStatus("Normal");
         attendance.setCheckIn(LocalTime.now());
@@ -145,11 +146,11 @@ public class FaceAttendanceService {
         LocalDate today = LocalDate.now();
         Attendance attendance = attendanceRepository.findTopByEmployeeIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(
             employeeId, today
-        ).orElseThrow(() -> new InvalidStateException("考勤", "无签到记录", "已签到"));
+        ).orElseThrow(() -> new BadRequestException("考勤", "无签到记录", "已签到"));
         
         LocalTime now = LocalTime.now();
         if (now.isBefore(attendance.getCheckIn())) {
-            throw new InvalidStateException("考勤", "签退时间早于签到时间", "签退时间晚于签到时间");
+            throw new BadRequestException("考勤", "签退时间早于签到时间", "签退时间晚于签到时间");
         }
         
         attendance.setCheckOut(now);
@@ -158,7 +159,8 @@ public class FaceAttendanceService {
 
     private void ensureSimilarity(VerificationResult result) {
         if (result.similarity() < FACE_SIMILARITY_THRESHOLD) {
-            throw new FaceVerificationFailedException(result.similarity(), FACE_SIMILARITY_THRESHOLD);
+            throw new BadRequestException(
+                String.format("人脸相似度 %.1f%% 低于阈值 %.0f%%", result.similarity(), FACE_SIMILARITY_THRESHOLD));
         }
     }
 

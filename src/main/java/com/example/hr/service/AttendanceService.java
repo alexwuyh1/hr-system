@@ -1,9 +1,8 @@
 package com.example.hr.service;
 
 import com.example.hr.dto.AttendanceRequest;
-import com.example.hr.exception.EmployeeNotActiveException;
-import com.example.hr.exception.EmployeeNotFoundException;
-import com.example.hr.exception.ResourceNotFoundException;
+import com.example.hr.exception.BadRequestException;
+import com.example.hr.exception.NotFoundException;
 import com.example.hr.model.Attendance;
 import com.example.hr.model.Employee;
 import com.example.hr.repository.AttendanceRepository;
@@ -45,7 +44,7 @@ public class AttendanceService {
     @Transactional(rollbackFor = Exception.class)
     public Attendance update(Long id, AttendanceRequest request) {
         Attendance attendance = attendanceRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("考勤记录", id));
+            .orElseThrow(() -> new NotFoundException("考勤记录", id));
         apply(attendance, request);
         attendance = attendanceRepository.save(attendance);
         initEmployee(attendance.getEmployee());
@@ -66,10 +65,10 @@ public class AttendanceService {
 
     private void apply(Attendance attendance, AttendanceRequest request) {
         Employee employee = employeeRepository.findById(request.employeeId)
-            .orElseThrow(() -> new EmployeeNotFoundException(request.employeeId));
+            .orElseThrow(() -> new NotFoundException("员工", request.employeeId));
         
         if (!"在职".equals(employee.getStatus())) {
-            throw new EmployeeNotActiveException(request.employeeId);
+            throw new BadRequestException("员工未在职，ID: " + request.employeeId);
         }
         
         LocalDate today = LocalDate.now();
